@@ -1,0 +1,254 @@
+{
+  "id": "SOP-B-006",
+  "class_code": "B",
+  "title": "Restart Collect Service on Servers 110 and 111",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "collect-service",
+    "jboss-eap-7.4",
+    "collections-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart collections service",
+    "stop/start Collect on 110/111"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "verify no collection batches in progress",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check collection schedule",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with collections department",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SSH to server 192.168.1.110 or 192.168.1.111",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /rpool1/Collect/jboss-eap-7.4/bin",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Stop the service: ./stopCollect.sh",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start the service: ./startCollect.sh",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start batch service: ./startCOLBatch.sh",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Repeat on second server",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify Collect service is running",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check batch collection processing",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test collection inquiries",
+      "sequence": 12,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check configuration",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "restore from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Collect handles collections processing",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "batch service must be started separately",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "coordinate with collections department",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart may affect collection processing temporarily",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "collect-service",
+    "jboss-eap-7.4",
+    "collections-system"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.1.110 or 192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "verify Collect service is running",
+      "source_section": "procedure",
+      "sequence": 10
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check configuration",
+      "source_section": "rollback",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "batch service must be started separately",
+      "source_section": "notes",
+      "sequence": 2
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.459192",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-COLLECT-RESTART-006.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "202b1b795d24bb2ed4a4cf90cf5b4cbcc8e9b16d0a06fd97354b9a105231078b",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.459192",
+    "normalized_at": "2026-05-15T07:25:53.459192"
+  },
+  "source_sections": [
+    "notes",
+    "procedure",
+    "rollback"
+  ]
+}

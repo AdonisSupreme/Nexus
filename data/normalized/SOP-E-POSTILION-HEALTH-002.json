@@ -1,0 +1,635 @@
+{
+  "id": "SOP-E-POSTILION-HEALTH-002",
+  "class_code": "E",
+  "title": "Verify Postilion Transaction Processing Health",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "postilion-realtime",
+    "transaction-manager",
+    "zimswitch-interchange",
+    "card-transaction-processing"
+  ],
+  "environments": [
+    "PROD",
+    "TEST",
+    "DR"
+  ],
+  "aliases": [
+    "Check Postilion status",
+    "Verify card transaction health",
+    "ATM/POS system verification",
+    "Transaction flow monitoring"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "description: Verify nodes, connectivity, and overall Postilion system health",
+      "sequence": 1,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "access monitor: Access Postilion Realtime Monitor",
+      "sequence": 2,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify node status: expected: All working Nodes gray, arrows black",
+      "sequence": 3,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify node status: warnings: No red or yellow indicators",
+      "sequence": 4,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check zimswitch status: Verify ZimSwitch interchange status",
+      "sequence": 5,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify afc node connectivity: Check AFCIntellect node connectivity",
+      "sequence": 6,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction manager status: Check Transaction Manager status",
+      "sequence": 7,
+      "source_section": "realtime monitor checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Validate transaction flow using Postilion queries",
+      "sequence": 8,
+      "source_section": "transaction query checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "navigate query console: Queries → Transactions → Operational Query → Last 10 Transactions",
+      "sequence": 9,
+      "source_section": "transaction query checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "select date: Current Date",
+      "sequence": 10,
+      "source_section": "transaction query checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "filter nodes: Source Node = Any, Sink Node = Any",
+      "sequence": 11,
+      "source_section": "transaction query checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "search transactions: Click Search multiple times to verify flow",
+      "sequence": 12,
+      "source_section": "transaction query checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify response codes: Response Code field should show zeros ('0') for approved transactions",
+      "sequence": 13,
+      "source_section": "transaction query checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Check Postilion event logs for errors and warnings",
+      "sequence": 14,
+      "source_section": "event log checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "navigate events: Events under Realtime Monitor",
+      "sequence": 15,
+      "source_section": "event log checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "select date range: Specify date range and search",
+      "sequence": 16,
+      "source_section": "event log checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "monitor errors: Look for error events and system warnings",
+      "sequence": 17,
+      "source_section": "event log checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check license events: Check for license-related events",
+      "sequence": 18,
+      "source_section": "event log checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Every hour during business hours",
+      "sequence": 19,
+      "source_section": "scheduled check times",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "After Postilion service restarts",
+      "sequence": 20,
+      "source_section": "scheduled check times",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Following license updates",
+      "sequence": 21,
+      "source_section": "scheduled check times",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "During known peak transaction periods",
+      "sequence": 22,
+      "source_section": "scheduled check times",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "description: Monitor transaction flow traces for abnormal patterns",
+      "sequence": 1,
+      "source_section": "trace monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "reset traces: Turn traces off, clear all, turn them back on",
+      "sequence": 2,
+      "source_section": "trace monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor abnormal patterns: Check for timeout errors or rejections",
+      "sequence": 3,
+      "source_section": "trace monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Ensure licenses are valid and not expired",
+      "sequence": 4,
+      "source_section": "license verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "select application: eftcAFCIntellect",
+      "sequence": 5,
+      "source_section": "license verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "command type: License_?",
+      "sequence": 6,
+      "source_section": "license verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "send command: Click Send",
+      "sequence": 7,
+      "source_section": "license verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify expiry: Ensure expiry date is valid",
+      "sequence": 8,
+      "source_section": "license verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "repeat for critical nodes: True",
+      "sequence": 9,
+      "source_section": "license verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Verify SQL Server memory, services, and database connection health",
+      "sequence": 10,
+      "source_section": "sql server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "memory usage: Monitor SQL Server memory usage on Postilion servers",
+      "sequence": 11,
+      "source_section": "sql server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service status: Verify SQL Server service running",
+      "sequence": 12,
+      "source_section": "sql server health",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "connection counts: Check database connection counts",
+      "sequence": 13,
+      "source_section": "sql server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction log size: Monitor transaction log size",
+      "sequence": 14,
+      "source_section": "sql server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All nodes gray, arrows black, continuous transaction flow, approval rate >99.5%, no critical errors",
+      "sequence": 15,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: color code: Green",
+      "sequence": 16,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: Intermittent transaction failures, some nodes yellow, approval rate 95-99.5%, non-critical warnings",
+      "sequence": 17,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: color code: Yellow",
+      "sequence": 18,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: description: Transaction flow stopped, critical nodes red/offline, approval rate <95%, multiple critical errors",
+      "sequence": 19,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: color code: Red",
+      "sequence": 20,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Check SQL Server memory, restart if >90% (SOP-B-010)",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "within 5 minutes: Restart Postilion services if nodes red",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 15 minutes: Escalate to card operations team",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 30 minutes: Notify Head ICT if unresolved",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "transaction approval rate: >99%",
+      "sequence": 1,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "avg response time: < 2 seconds for authorization",
+      "sequence": 2,
+      "source_section": "performance metrics",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "peak transaction volume handling: True",
+      "sequence": 3,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "error rate: <0.5% of total transactions",
+      "sequence": 4,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Maintain detailed logs for monitoring and auditing",
+      "sequence": 5,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "hourly_status_log",
+      "sequence": 6,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction_statistics",
+      "sequence": 7,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "error_counts_and_types",
+      "sequence": 8,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "response_time_metrics",
+      "sequence": 9,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "corrective_actions_taken",
+      "sequence": 10,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical for 24/7 card transaction processing",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Real-time monitoring essential",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "License expiry can cause complete outage",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SQL Server memory issues are common cause of problems",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with ZSS operations for escalations",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "postilion-realtime",
+    "transaction-manager",
+    "zimswitch-interchange",
+    "card-transaction-processing"
+  ],
+  "owners": [
+    "Coordinate with ZSS operations for escalations"
+  ],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "select date: Current Date",
+      "source_section": "transaction query checks",
+      "sequence": 10
+    },
+    {
+      "type": "sql",
+      "value": "select date range: Specify date range and search",
+      "source_section": "event log checks",
+      "sequence": 16
+    },
+    {
+      "type": "sql",
+      "value": "select application: eftcAFCIntellect",
+      "source_section": "license verification",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "service status: Verify SQL Server service running",
+      "source_section": "sql server health",
+      "sequence": 12
+    },
+    {
+      "type": "threshold",
+      "value": "2 seconds",
+      "source_section": "performance metrics",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "After Postilion service restarts",
+      "source_section": "scheduled check times",
+      "sequence": 20
+    },
+    {
+      "type": "threshold",
+      "value": " 5 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:55.159667",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-POSTILION-HEALTH-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "dfc112446d2ff1c6d333fc48919b38b5bc44d6e35b2a3db5b5eac6480b11eb4f",
+    "wrapper_key": "SOP-E-POSTILION-HEALTH-002",
+    "ingested_at": "2026-05-15T07:25:55.159667",
+    "normalized_at": "2026-05-15T07:25:55.159667"
+  },
+  "source_sections": [
+    "documentation",
+    "escalation procedure",
+    "event log checks",
+    "health status criteria",
+    "license verification",
+    "notes",
+    "performance metrics",
+    "realtime monitor checks",
+    "scheduled check times",
+    "sql server health",
+    "trace monitoring",
+    "transaction query checks"
+  ]
+}

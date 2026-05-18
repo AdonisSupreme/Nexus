@@ -1,0 +1,102 @@
+id: SOP-F-004
+class: F
+title: Perago RTGS STP User Administration
+severity: high
+
+services:
+  - perago-rtgs-system
+  - real-time-gross-settlement
+  - payment-systems
+  - financial-messaging
+
+environments:
+  - PROD
+
+aliases:
+  - Perago RTGS user administration
+  - RTGS user management
+  - Payment system user administration
+  - Financial messaging user setup
+
+checks:
+  - "Verify Chief Security Officer available for overall system security"
+  - "Confirm Chief Security Officer registers application Administrators"
+  - "Validate Administrators assigned by CSO"
+  - "Check Treasury Department Head as business owner"
+  - "Confirm user approved by Treasury Department"
+  - "Verify administrator registered by Chief Security Officer"
+  - "Validate role and authorization levels defined"
+  - "Confirm business area assignment"
+
+recommended_actions:
+  - "Access hierarchy: Chief Security Officer registers Administrators"
+  - "Access hierarchy: Administrators register and manage Users"
+  - "Access hierarchy: Users receive application-specific access"
+  - "Access hierarchy: Administrators may assign admin rights to other users"
+  - "User registration procedure: Login to Perago RTGS as Administrator"
+  - "User registration procedure: Navigate to: User Administration → Maintain Users"
+  - "User registration procedure: Select username from dropdown (pre-registered by perago:rtgs administrator)"
+  - "User registration procedure: Click Add"
+  - "User registration procedure: Capture personal details"
+  - "User registration procedure: Link user to business area (if required)"
+  - "User registration procedure: Configure logon permissions"
+  - "User registration procedure: Modify daily schedule if different from default"
+  - "User registration procedure: Assign roles to user"
+  - "User registration procedure: Configure function authorization levels"
+  - "User registration procedure: Enter change reason"
+  - "User registration procedure: Click Save"
+  - "User registration procedure: Submit for processing and authorization"
+  - "Logon permissions configuration parameters: application_selection, access_type (Administrator or User), effective_date, revoke_date"
+  - "Logon permissions configuration rules: Administrator and User access are mutually exclusive"
+  - "Function authorization levels configuration: capture_rights, first_authorization_level, second_authorization_level, value_constraints"
+  - "User modification: Click Edit icon for selected user"
+  - "User modification: Modify required fields"
+  - "User modification: Enter change reason"
+  - "User modification: Click Save"
+  - "User modification: Submit for processing and authorization"
+  - "User revocation: Click Revoke icon for selected user"
+  - "User revocation: System validates existing permissions"
+  - "User revocation: Enter revocation reason"
+  - "User revocation: Click Save"
+  - "User revocation rules: Revoked users cannot be reactivated"
+  - "Access reset procedure for user locked after three failed login attempts: Navigate to: Reset User Access"
+  - "Access reset procedure: Select user from dropdown (revoked users only)"
+  - "Access reset procedure: Enter change reason"
+  - "Access reset procedure: Submit for processing and authorization"
+  - "Password reset procedure: Navigate to: Reset User Password"
+  - "Password reset procedure: Select user from dropdown"
+  - "Password reset procedure: Enter initial password"
+  - "Password reset procedure: Enter change reason"
+  - "Password reset procedure: Submit"
+  - "Password reset rules: User forced to change password on first login"
+  - "Verification: User can log in successfully"
+  - "Verification: Assigned access levels correct"
+  - "Verification: Authorization constraints enforced"
+  - "Verification: Daily schedule restrictions applied"
+  - "Verification: Audit trail entries created"
+
+notes:
+  - "Critical financial system requiring highest security standards"
+  - "Users inherit permissions from assigned roles"
+  - "User-level constraints override role-level constraints"
+  - "When multiple roles exist, the highest constraint value applies"
+  - "Regular access reviews are mandatory"
+  - "Temporary passwords should follow complexity requirements"
+  - "Security controls: Three-tier authorization model"
+  - "Security controls: Function-level authorization constraints"
+  - "Security controls: Daily schedule enforcement"
+  - "Security controls: Automatic account lockout after failed attempts"
+  - "Security controls: Full audit trail for all changes"
+  - "Escalation path Level 1: System Administrator (routine user administration)"
+  - "Escalation path Level 2: Chief Security Officer (security-related issues)"
+  - "Escalation path Level 3: Treasury Management (business impact)"
+  - "Escalation path Level 4: Head ICT (system-wide or critical incidents)"
+  - "Documentation: User registration forms"
+  - "Documentation: Authorization matrices"
+  - "Documentation: Change request records"
+  - "Documentation: Security incident logs"
+  - "Documentation: Access review reports"
+  - "Compliance requirements: RTGS regulatory requirements"
+  - "Compliance requirements: Financial system access controls"
+  - "Compliance requirements: Segregation of duties enforcement"
+  - "Compliance requirements: Regular audit compliance"

@@ -1,0 +1,68 @@
+id: SOP-C-004
+class: C
+title: Veeam Restore Procedures
+severity: high
+
+services:
+  - veeam-backup
+  - vmware-virtualization
+  - server-recovery
+  - backup-restoration
+
+environments:
+  - PROD
+  - DR
+  - TEST
+
+aliases:
+  - Server restoration
+  - Veeam recovery
+  - Virtual machine restore
+  - Disaster recovery restoration
+
+checks:
+  - Verify Veeam server access
+  - Confirm restore point availability
+  - Ensure VMware environment has sufficient resources
+  - Notify relevant teams of restoration activity
+
+recommended_actions:
+  - "Connect to backup server"
+  - "Launch Veeam application"
+  - "Navigate through Veeam interface"
+  - "Home tab → Restore → VMware"
+  - "Select Instant VM Recovery → Next"
+  - "Expand Server 120 Working → Select NewAgriLiveCore → Next"
+  - "Select restore point (latest increment) → Next"
+  - "Recovery Mode: Restore to new location or different settings → Next"
+  - "Destination: Change restored VM name → Next"
+  - "Tick Redirect Virtual Disk Updates"
+  - "Choose datastore (SATA_Datastore_02) → Next"
+  - "Enter reason for restore → Next"
+  - "Click Restore to start process"
+  - "Locate restored server in VMware"
+  - "Right-click → Edit Settings"
+  - "Configure CPU: 32, Cores Per Socket: 8, CPU Hot Plug: enabled"
+  - "Configure Memory: 200000"
+  - "Configure Network Adapter 2: VM Network TESTVLAN, Connect On Power On: enabled"
+  - "Save settings"
+  - "Power on server"
+  - "Open console"
+  - "Sign on as root (password same as LIVE)"
+  - "Change root password"
+  - "Add Notification Area to taskbar"
+  - "Edit network connections for IP and gateway"
+  - "Disable/Enable network to apply changes"
+  - "Add menu bar to taskbar"
+
+rollback:
+  - "Power off restored server"
+  - "Delete from VMware inventory"
+  - "Clean up Veeam recovery session"
+  - "Document restoration attempt"
+
+notes:
+  - Critical for disaster recovery scenarios
+  - Requires VMware and Veeam expertise
+  - Network configuration must match environment requirements
+  - Regular restoration testing recommended

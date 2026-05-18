@@ -1,0 +1,54 @@
+id: SOP-A-021
+class: A
+title: POSMAN Services Down
+severity: medium
+
+services:
+  - posman-application
+  - mysql-database
+  - laragon-services
+  - laravel-queue
+
+environments:
+  - PROD
+
+aliases:
+  - POS terminal management down
+  - terminal reports unavailable
+  - POSMAN portal inaccessible
+  - terminal monitoring offline
+
+symptoms:
+  - POSMAN portal (192.168.0.124:8080) unavailable
+  - terminal management functions failing
+  - reports not generating
+  - queue jobs not processing
+
+checks:
+  - verify XAMPP services on server 0.124 (Apache & MySQL)
+  - check Laragon running as administrator
+  - verify portal on port 8080
+  - check queue processing active
+  - review application logs
+
+likely_causes:
+  - XAMPP services stopped
+  - Laragon not running as administrator
+  - application errors
+  - queue processing stopped
+  - permission issues
+
+recommended_actions:
+  - start XAMPP services (Apache & MySQL)
+  - run Laragon as administrator
+  - start queue processing
+  - check application logs for errors
+  - restart services if needed
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - Laragon must run as administrator
+  - queue processing runs in background
+  - escalate to Digital Systems support if persists

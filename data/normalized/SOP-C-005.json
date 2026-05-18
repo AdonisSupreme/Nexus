@@ -1,0 +1,333 @@
+{
+  "id": "SOP-C-005",
+  "class_code": "C",
+  "title": "Adding New Accounts to Axway STP",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "oracle-database",
+    "axway-stp",
+    "trustlink-interface",
+    "ewallet-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "STP account addition",
+    "Trustlink account updates",
+    "Ewallet account synchronization",
+    "Account file generation"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify Oracle database connectivity",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm access to ewallet system",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ensure input files for processing are available",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Notify relevant team of file upload schedule",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Run query on Oracle database",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Export output to Excel format as Trustlink.xlsx",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Save file to local machine",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Move input file to: C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\input",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Open command prompt and navigate to processing folder: cd C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\code",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Run processing script: python trustlink_file_cleaning.py",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Wait ~1 minute 30 seconds for processing",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Find output at: C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\output",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Login to ewallet",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Go to Reports > Product Wise Account details",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For USD Report: Scheme: 2001001 DIGIPAY, Account Status: Active, From Date: 1 Jan 2022; To Date: Current date, Inputter and Authoriser: All, Download report",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For ZWG Report: Scheme: 2002002 DIGIPAY, Account Status: Active, From Date: 1 Jan 2022; To Date: Current date, Inputter and Authoriser: All, Download report",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Modify downloaded reports with columns: Column 1: Branch (enter 1000), Column 2: Digipay account number, Column 3: Product code (USD: 150, ZWG: 151), Column 4: Account number, Column 5: Currency (USD or ZWG)",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Save both files as CSV",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Open in Notepad, copy data, and paste into Trustlink file (comma separated)",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Upload formatted file to server 192.168.0.45 at path: C:\\TRUSTLINK\\PROD\\RTGS\\AccListSTPLink",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Verify file placement",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Must be completed daily before 07:00 by 11pm to 7am shift resource",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify file format correctness",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check file upload success",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate account synchronization",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor for processing errors",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "If processing fails: Check Python script execution, Verify Oracle database connectivity, Check file permissions, Validate ewallet report generation",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Daily procedure required",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "File format must be exact for STP processing",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Both USD and ZWG accounts must be included",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Timing critical for daily operations",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "oracle-database",
+    "axway-stp",
+    "trustlink-interface",
+    "ewallet-system"
+  ],
+  "owners": [
+    "Timing critical for daily operations"
+  ],
+  "artifacts": [
+    {
+      "type": "threshold",
+      "value": "1 minute",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "threshold",
+      "value": " 30 seconds",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.45",
+      "source_section": "recommended actions",
+      "sequence": 16
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.916829",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-AXWAY-ACCOUNTS-005.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "6aa5c1ece6aa2dcb32ae85665a77dcee1ea86f74903c4193e172b41a6c4843a1",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.916829",
+    "normalized_at": "2026-05-15T07:25:53.916829"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions"
+  ]
+}

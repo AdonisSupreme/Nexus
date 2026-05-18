@@ -1,0 +1,178 @@
+{
+  "id": "SOP-E-IDC-HEALTH-001",
+  "class": "SOP-E",
+  "title": "Verify IDC Core Banking Service Health",
+  "severity": "Medium",
+  "services": [
+    "idc-corebanking",
+    "jboss-eap-7.4",
+    "banking-transactions",
+    "user-authentication"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check IDC service status",
+    "Verify core banking availability",
+    "IDC health check",
+    "Banking system verification"
+  ],
+  "service_status_checks": {
+    "description": "Verify processes, ports, and responsiveness on IDC servers",
+    "servers": [
+      "192.168.1.108",
+      "192.168.1.109"
+    ],
+    "steps": [
+      {
+        "ssh_to_server": "ssh root@<server_ip>"
+      },
+      {
+        "check_process": "ps -ef | grep *Server* | grep core"
+      },
+      {
+        "verify_jboss": "Expected jboss-eap-7.4 process with PID"
+      },
+      {
+        "check_port": "netstat -an | grep :8080 | grep LISTEN"
+      },
+      {
+        "test_endpoint": "Attempt connection to service endpoint"
+      }
+    ]
+  },
+  "log_health_checks": {
+    "description": "Check server logs for critical errors and startup messages",
+    "log_directory": "/rpool1/core/jboss-eap-7.4/standalone/log",
+    "steps": [
+      {
+        "tail_recent_logs": "tail -100 server.log"
+      },
+      {
+        "monitor_live_logs": "tail -f server.log"
+      },
+      {
+        "check_for_errors": [
+          "ERROR",
+          "FATAL"
+        ]
+      },
+      {
+        "verify_startup_messages": "Check for startup completion messages"
+      },
+      {
+        "ensure_no_loops": "Verify no continuous error loops"
+      }
+    ]
+  },
+  "application_health_checks": {
+    "description": "Verify IDC interface functionality",
+    "steps": [
+      {
+        "login_to_interface": "Access IDC interface"
+      },
+      {
+        "navigation_check": "Verify basic menu navigation"
+      },
+      {
+        "user_auth_check": "Check login and authentication"
+      },
+      {
+        "test_simple_inquiry": "Execute sample account inquiry"
+      },
+      {
+        "menu_loading_check": "Verify menu loading without errors"
+      }
+    ]
+  },
+  "performance_indicators": {
+    "description": "Monitor system performance",
+    "metrics": {
+      "login_response_time": "< 5 seconds",
+      "transaction_processing_time": "< 10 seconds for simple transactions",
+      "jboss_memory_usage": "Check via top or ps aux",
+      "cpu_usage_peak": "Monitor during peak times"
+    }
+  },
+  "dependency_checks": {
+    "description": "Verify critical system dependencies",
+    "steps": [
+      {
+        "database_connectivity": "Check connectivity from application logs"
+      },
+      {
+        "arx_auth_service": "Verify ARX authentication availability"
+      },
+      {
+        "dcof_connectivity": "Test interface services connectivity"
+      },
+      {
+        "treasury_integration": "Verify integration with Treasury module"
+      }
+    ]
+  },
+  "scheduled_health_time": {
+    "description": "When to perform health checks",
+    "schedule": [
+      {
+        "daily": "06:00 before business hours"
+      },
+      {
+        "after_restart": "Following any service restart"
+      },
+      {
+        "after_changes": "After system changes or deployments"
+      },
+      {
+        "performance_alerts": "During suspected performance issues"
+      }
+    ]
+  },
+  "health_status_criteria": {
+    "HEALTHY": {
+      "description": "All services running, no critical errors, SLA met",
+      "color_code": "Green"
+    },
+    "DEGRADED": {
+      "description": "Service running with warnings, intermittent errors",
+      "color_code": "Yellow"
+    },
+    "UNHEALTHY": {
+      "description": "Service down, critical errors, multiple dependencies unavailable",
+      "color_code": "Red"
+    }
+  },
+  "documentation_requirements": {
+    "description": "What to record during health checks",
+    "items": [
+      "check_timestamp",
+      "service_status",
+      "errors_found",
+      "response_times",
+      "corrective_actions"
+    ]
+  },
+  "escalation_path": {
+    "description": "Steps if health check fails",
+    "steps": [
+      {
+        "first_attempt": "Restart service per SOP-B procedures"
+      },
+      {
+        "unresolved_15min": "Escalate to IDC support team"
+      },
+      {
+        "business_impact": "Notify Head ICT immediately"
+      }
+    ]
+  },
+  "notes": [
+    "Regular health checks prevent surprise outages",
+    "Log analysis provides early warning signs",
+    "Performance trending helps capacity planning",
+    "Document all findings for historical analysis"
+  ]
+}

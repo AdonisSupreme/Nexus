@@ -1,0 +1,58 @@
+id: SOP-B-016
+class: B
+title: Change User Role in IDC
+severity: medium
+
+services:
+  - idc-user-management
+  - role-configuration
+  - authorization-services
+
+environments:
+  - PROD
+
+aliases:
+  - update user permissions
+  - change IDC user role
+  - modify user profile
+
+pre_checks:
+  - verify user access form is approved by Line Management and Risk
+  - check current user role
+  - verify new role exists in IDC
+
+procedure:
+  - login to IDC
+  - type "change user role" in search bar
+  - enter requester's user ID
+  - review current role under "Existing Role"
+  - enter new role under "New Role"
+  - add remarks
+  - click SUBMIT
+  - authorizer approves under "Authorisation Non Financial"
+
+error_resolution (admin unit error):
+  - 'error: "User Role admin unit code should be equal to the Office Codes admin unit"'
+  - 'check user branch: "View User Profile"'
+  - 'check branch admin unit code: "Configure Our Branch Codes"'
+  - 'check role admin unit code: "Configure User Role"'
+  - change role admin unit code to match branch admin unit code
+  - authorize the change
+  - retry role change
+
+post_verification:
+  - verify user has new role permissions
+  - test role-specific functions
+  - confirm with user
+
+rollback:
+  - revert to previous role
+  - check admin unit codes
+  - escalate to IDC support
+
+notes:
+  - never change admin role code for branches
+  - only change admin unit codes for user roles
+  - 'common error: admin unit code mismatch'
+  - always request up-to-date access form approvals
+  - coordinate with RISK Management and Risk for approvals

@@ -1,0 +1,52 @@
+{
+  "id": "SOP-B-010",
+  "class": "B",
+  "title": "Daily Restart of Postilion and SQL Server Services",
+  "severity": "medium",
+  "services": [
+    "postilion-realtime",
+    "sql-server",
+    "transaction-manager",
+    "certificate-manager"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "daily Postilion restart",
+    "SQL Server memory release",
+    "transaction manager restart"
+  ],
+  "pre_checks": [
+    "verify no critical transactions in progress",
+    "check Postilion realtime monitor",
+    "ensure time is before 07:00hrs"
+  ],
+  "procedure": [
+    "log into Postilion Realtime Server (192.168.0.91)",
+    "stop Transaction Manager service",
+    "stop SQL Server MSSQLSERVER service",
+    "start SQL Server MSSQLSERVER service",
+    "restart Certificate Manager service",
+    "restart Scheduler service",
+    "restart SSF Monitor service",
+    "restart AFCIntellect service",
+    "start Transaction Manager service"
+  ],
+  "post_verification": [
+    "verify all services are running",
+    "check Postilion realtime monitor",
+    "test transaction flow"
+  ],
+  "rollback": [
+    "if services fail to start, check SQL Server memory",
+    "restart services in order",
+    "escalate to Postilion support team"
+  ],
+  "notes": [
+    "must be done daily before 07:00hrs",
+    "frees up memory usage",
+    "critical for transaction processing stability",
+    "coordinate with ZSS operations team if needed"
+  ]
+}

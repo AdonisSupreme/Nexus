@@ -1,0 +1,112 @@
+id: SOP-F-008
+class: F
+title: Emergency Escalation Paths and Contacts
+severity: critical
+
+services:
+  - all-systems
+  - incident-management
+  - business-continuity
+  - crisis-management
+
+environments:
+  - PROD
+  - DR
+  - TEST
+
+aliases:
+  - Emergency escalation procedures
+  - Incident escalation paths
+  - Crisis management contacts
+  - Business continuity escalation
+
+checks:
+  - "Verify first responder is ICT Operations Staff (24/7 availability)"
+  - "Confirm technical escalation teams available"
+  - "Validate management escalation contacts updated"
+  - "Check business escalation paths defined"
+  - "Confirm external escalation contacts current"
+
+recommended_actions:
+  - "Administrative boundaries: First Responder: ICT Operations Staff (24/7)"
+  - "Administrative boundaries: Technical Escalation: System-specific support teams"
+  - "Administrative boundaries: Management Escalation: Department Heads and Head ICT"
+  - "Administrative boundaries: Business Escalation: Executive Management"
+  - "Administrative boundaries: External Escalation: Vendors and Regulatory Bodies"
+  - "Critical Systems escalation (Banking Core, Payments): Immediate: First responder action"
+  - "Critical Systems escalation: 15 minutes: Technical team engagement"
+  - "Critical Systems escalation: 30 minutes: Management notification"
+  - "Critical Systems escalation: 60 minutes: Business impact assessment"
+  - "Critical Systems escalation: 120 minutes: Executive notification"
+  - "Important Systems escalation (Channels, Interfaces): 15 minutes: First responder action"
+  - "Important Systems escalation: 30 minutes: Technical team engagement"
+  - "Important Systems escalation: 60 minutes: Management notification"
+  - "Important Systems escalation: 120 minutes: Business impact assessment"
+  - "Support Systems escalation (Reporting, Administration): 60 minutes: First responder action"
+  - "Support Systems escalation: 120 minutes: Technical team engagement"
+  - "Support Systems escalation: 4 hours: Management notification"
+  - "Support Systems escalation: 8 hours: Business impact assessment"
+  - "Internal technical teams: IDC Support Team for core banking issues"
+  - "Internal technical teams: Card Operations for Postilion and card transactions"
+  - "Internal technical teams: Digital Banking for Mobile, Internet banking, E-Wallet"
+  - "Internal technical teams: Treasury Systems for RTGS, Perago, Treasury modules"
+  - "Internal technical teams: Database Administration for Oracle, SQL Server"
+  - "Internal technical teams: Network Team for connectivity and infrastructure"
+  - "Management contacts: ICT Operations Manager (24/7 availability)"
+  - "Management contacts: Head of Digital Banking for channel issues"
+  - "Management contacts: Treasury Manager for payment system issues"
+  - "Management contacts: Head ICT for all critical incidents"
+  - "Management contacts: Chief Operations Officer for business impact incidents"
+  - "External contacts: IDC Vendor Support (Intellect Design Arena)"
+  - "External contacts: Postilion Support (ACI Worldwide)"
+  - "External contacts: RBZ NPSD: npsd@rbz.co.zw (CSD RTGS)"
+  - "External contacts: ZimSwitch technical support"
+  - "External contacts: Internet Service Providers for connectivity issues"
+  - "External contacts: Hardware Vendors for server and storage issues"
+  - "Initial notification: System alert or manual detection"
+  - "Initial notification: Immediate impact assessment"
+  - "Initial notification: Notify first responder team"
+  - "Initial notification: Initial troubleshooting"
+  - "Ongoing updates: 15 minute updates for critical incidents"
+  - "Ongoing updates: Hourly updates for major incidents"
+  - "Ongoing updates: Shift handover with status"
+  - "Ongoing updates: Management briefings as required"
+  - "Resolution communication: Root cause identification"
+  - "Resolution communication: Resolution timeframe"
+  - "Resolution communication: Workaround availability"
+  - "Resolution communication: Final resolution confirmation"
+  - "Resolution communication: Post incident review schedule"
+  - "Automatic escalation triggers: System downtime over 15 minutes for critical systems"
+  - "Automatic escalation triggers: Transaction failure rate over 5 percent"
+  - "Automatic escalation triggers: Security breach detected"
+  - "Automatic escalation triggers: Data corruption or loss"
+  - "Automatic escalation triggers: Multiple system failures"
+  - "Manual escalation triggers: Business process disruption"
+  - "Manual escalation triggers: Regulatory reporting impact"
+  - "Manual escalation triggers: Significant customer impact"
+  - "Manual escalation triggers: Media or public attention"
+  - "Manual escalation triggers: Management request"
+  - "Business impact assessment criteria: Number of customers affected"
+  - "Business impact assessment criteria: Financial transaction impact"
+  - "Business impact assessment criteria: Regulatory compliance impact"
+  - "Business impact assessment criteria: Reputation risk"
+  - "Business impact assessment criteria: Recovery time requirements"
+  - "Impact level Critical: Core banking unavailable, major payment system down"
+  - "Impact level High: Multiple channels down, significant customer impact"
+  - "Impact level Medium: Single channel down, moderate customer impact"
+  - "Impact level Low: Minor system issues, minimal customer impact"
+  - "Post incident requirements: Root cause analysis report"
+  - "Post incident requirements: Corrective action plan"
+  - "Post incident requirements: Process improvement recommendations"
+  - "Post incident requirements: Documentation updates"
+  - "Post incident requirements: Training requirements identification"
+
+notes:
+  - "24/7 operations require continuous escalation capability"
+  - "Contact information must be regularly updated"
+  - "Communication templates prepared in advance"
+  - "Regular testing of escalation procedures"
+  - "Cross-training for all escalation responsibilities"
+  - "Incident log requirements: Detection time and method, initial impact assessment, actions taken and times, escalations made, resolution time and method, business impact summary"
+  - "Communication records: All notifications sent, responses received, meeting minutes, decision records, handover documentation"
+  - "Compliance requirements: Regulatory reporting for major incidents, audit trail of all actions, management notification protocols, business continuity plan activation, disaster recovery procedures"

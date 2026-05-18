@@ -1,0 +1,416 @@
+{
+  "id": "SOP-C-009",
+  "class_code": "C",
+  "title": "Flexilytics API and Portal Handover",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "flexilytics-api",
+    "flexilytics-portal",
+    "mysql-database",
+    "reporting-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Flexilytics service management",
+    "Merchant reports system",
+    "E-channels reporting",
+    "Analytics platform maintenance"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "API response time monitoring",
+      "sequence": 1,
+      "source_section": "performance monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Report generation performance",
+      "sequence": 2,
+      "source_section": "performance monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Database query optimization",
+      "sequence": 3,
+      "source_section": "performance monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Email delivery latency",
+      "sequence": 4,
+      "source_section": "performance monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "Regular service status checks",
+      "sequence": 1,
+      "source_section": "maintenance procedures",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Database connectivity verification",
+      "sequence": 2,
+      "source_section": "maintenance procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Report generation validation",
+      "sequence": 3,
+      "source_section": "maintenance procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Email delivery confirmation",
+      "sequence": 4,
+      "source_section": "maintenance procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Graph data update monitoring",
+      "sequence": 5,
+      "source_section": "maintenance procedures",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Generates Merchant Services Reports",
+      "sequence": 1,
+      "source_section": "system functions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automation of email merchant reports",
+      "sequence": 2,
+      "source_section": "system functions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automation of daily/monthly data for graphs",
+      "sequence": 3,
+      "source_section": "system functions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Contains E-channels reports (Zipit Send, Bill Payments, etc.)",
+      "sequence": 4,
+      "source_section": "system functions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "server: 192.168.0.68",
+      "sequence": 5,
+      "source_section": "api management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "procedure: Login to server with credentials",
+      "sequence": 6,
+      "source_section": "api management",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "procedure: Go to Xampp (Apache and MySQL), start if down",
+      "sequence": 7,
+      "source_section": "api management",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "procedure: Check application running on port: http://192.168.0.68:8000/docs/",
+      "sequence": 8,
+      "source_section": "api management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "server: 192.168.0.68",
+      "sequence": 9,
+      "source_section": "portal management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "procedure: Login via remote desktop",
+      "sequence": 10,
+      "source_section": "portal management",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "procedure: Go to Xampp (Apache and MySQL), start if down",
+      "sequence": 11,
+      "source_section": "portal management",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "procedure: Check application running on port: http://192.168.0.68:9001/",
+      "sequence": 12,
+      "source_section": "portal management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "xampp not running: Start Xampp services immediately",
+      "sequence": 13,
+      "source_section": "error handling",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "weekly monthly data not updating: Check if FlexiWebApp Task Scheduler is running",
+      "sequence": 14,
+      "source_section": "error handling",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "e channels merchants data not retrieved: Check if AFCFlexiAnalyticsFastAPI Service is running",
+      "sequence": 15,
+      "source_section": "error handling",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "merchants not receiving emails: Check if AFCFlexiAnalyticsReport Service is running",
+      "sequence": 16,
+      "source_section": "error handling",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Database backup scheduling",
+      "sequence": 17,
+      "source_section": "backup requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Report configuration backups",
+      "sequence": 18,
+      "source_section": "backup requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Email template backups",
+      "sequence": 19,
+      "source_section": "backup requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Service configuration backups",
+      "sequence": 20,
+      "source_section": "backup requirements",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Multiple interdependent services",
+      "sequence": 21,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automated reporting critical for merchant services",
+      "sequence": 22,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular monitoring prevents reporting failures",
+      "sequence": 23,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Email delivery verification essential",
+      "sequence": 24,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "flexilytics-api",
+    "flexilytics-portal",
+    "mysql-database",
+    "reporting-services"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.68",
+      "source_section": "api management",
+      "sequence": 5
+    },
+    {
+      "type": "url",
+      "value": "http://192.168.0.68:8000/docs/",
+      "source_section": "api management",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.68",
+      "source_section": "api management",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.68",
+      "source_section": "portal management",
+      "sequence": 9
+    },
+    {
+      "type": "url",
+      "value": "http://192.168.0.68:9001/",
+      "source_section": "portal management",
+      "sequence": 12
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.68",
+      "source_section": "portal management",
+      "sequence": 12
+    },
+    {
+      "type": "command",
+      "value": "e channels merchants data not retrieved: Check if AFCFlexiAnalyticsFastAPI Service is running",
+      "source_section": "error handling",
+      "sequence": 15
+    },
+    {
+      "type": "command",
+      "value": "merchants not receiving emails: Check if AFCFlexiAnalyticsReport Service is running",
+      "source_section": "error handling",
+      "sequence": 16
+    },
+    {
+      "type": "command",
+      "value": "Regular service status checks",
+      "source_section": "maintenance procedures",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "Graph data update monitoring",
+      "source_section": "maintenance procedures",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "Service configuration backups",
+      "source_section": "backup requirements",
+      "sequence": 20
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.036785",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-FLEXILYTICS-HANDOVER-009.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "c91c932d247be25a8a18becf8d272cb95407b658f38d0c39246c5ea3ea8f0ba8",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.036785",
+    "normalized_at": "2026-05-15T07:25:54.036785"
+  },
+  "source_sections": [
+    "api management",
+    "backup requirements",
+    "error handling",
+    "maintenance procedures",
+    "notes",
+    "performance monitoring",
+    "portal management",
+    "system functions"
+  ]
+}

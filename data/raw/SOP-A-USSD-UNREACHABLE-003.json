@@ -1,0 +1,48 @@
+{
+  "id": "SOP-A-003",
+  "class": "A",
+  "title": "USSD service unreachable",
+  "severity": "high",
+  "services": [
+    "ussd-service",
+    "integration-layer",
+    "network-gateway"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "ussd is down",
+    "ussd not responding",
+    "mobile banking ussd dead"
+  ],
+  "symptoms": [
+    "users unable to initiate ussd sessions",
+    "ussd short code not responding",
+    "timeout errors during session initiation"
+  ],
+  "checks": [
+    "verify ussd-service host availability",
+    "confirm network gateway connectivity",
+    "inspect ussd-service application logs",
+    "check recent deployments or config changes"
+  ],
+  "likely_causes": [
+    "ussd-service process failure",
+    "network gateway outage",
+    "recent configuration or deployment issue"
+  ],
+  "recommended_actions": [
+    "follow SOP-B for ussd-service restart if confirmed safe",
+    "rollback recent changes if applicable",
+    "escalate to network team if gateway unreachable"
+  ],
+  "rollback": [
+    "restore previous service state if restart worsens impact"
+  ],
+  "notes": [
+    "confirm whether issue is isolated or system-wide",
+    "document timing and scope for post-incident review"
+  ]
+}

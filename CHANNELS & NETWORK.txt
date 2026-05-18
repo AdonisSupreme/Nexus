@@ -1,0 +1,115 @@
+CHANNELS & NETWORK
+
+41.79.191.222 Sophos
+C:\Users\ashumba>ping 41.79.191.222
+Pinging 41.79.191.222 with 32 bytes of data:
+Reply from 41.79.191.222: bytes=32 time=97ms TTL=63
+Reply from 41.79.191.222: bytes=32 time=2ms TTL=63
+Reply from 41.79.191.222: bytes=32 time=11ms TTL=63
+Reply from 41.79.191.222: bytes=32 time=8ms TTL=63
+
+Ping statistics for 41.79.191.222:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+
+41.79.191.221 - Powertel
+C:\Users\ashumba>ping 41.79.191.221
+
+Pinging 41.79.191.221 with 32 bytes of data:
+Reply from 41.79.191.221: bytes=32 time=43ms TTL=249
+Reply from 41.79.191.221: bytes=32 time=35ms TTL=249
+Reply from 41.79.191.221: bytes=32 time=36ms TTL=249
+Reply from 41.79.191.221: bytes=32 time=36ms TTL=249
+
+Ping statistics for 41.79.191.221:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 35ms, Maximum = 43ms, Average = 37ms
+
+197.227.19.146 - PEX (VISA)
+C:\Users\ashumba>ping 197.227.19.146
+
+Pinging 197.227.19.146 with 32 bytes of data:
+Reply from 197.227.19.146: bytes=32 time=79ms TTL=249
+Reply from 197.227.19.146: bytes=32 time=64ms TTL=249
+Reply from 197.227.19.146: bytes=32 time=62ms TTL=249
+Reply from 197.227.19.146: bytes=32 time=57ms TTL=249
+
+Ping statistics for 197.227.19.146:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 57ms, Maximum = 79ms, Average = 65ms
+
+197.155.227.154 - ZIMRA
+C:\Users\ashumba>ping 197.155.227.154
+
+Pinging 197.155.227.154 with 32 bytes of data:
+Reply from 197.155.227.154: bytes=32 time=18ms TTL=54
+Reply from 197.155.227.154: bytes=32 time=848ms TTL=54
+Reply from 197.155.227.154: bytes=32 time=47ms TTL=54
+Reply from 197.155.227.154: bytes=32 time=44ms TTL=54
+
+Ping statistics for 197.155.227.154:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 18ms, Maximum = 848ms, Average = 239ms
+
+77.246.51.253 - ECONET
+C:\Users\ashumba>ping 77.246.51.253
+
+Pinging 77.246.51.253 with 32 bytes of data:
+Reply from 77.246.51.253: bytes=32 time=103ms TTL=250
+Reply from 77.246.51.253: bytes=32 time=25ms TTL=250
+Reply from 77.246.51.253: bytes=32 time=22ms TTL=250
+Reply from 77.246.51.253: bytes=32 time=19ms TTL=250
+
+Ping statistics for 77.246.51.253:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 19ms, Maximum = 103ms, Average = 42ms
+217.15.118.198 - ECONET
+C:\Users\ashumba>ping 217.15.118.198
+
+Pinging 217.15.118.198 with 32 bytes of data:
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 217.15.118.198:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+
+192.168.132.21 - USSD
+C:\Users\ashumba>ping 192.168.132.21
+
+Pinging 192.168.132.21 with 32 bytes of data:
+Reply from 41.78.78.110: TTL expired in transit.
+Request timed out.
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+
+Ping statistics for 192.168.132.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+192.168.143.124 - USSD
+C:\Users\ashumba>ping 192.168.143.124
+
+Pinging 192.168.143.124 with 32 bytes of data:
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+
+Ping statistics for 192.168.143.124:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+192.168.143.188 - USSD
+C:\Users\ashumba>ping 192.168.143.188
+
+Pinging 192.168.143.188 with 32 bytes of data:
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+Reply from 41.78.78.110: TTL expired in transit.
+
+Ping statistics for 192.168.143.188:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),

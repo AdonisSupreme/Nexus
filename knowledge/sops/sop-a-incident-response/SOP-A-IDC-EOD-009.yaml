@@ -1,0 +1,63 @@
+id: SOP-A-009
+class: A
+title: IDC End of Day (EOD) Stuck or Failing
+severity: high
+
+services:
+  - idc-corebanking
+  - treasury-module
+  - loan-management-system
+  - branch-signoff
+  - database
+
+environments:
+  - PROD
+
+aliases:
+  - eod not running
+  - idc eod stuck
+  - daily processing failed
+  - branch signoff issues
+  - system date not advancing
+
+symptoms:
+  - eod process does not initiate at scheduled time
+  - eod jobs display "failed" or "stuck" status
+  - branches are unable to sign off
+  - system business date does not advance after eod
+  - end-of-day reports not generated
+
+checks:
+  - verify all branches have signed out using the qbrnstatus menu
+  - check for unauthorized non-financial transactions using the acmn menu
+  - confirm there are no pending financial transactions per branch
+  - review eod and sod exception logs for errors
+  - verify that treasury eod completed successfully before idc eod
+  - check loan management system (lms) job status
+  - verify database locks or constraints affecting eod processing
+
+likely_causes:
+  - one or more branches not signed off
+  - unauthorized non-financial transactions pending
+  - pending financial transactions at branch level
+  - treasury eod not completed
+  - loan management system jobs failing
+  - database locks or constraint violations
+
+recommended_actions:
+  - contact affected branches and request immediate sign-off if still active.
+  - reject or resolve unauthorized non-financial transactions.
+  - escalate pending financial transactions to respective branch managers.
+  - confirm treasury eod completion status before proceeding.
+  - review exception logs to identify the exact failing component or job.
+  - escalate to idc support team if the issue cannot be resolved at first level.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - eod processing should begin after 19:00, following the zimswitch cutoff
+  - eod must be executed daily, including weekends and public holidays
+  - second-level support is the idc support team
+  - never skip eod processing without explicit authorization from the idc support team
+  - improper eod handling can result in data inconsistencies and financial imbalance

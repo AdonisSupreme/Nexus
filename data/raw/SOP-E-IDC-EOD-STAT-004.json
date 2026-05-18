@@ -1,0 +1,149 @@
+{
+  "id": "SOP-E-IDC-EOD-STATUS-004",
+  "class": "SOP-E",
+  "title": "Verify IDC EOD/SOD Completion Status",
+  "severity": "High",
+  "services": [
+    "idc-corebanking",
+    "eod-processing",
+    "sod-processing",
+    "loan-management-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Check IDC end-of-day status",
+    "Verify start-of-day completion",
+    "Daily processing verification",
+    "Batch job completion check"
+  ],
+  "pre_eod_verification": {
+    "steps": [
+      {
+        "verify_branch_signout": {
+          "description": "Verify all branches signed out using QBRNSTATUS or 'View Branch Status'",
+          "parameters": {
+            "display_all_branches": "YES",
+            "total_branches_not_signed_off": 0
+          }
+        }
+      }
+    ]
+  },
+  "unauthorized_transaction_check": {
+    "steps": [
+      {
+        "search_acmn": "Check unauthorized non-financial transactions using ACMN"
+      },
+      {
+        "clear_branch_code": "View all branches"
+      },
+      {
+        "validate_records": "Verify 'no valid records' message; document if any records exist"
+      }
+    ]
+  },
+  "pending_financial_transactions": {
+    "steps": [
+      {
+        "view_pending_authorization": "Check 'View Pending for Authorisation (Financial)' branch by branch"
+      },
+      {
+        "validate_records": "Verify 'no valid records' message; document any pending transactions"
+      }
+    ]
+  },
+  "eod_execution_monitoring": {
+    "steps": [
+      {
+        "monitor_eeod": "After initiating EOD, monitor job progress"
+      },
+      {
+        "check_job_state": "Completed jobs = 'processed', running jobs = 'process'"
+      }
+    ]
+  },
+  "exception_log_checking": {
+    "steps": [
+      {
+        "view_exceptions": "Select 'End of the Day' option in Options menu"
+      },
+      {
+        "review_exception_details": "Check for ticked items indicating exceptions"
+      }
+    ]
+  },
+  "completion_verification": {
+    "steps": [
+      {
+        "check_popup_notification": "Verify 'EOD has been completed' message"
+      },
+      {
+        "handle_exceptions": "If 'completed with exceptions', print and share with relevant parties"
+      }
+    ]
+  },
+  "sod_verification": {
+    "steps": [
+      {
+        "verify_sod_initiation": "After EOD completion, verify SOD initiation"
+      },
+      {
+        "check_sod_exceptions": "Select 'Start of the Day' option, validate completion notification and exceptions"
+      }
+    ]
+  },
+  "post_processing_validation": {
+    "steps": [
+      {
+        "verify_system_date": "Check system date advancement"
+      },
+      {
+        "validate_reports": "Confirm batch and financial reports availability"
+      },
+      {
+        "verify_interface_files": "Confirm interface file generation"
+      }
+    ]
+  },
+  "scheduled_verification": [
+    "During EOD execution (after 7pm)",
+    "Morning after EOD completion",
+    "Following any EOD/SOD errors",
+    "After system changes affecting batch processing"
+  ],
+  "health_status_criteria": {
+    "SUCCESSFUL": {
+      "description": "All branches signed off, no pending unauthorized transactions, EOD and SOD completed, system date advanced correctly"
+    },
+    "COMPLETED_WITH_ISSUES": {
+      "description": "EOD completed with non-critical exceptions, some manual sign-offs, minor warnings, system date advanced"
+    },
+    "FAILED": {
+      "description": "EOD stuck/failed, critical exceptions, system date not advanced, manual recovery required"
+    }
+  },
+  "escalation_procedure": {
+    "immediate": "Contact IDC support team for EOD failures",
+    "within_30_minutes": "Escalate to Head ICT",
+    "within_60_minutes": "Notify business operations teams",
+    "documentation_required": "Document all issues and resolutions"
+  },
+  "documentation": {
+    "items": [
+      "eod_sod_start_time",
+      "eod_sod_completion_time",
+      "branch_signoff_status",
+      "exception_log_details",
+      "system_date_verification",
+      "personnel_involved"
+    ]
+  },
+  "notes": [
+    "EOD should start after 7pm (ZimSwitch cutoff)",
+    "Must run daily including weekends/holidays",
+    "Treasury EOD must complete before IDC EOD",
+    "Critical for daily financial processing"
+  ]
+}

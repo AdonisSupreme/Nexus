@@ -1,0 +1,683 @@
+{
+  "id": "SOP-E-IBANK-HEALTH-006",
+  "class_code": "E",
+  "title": "Verify Internet Banking Services Health",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "nginx-load-balancer",
+    "laravel-application",
+    "sql-server-database",
+    "queue-processing",
+    "xampp-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Check online banking status",
+    "Verify internet banking health",
+    "Web banking service monitoring",
+    "Customer portal verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "server: 192.168.0.25",
+      "sequence": 1,
+      "source_section": "nginx health check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "ssh to server: True",
+      "sequence": 2,
+      "source_section": "nginx health check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check service status: systemctl status nginx",
+      "sequence": 3,
+      "source_section": "nginx health check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify ports listening: 80",
+      "sequence": 4,
+      "source_section": "nginx health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify ports listening: 443",
+      "sequence": 5,
+      "source_section": "nginx health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor access logs: True",
+      "sequence": 6,
+      "source_section": "nginx health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check error logs for critical issues: True",
+      "sequence": 7,
+      "source_section": "nginx health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "every_15_min_business_hours",
+      "sequence": 8,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "hourly_off_peak",
+      "sequence": 9,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "after_deployments_or_changes",
+      "sequence": 10,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "during_peak_usage_periods",
+      "sequence": 11,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "servers: 192.168.0.176",
+      "sequence": 1,
+      "source_section": "application server health",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "servers: 192.168.0.181",
+      "sequence": 2,
+      "source_section": "application server health",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "remote desktop: True",
+      "sequence": 3,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify xampp services: apache running: True",
+      "sequence": 4,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify xampp services: mysql running: True",
+      "sequence": 5,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify laravel application: process running: php -S 192.168.0.181:8000 -t public/",
+      "sequence": 6,
+      "source_section": "application server health",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "verify laravel application: port listening: 8000",
+      "sequence": 7,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify queue processing: queue worker running: True",
+      "sequence": 8,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify queue processing: jobs processing normally: True",
+      "sequence": 9,
+      "source_section": "application server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "server: 192.168.0.184",
+      "sequence": 10,
+      "source_section": "database server health",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "verify sql server running: True",
+      "sequence": 11,
+      "source_section": "database server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify connectivity from app servers: True",
+      "sequence": 12,
+      "source_section": "database server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check transaction log space: True",
+      "sequence": 13,
+      "source_section": "database server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor connection pool usage: True",
+      "sequence": 14,
+      "source_section": "database server health",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "access portal: https://banking.afcholdings.co.zw/auth/login",
+      "sequence": 15,
+      "source_section": "end user access testing",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "url"
+      ]
+    },
+    {
+      "text": "test login functionality: True",
+      "sequence": 16,
+      "source_section": "end user access testing",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify page loading times: < 3 seconds",
+      "sequence": 17,
+      "source_section": "end user access testing",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "check transaction processing: True",
+      "sequence": 18,
+      "source_section": "end user access testing",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test otp delivery: True",
+      "sequence": 19,
+      "source_section": "end user access testing",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 502 bad gateway: check xampp running: True",
+      "sequence": 20,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 502 bad gateway: verify application processes running: True",
+      "sequence": 21,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 403 access denied: check nginx configuration: True",
+      "sequence": 22,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 403 access denied: verify ip blocking rules: True",
+      "sequence": 23,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 500 internal server error: check laravel logs path: C:\\Users\\ibadmin\\Documents\\ib\\internet-banking-laravel-backend\\storage\\logs",
+      "sequence": 24,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 500 internal server error: look for errors: PDOException",
+      "sequence": 25,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 500 internal server error: look for errors: SQL Server errors",
+      "sequence": 26,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common errors: nginx 500 internal server error: check sql server log space: True",
+      "sequence": 27,
+      "source_section": "error monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify queue workers processing: True",
+      "sequence": 28,
+      "source_section": "queue health monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check queue backlog: True",
+      "sequence": 29,
+      "source_section": "queue health monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor failed jobs count: True",
+      "sequence": 30,
+      "source_section": "queue health monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify job retry mechanisms: True",
+      "sequence": 31,
+      "source_section": "queue health monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All services running, portal accessible, no critical errors, queue processing normal, OTP delivery functional",
+      "sequence": 32,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: Intermittent access issues, slower performance, non-critical warnings, queue backlog building",
+      "sequence": 33,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: description: Portal inaccessible, critical services down, database connectivity issues, OTP failing, multiple errors",
+      "sequence": 34,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Restart affected services",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "within 10 minutes: Check and resolve error logs",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 20 minutes: Escalate to application support",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 30 minutes: Notify Head ICT if unresolved",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "page load time max seconds: 3",
+      "sequence": 1,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "login response time max seconds: 2",
+      "sequence": 2,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction processing time max seconds: 5",
+      "sequence": 3,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "otp delivery time max seconds: 30",
+      "sequence": 4,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "concurrent user capacity: True",
+      "sequence": 5,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service_status_all_servers",
+      "sequence": 6,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "performance_metrics",
+      "sequence": 7,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "error_log_summary",
+      "sequence": 8,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "queue_processing_status",
+      "sequence": 9,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "user_access_test_results",
+      "sequence": 10,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Multiple server dependencies",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular performance monitoring essential",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Queue processing critical for OTP delivery",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SQL Server log space common issue",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with digital systems support team for escalations",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "nginx-load-balancer",
+    "laravel-application",
+    "sql-server-database",
+    "queue-processing",
+    "xampp-services"
+  ],
+  "owners": [
+    "Coordinate with digital systems support team for escalations"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.25",
+      "source_section": "nginx health check",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "ssh to server: True",
+      "source_section": "nginx health check",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "check service status: systemctl status nginx",
+      "source_section": "nginx health check",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.176",
+      "source_section": "application server health",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.181",
+      "source_section": "application server health",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.181",
+      "source_section": "application server health",
+      "sequence": 6
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.184",
+      "source_section": "database server health",
+      "sequence": 10
+    },
+    {
+      "type": "url",
+      "value": "https://banking.afcholdings.co.zw/auth/login",
+      "source_section": "end user access testing",
+      "sequence": 15
+    },
+    {
+      "type": "threshold",
+      "value": "3 seconds",
+      "source_section": "end user access testing",
+      "sequence": 17
+    },
+    {
+      "type": "threshold",
+      "value": " 10 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": " 20 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.895501",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-IB-HEALTH-006.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "dc21b4c9e46381ab65ea0c2ad879f16e5530649f3083c74a360740e960dd90f8",
+    "wrapper_key": "SOP-E-IBANK-HEALTH-006",
+    "ingested_at": "2026-05-15T07:25:54.895501",
+    "normalized_at": "2026-05-15T07:25:54.895501"
+  },
+  "source_sections": [
+    "application server health",
+    "database server health",
+    "documentation",
+    "end user access testing",
+    "error monitoring",
+    "escalation procedure",
+    "health status criteria",
+    "nginx health check",
+    "notes",
+    "performance metrics",
+    "queue health monitoring",
+    "scheduled check frequency"
+  ]
+}

@@ -1,0 +1,525 @@
+{
+  "services": [
+    {
+      "service_uuid": "0b403590-71a5-46a8-bf37-bb730148909e",
+      "service_id": "sigma-studio",
+      "service_name": "Sigma Studio",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "Intellect IDC Sigma Studio service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "sigma-studio",
+      "tags": ["intellect", "idc", "sigma", "studio", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "c5d4cee1-535f-446a-bf34-6857f9db5a8d",
+        "agent_id": "agent-sigma-studio-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"sigma-studio\", environment=\"production\"}",
+        "metrics_namespace": "sigma_studio",
+        "trace_service_name": "sigma-studio",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Sigma Studio",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "787d2b11-ffa8-44a7-9416-17daa8b210e8",
+      "service_id": "rlo",
+      "service_name": "RLO",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "Intellect IDC RLO service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "rlo",
+      "tags": ["intellect", "idc", "loan", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "576818b8-a966-43e5-9cbf-84eccb4c1f4c",
+        "agent_id": "agent-rlo-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"rlo\", environment=\"production\"}",
+        "metrics_namespace": "rlo",
+        "trace_service_name": "rlo",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "RLO",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "e79c7e67-4e5d-4d87-82f3-9fef7702eec3",
+      "service_id": "lms",
+      "service_name": "LMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC LMS service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "lms",
+      "tags": ["intellect", "idc", "lending", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "945b107c-05da-43c4-8d17-1df5718e2b60",
+        "agent_id": "agent-lms-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"lms\", environment=\"production\"}",
+        "metrics_namespace": "lms",
+        "trace_service_name": "lms",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "LMS",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "1bbecff0-5644-4817-b1ee-e748b1105f5e",
+      "service_id": "idc-core",
+      "service_name": "IDC Core",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Primary Intellect IDC core service and seed entry service for dependency correlation.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-core",
+      "tags": ["intellect", "idc", "core", "entry-service", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "79de84f6-3315-4c40-9641-3bfdd8808166",
+        "agent_id": "agent-idc-core-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"idc-core\", environment=\"production\"}",
+        "metrics_namespace": "idc_core",
+        "trace_service_name": "idc-core",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Keep restart disabled until service owner confirms statelessness and restart safety."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "IDC Core",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "d7912759-5d94-4437-a01f-70f8e1642f88",
+      "service_id": "collect",
+      "service_name": "Collect Admin",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC Collect Admin service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collect-admin",
+      "tags": ["intellect", "idc", "collections", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "cff165c6-d621-4d61-977b-f42e7334befd",
+        "agent_id": "agent-collect-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"collect\", environment=\"production\"}",
+        "metrics_namespace": "collect",
+        "trace_service_name": "collect",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Collect Admin",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "e708d858-7fe8-4f3e-a903-c8a189b6894e",
+      "service_id": "collateral-clms",
+      "service_name": "Collateral CLMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC Collateral CLMS service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collateral-clms",
+      "tags": ["intellect", "idc", "collateral", "clms", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "4d051581-f914-4045-ae0f-1db058199f94",
+        "agent_id": "agent-collateral-clms-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"collateral-clms\", environment=\"production\"}",
+        "metrics_namespace": "collateral_clms",
+        "trace_service_name": "collateral-clms",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Collateral CLMS",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "31d816e6-23f5-4e3d-af74-8f091b86c415",
+      "service_id": "cob",
+      "service_name": "COB",
+      "service_type": "worker",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC close-of-business worker/service, seeded from Network Sentinel mapping.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-cob",
+      "tags": ["intellect", "idc", "cob", "batch", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "7a4549bd-fa4f-4296-83f2-5655ace8a69d",
+        "agent_id": "agent-cob-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"cob\", environment=\"production\"}",
+        "metrics_namespace": "cob",
+        "trace_service_name": "cob",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Treat as stateful/batch-sensitive until COB owner confirms safe restart windows."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "COB",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "132792e5-71ea-4e40-8e2e-32d63d8419ea",
+      "service_id": "arx",
+      "service_name": "ARX",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "ARX gateway/integration service in the Intellect IDC dependency fabric.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "arx",
+      "tags": ["intellect", "idc", "arx", "gateway", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "49aae386-7be1-464e-8be0-cf2ff4eaed0a",
+        "agent_id": "agent-arx-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"arx\", environment=\"production\"}",
+        "metrics_namespace": "arx",
+        "trace_service_name": "arx",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Gateway/shared-dependency restart is blocked until explicit service-owner approval."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "ARX",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "intellect-idc",
+      "cluster_name": "Intellect IDC Service Fabric",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Seeded IDC dependency cluster for Intellect services currently mapped in Network Sentinel. Dependency directions are bootstrap assumptions and should be validated one service at a time.",
+      "service_ids": ["idc-core", "arx", "lms", "collect", "collateral-clms", "cob", "rlo", "sigma-studio"],
+      "entry_services": ["idc-core", "arx"],
+      "routing_config": {
+        "topology_doc_url": "",
+        "dashboard_url": "/network-sentinel",
+        "collector_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "http://127.0.0.1:8010/api/v1/nexus/agents/probe-report",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "query_url": "",
+        "notes_url": ""
+      },
+      "tags": ["intellect", "idc", "bootstrap", "network-sentinel"],
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "canonical_environment": "production",
+        "central_nexus_base_url": "http://127.0.0.1:8010",
+        "agent_endpoints": {
+          "heartbeat": "/api/v1/nexus/agents/heartbeat",
+          "probe_report": "/api/v1/nexus/agents/probe-report",
+          "diagnostic_results": "/api/v1/nexus/agents/{agent_id}/diagnostic-results"
+        },
+        "light_agent_contract": {
+          "required_fields": ["agent_id", "service_id", "service_name", "environment", "timestamp", "severity", "source"],
+          "recommended_fields": ["instance_id", "host_id", "cluster", "metrics", "log_records", "trace_summaries", "change_context"],
+          "auth_header": "X-Nexus-Agent-Token"
+        },
+        "setup_required": ["collector_url", "extraction_url", "formatting_url", "diagnostics_url", "service log selectors", "systemd units"]
+      }
+    }
+  ],
+  "dependency_edges": [
+    {
+      "edge_id": "intellect-idc:idc-core->arx:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "arx",
+      "dependency_type": "sync_api",
+      "criticality_weight": 1.0,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->lms:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "lms",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.92,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->collect:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "collect",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.9,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->collateral-clms:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "collateral-clms",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.9,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->cob:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "cob",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.86,
+      "timeout_budget_ms": 5000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation",
+        "note": "COB may be scheduled/batch-driven rather than request-path synchronous. Validate before relying on this edge for incident ranking."
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->rlo:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "rlo",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.74,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->sigma-studio:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "sigma-studio",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.68,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation"
+      }
+    }
+  ],
+  "signals": [],
+  "change_events": [],
+  "incidents": [],
+  "diagnostics": [],
+  "action_executions": [],
+  "operator_feedback": [],
+  "task_handoffs": [],
+  "agent_heartbeats": [],
+  "fabric_summary": {
+    "total_services": 8,
+    "total_clusters": 1,
+    "total_edges": 7,
+    "mapped_network_services": 8,
+    "diagnostics_ready_services": 0,
+    "restart_ready_services": 0,
+    "active_incidents": 0,
+    "last_sync_at": null,
+    "sync_health": "idle",
+    "sync_message": "IDC/ARX bootstrap seed prepared. Import into Postgres, then sync Network Sentinel and validate service-specific agent configuration."
+  }
+}

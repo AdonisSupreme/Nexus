@@ -1,0 +1,83 @@
+id: SOP-F-003
+class: F
+title: E-Wallet (DigiPay) User Management
+severity: medium
+
+services:
+  - ewallet-system
+  - digital-payments
+  - branch-user-management
+  - mobile-money-services
+
+environments:
+  - PROD
+
+aliases:
+  - E-Wallet user administration
+  - DigiPay user management
+  - Digital wallet user creation
+  - Branch user administration
+
+checks:
+  - "Verify ICT Operations Team is designated creator"
+  - "Confirm Supervisor or Manager available for authorization"
+  - "Validate Digital Banking Manager is business owner"
+  - "Check Internal Audit available for auditing"
+  - "Confirm user access request approved by relevant business unit"
+  - "Verify branch assignment confirmed"
+  - "Validate role and permission requirements defined"
+
+recommended_actions:
+  - "System access URL: http://192.168.0.252/login"
+  - "Access rules: ICT Operations credentials required"
+  - "Access rules: All user requests handled exclusively by ICT Operations"
+  - "Branch user creation: Login to E-Wallet Portal as ICT Operations"
+  - "Branch user creation: Navigate to: Security Parameter → User"
+  - "Branch user creation: Click New"
+  - "Branch user creation: Capture required user details: Username, Full Name, Branch, Role and Permissions, Contact details"
+  - "Branch user creation: Click Save"
+  - "Branch user creation: Notify Supervisor or Manager for authorization"
+  - "Authorization workflow: Supervisor or Manager login to E-Wallet system"
+  - "Authorization workflow: Navigate to Pending Authorizations"
+  - "Authorization workflow: Review user details"
+  - "Authorization workflow: Approve or Reject request"
+  - "Authorization workflow: Provide rejection reason if applicable"
+  - "Authorization workflow: System notifies ICT Operations of decision"
+  - "User communication: Provide user with username, temporary password, system URL"
+  - "User communication: Inform user of mandatory password change on first login"
+  - "User communication: Confirm user can access assigned functions"
+  - "Access modification: Login to E-Wallet Portal as ICT Operations"
+  - "Access modification: Navigate to: Security Parameter → User"
+  - "Access modification: Search for existing user"
+  - "Access modification: Modify required details"
+  - "Access modification: Save changes"
+  - "Access modification: Trigger authorization workflow for significant access changes"
+  - "Verification: User can log in with issued credentials"
+  - "Verification: Access restricted to assigned branch"
+  - "Verification: Role permissions enforced correctly"
+  - "Verification: No unauthorized system access observed"
+
+notes:
+  - "All requests must be processed via ICT Operations"
+  - "Supervisor or Manager authorization is mandatory"
+  - "New users should receive basic system training"
+  - "Regular audits of E-Wallet user accounts required"
+  - "Temporary passwords should follow complexity requirements"
+  - "Security controls: Role-based access control enforced"
+  - "Security controls: Branch-level access restrictions applied"
+  - "Security controls: Temporary passwords with forced change on first login"
+  - "Security controls: Account lockout after repeated failed login attempts"
+  - "Security controls: Regular password change policy encouraged"
+  - "Escalation path Level 1: ICT Operations (user creation and access changes)"
+  - "Escalation path Level 2: Digital Banking Support (system-related issues)"
+  - "Escalation path Level 3: Digital Banking Manager (policy or access exceptions)"
+  - "Escalation path Level 4: Head ICT (security or control concerns)"
+  - "Documentation: User creation or modification request"
+  - "Documentation: Authorization records"
+  - "Documentation: User communication logs"
+  - "Documentation: Access modification history"
+  - "Documentation: Security incident reports (if any)"
+  - "Compliance requirements: Financial system access control standards"
+  - "Compliance requirements: Strong user authentication enforcement"
+  - "Compliance requirements: Full audit trail for all access changes"
+  - "Compliance requirements: Periodic access reviews conducted"

@@ -1,0 +1,57 @@
+{
+  "id": "SOP-A-022",
+  "class": "A",
+  "title": "Digital Engagement Platform Down",
+  "severity": "high",
+  "services": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "corporate online banking down",
+    "admin portal unavailable",
+    "DEP services offline",
+    "CBXC portal inaccessible"
+  ],
+  "symptoms": [
+    "corporate online banking portal unavailable",
+    "admin portal inaccessible",
+    "transaction processing failing",
+    "service timeouts or errors"
+  ],
+  "checks": [
+    "verify CBXC-FO services on servers 108 and 109",
+    "verify CBXC-BO services on servers 108 and 109",
+    "check JBoss application server status",
+    "verify OliveFabric runtime services",
+    "check deployment paths for WAR/COAR files"
+  ],
+  "likely_causes": [
+    "JBoss services stopped",
+    "deployment file issues",
+    "service restart order incorrect",
+    "database connectivity issues",
+    "memory/space constraints"
+  ],
+  "recommended_actions": [
+    "restart CBXC-BO services first, then CBXC-FO.",
+    "verify deployment file integrity.",
+    "check application logs for errors.",
+    "verify database connectivity.",
+    "check server resources (memory, space)."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "restart order critical: BO first, then FO",
+    "multiple deployment types: WAR files and COAR files",
+    "critical for corporate banking services"
+  ]
+}

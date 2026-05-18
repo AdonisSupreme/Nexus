@@ -1,0 +1,873 @@
+{
+  "id": "SOP-F-008",
+  "class_code": "F",
+  "title": "Emergency Escalation Paths and Contacts",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "all-systems",
+    "incident-management",
+    "business-continuity",
+    "crisis-management"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Emergency escalation procedures",
+    "Incident escalation paths",
+    "Crisis management contacts",
+    "Business continuity escalation"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify first responder is ICT Operations Staff (24/7 availability)",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm technical escalation teams available",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate management escalation contacts updated",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check business escalation paths defined",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm external escalation contacts current",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Administrative boundaries: First Responder: ICT Operations Staff (24/7)",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Administrative boundaries: Technical Escalation: System-specific support teams",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Administrative boundaries: Management Escalation: Department Heads and Head ICT",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Administrative boundaries: Business Escalation: Executive Management",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Administrative boundaries: External Escalation: Vendors and Regulatory Bodies",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical Systems escalation (Banking Core, Payments): Immediate: First responder action",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical Systems escalation: 15 minutes: Technical team engagement",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Critical Systems escalation: 30 minutes: Management notification",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Critical Systems escalation: 60 minutes: Business impact assessment",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Critical Systems escalation: 120 minutes: Executive notification",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Important Systems escalation (Channels, Interfaces): 15 minutes: First responder action",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Important Systems escalation: 30 minutes: Technical team engagement",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Important Systems escalation: 60 minutes: Management notification",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Important Systems escalation: 120 minutes: Business impact assessment",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Support Systems escalation (Reporting, Administration): 60 minutes: First responder action",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Support Systems escalation: 120 minutes: Technical team engagement",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Support Systems escalation: 4 hours: Management notification",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Support Systems escalation: 8 hours: Business impact assessment",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Internal technical teams: IDC Support Team for core banking issues",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internal technical teams: Card Operations for Postilion and card transactions",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internal technical teams: Digital Banking for Mobile, Internet banking, E-Wallet",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internal technical teams: Treasury Systems for RTGS, Perago, Treasury modules",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internal technical teams: Database Administration for Oracle, SQL Server",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internal technical teams: Network Team for connectivity and infrastructure",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Management contacts: ICT Operations Manager (24/7 availability)",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Management contacts: Head of Digital Banking for channel issues",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Management contacts: Treasury Manager for payment system issues",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Management contacts: Head ICT for all critical incidents",
+      "sequence": 28,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Management contacts: Chief Operations Officer for business impact incidents",
+      "sequence": 29,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External contacts: IDC Vendor Support (Intellect Design Arena)",
+      "sequence": 30,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External contacts: Postilion Support (ACI Worldwide)",
+      "sequence": 31,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External contacts: RBZ NPSD: npsd@rbz.co.zw (CSD RTGS)",
+      "sequence": 32,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External contacts: ZimSwitch technical support",
+      "sequence": 33,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External contacts: Internet Service Providers for connectivity issues",
+      "sequence": 34,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "External contacts: Hardware Vendors for server and storage issues",
+      "sequence": 35,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Initial notification: System alert or manual detection",
+      "sequence": 36,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Initial notification: Immediate impact assessment",
+      "sequence": 37,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Initial notification: Notify first responder team",
+      "sequence": 38,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Initial notification: Initial troubleshooting",
+      "sequence": 39,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ongoing updates: 15 minute updates for critical incidents",
+      "sequence": 40,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Ongoing updates: Hourly updates for major incidents",
+      "sequence": 41,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ongoing updates: Shift handover with status",
+      "sequence": 42,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ongoing updates: Management briefings as required",
+      "sequence": 43,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Resolution communication: Root cause identification",
+      "sequence": 44,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Resolution communication: Resolution timeframe",
+      "sequence": 45,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Resolution communication: Workaround availability",
+      "sequence": 46,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Resolution communication: Final resolution confirmation",
+      "sequence": 47,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Resolution communication: Post incident review schedule",
+      "sequence": 48,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automatic escalation triggers: System downtime over 15 minutes for critical systems",
+      "sequence": 49,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Automatic escalation triggers: Transaction failure rate over 5 percent",
+      "sequence": 50,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Automatic escalation triggers: Security breach detected",
+      "sequence": 51,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automatic escalation triggers: Data corruption or loss",
+      "sequence": 52,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Automatic escalation triggers: Multiple system failures",
+      "sequence": 53,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Manual escalation triggers: Business process disruption",
+      "sequence": 54,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Manual escalation triggers: Regulatory reporting impact",
+      "sequence": 55,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Manual escalation triggers: Significant customer impact",
+      "sequence": 56,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Manual escalation triggers: Media or public attention",
+      "sequence": 57,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Manual escalation triggers: Management request",
+      "sequence": 58,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Business impact assessment criteria: Number of customers affected",
+      "sequence": 59,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Business impact assessment criteria: Financial transaction impact",
+      "sequence": 60,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Business impact assessment criteria: Regulatory compliance impact",
+      "sequence": 61,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Business impact assessment criteria: Reputation risk",
+      "sequence": 62,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Business impact assessment criteria: Recovery time requirements",
+      "sequence": 63,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Impact level Critical: Core banking unavailable, major payment system down",
+      "sequence": 64,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Impact level High: Multiple channels down, significant customer impact",
+      "sequence": 65,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Impact level Medium: Single channel down, moderate customer impact",
+      "sequence": 66,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Impact level Low: Minor system issues, minimal customer impact",
+      "sequence": 67,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post incident requirements: Root cause analysis report",
+      "sequence": 68,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post incident requirements: Corrective action plan",
+      "sequence": 69,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post incident requirements: Process improvement recommendations",
+      "sequence": 70,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post incident requirements: Documentation updates",
+      "sequence": 71,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post incident requirements: Training requirements identification",
+      "sequence": 72,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "24/7 operations require continuous escalation capability",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Contact information must be regularly updated",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Communication templates prepared in advance",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular testing of escalation procedures",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Cross-training for all escalation responsibilities",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Incident log requirements: Detection time and method, initial impact assessment, actions taken and times, escalations made, resolution time and method, business impact summary",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Communication records: All notifications sent, responses received, meeting minutes, decision records, handover documentation",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Regulatory reporting for major incidents, audit trail of all actions, management notification protocols, business continuity plan activation, disaster recovery procedures",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "all-systems",
+    "incident-management",
+    "business-continuity",
+    "crisis-management"
+  ],
+  "owners": [
+    "24/7 operations require continuous escalation capability"
+  ],
+  "artifacts": [
+    {
+      "type": "threshold",
+      "value": "15 minutes",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "threshold",
+      "value": "30 minutes",
+      "source_section": "recommended actions",
+      "sequence": 8
+    },
+    {
+      "type": "threshold",
+      "value": "60 minutes",
+      "source_section": "recommended actions",
+      "sequence": 9
+    },
+    {
+      "type": "threshold",
+      "value": "120 minutes",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "threshold",
+      "value": "15 minutes",
+      "source_section": "recommended actions",
+      "sequence": 11
+    },
+    {
+      "type": "threshold",
+      "value": "30 minutes",
+      "source_section": "recommended actions",
+      "sequence": 12
+    },
+    {
+      "type": "threshold",
+      "value": "60 minutes",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "threshold",
+      "value": "120 minutes",
+      "source_section": "recommended actions",
+      "sequence": 14
+    },
+    {
+      "type": "threshold",
+      "value": "60 minutes",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "threshold",
+      "value": "120 minutes",
+      "source_section": "recommended actions",
+      "sequence": 16
+    },
+    {
+      "type": "threshold",
+      "value": "4 hours",
+      "source_section": "recommended actions",
+      "sequence": 17
+    },
+    {
+      "type": "threshold",
+      "value": "8 hours",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "command",
+      "value": "External contacts: Internet Service Providers for connectivity issues",
+      "source_section": "recommended actions",
+      "sequence": 34
+    },
+    {
+      "type": "threshold",
+      "value": "15 minute",
+      "source_section": "recommended actions",
+      "sequence": 40
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "recommended actions",
+      "sequence": 49
+    },
+    {
+      "type": "threshold",
+      "value": " 5 percent",
+      "source_section": "recommended actions",
+      "sequence": 50
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.438498",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative\\SOP-F-EMERGENCY-ESCALATION-008.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative",
+    "source_format": "yaml",
+    "source_hash": "6f35c7b358d7309f929de46e0e482c1c0e02b2047928cb42bb3d1f2d7e54762d",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.438498",
+    "normalized_at": "2026-05-15T07:25:54.438498"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions"
+  ]
+}

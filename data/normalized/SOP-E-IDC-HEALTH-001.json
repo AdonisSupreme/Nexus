@@ -1,0 +1,642 @@
+{
+  "id": "SOP-E-IDC-HEALTH-001",
+  "class_code": "E",
+  "title": "Verify IDC Core Banking Service Health",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "idc-corebanking",
+    "jboss-eap-7.4",
+    "banking-transactions",
+    "user-authentication"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check IDC service status",
+    "Verify core banking availability",
+    "IDC health check",
+    "Banking system verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "description: Verify processes, ports, and responsiveness on IDC servers",
+      "sequence": 1,
+      "source_section": "service status checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "servers: 192.168.1.108",
+      "sequence": 2,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "servers: 192.168.1.109",
+      "sequence": 3,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "ssh to server: ssh root@<server_ip>",
+      "sequence": 4,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check process: ps -ef | grep *Server* | grep core",
+      "sequence": 5,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify jboss: Expected jboss-eap-7.4 process with PID",
+      "sequence": 6,
+      "source_section": "service status checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check port: netstat -an | grep :8080 | grep LISTEN",
+      "sequence": 7,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "test endpoint: Attempt connection to service endpoint",
+      "sequence": 8,
+      "source_section": "service status checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "description: Check server logs for critical errors and startup messages",
+      "sequence": 9,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "log directory: /rpool1/core/jboss-eap-7.4/standalone/log",
+      "sequence": 10,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "tail recent logs: tail -100 server.log",
+      "sequence": 11,
+      "source_section": "log health checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "monitor live logs: tail -f server.log",
+      "sequence": 12,
+      "source_section": "log health checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check for errors: ERROR",
+      "sequence": 13,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check for errors: FATAL",
+      "sequence": 14,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify startup messages: Check for startup completion messages",
+      "sequence": 15,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ensure no loops: Verify no continuous error loops",
+      "sequence": 16,
+      "source_section": "log health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Verify IDC interface functionality",
+      "sequence": 17,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "login to interface: Access IDC interface",
+      "sequence": 18,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "navigation check: Verify basic menu navigation",
+      "sequence": 19,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "user auth check: Check login and authentication",
+      "sequence": 20,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test simple inquiry: Execute sample account inquiry",
+      "sequence": 21,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "menu loading check: Verify menu loading without errors",
+      "sequence": 22,
+      "source_section": "application health checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: Verify critical system dependencies",
+      "sequence": 23,
+      "source_section": "dependency checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity: Check connectivity from application logs",
+      "sequence": 24,
+      "source_section": "dependency checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "arx auth service: Verify ARX authentication availability",
+      "sequence": 25,
+      "source_section": "dependency checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "dcof connectivity: Test interface services connectivity",
+      "sequence": 26,
+      "source_section": "dependency checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "treasury integration: Verify integration with Treasury module",
+      "sequence": 27,
+      "source_section": "dependency checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "description: When to perform health checks",
+      "sequence": 1,
+      "source_section": "scheduled health time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "schedule: daily: 06:00 before business hours",
+      "sequence": 2,
+      "source_section": "scheduled health time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "schedule: after restart: Following any service restart",
+      "sequence": 3,
+      "source_section": "scheduled health time",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "schedule: after changes: After system changes or deployments",
+      "sequence": 4,
+      "source_section": "scheduled health time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "schedule: performance alerts: During suspected performance issues",
+      "sequence": 5,
+      "source_section": "scheduled health time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All services running, no critical errors, SLA met",
+      "sequence": 6,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: color code: Green",
+      "sequence": 7,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: Service running with warnings, intermittent errors",
+      "sequence": 8,
+      "source_section": "health status criteria",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "DEGRADED: color code: Yellow",
+      "sequence": 9,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: description: Service down, critical errors, multiple dependencies unavailable",
+      "sequence": 10,
+      "source_section": "health status criteria",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "UNHEALTHY: color code: Red",
+      "sequence": 11,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [],
+  "rollback": [],
+  "escalation": [
+    {
+      "text": "description: Steps if health check fails",
+      "sequence": 1,
+      "source_section": "escalation path",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "first attempt: Restart service per SOP-B procedures",
+      "sequence": 2,
+      "source_section": "escalation path",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "unresolved 15min: Escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "escalation path",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "business impact: Notify Head ICT immediately",
+      "sequence": 4,
+      "source_section": "escalation path",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "notes": [
+    {
+      "text": "description: Monitor system performance",
+      "sequence": 1,
+      "source_section": "performance indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "metrics: login response time: < 5 seconds",
+      "sequence": 2,
+      "source_section": "performance indicators",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "metrics: transaction processing time: < 10 seconds for simple transactions",
+      "sequence": 3,
+      "source_section": "performance indicators",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "metrics: jboss memory usage: Check via top or ps aux",
+      "sequence": 4,
+      "source_section": "performance indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "metrics: cpu usage peak: Monitor during peak times",
+      "sequence": 5,
+      "source_section": "performance indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "description: What to record during health checks",
+      "sequence": 6,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check_timestamp",
+      "sequence": 7,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service_status",
+      "sequence": 8,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "errors_found",
+      "sequence": 9,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "response_times",
+      "sequence": 10,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "corrective_actions",
+      "sequence": 11,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular health checks prevent surprise outages",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Log analysis provides early warning signs",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance trending helps capacity planning",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document all findings for historical analysis",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "idc-corebanking",
+    "jboss-eap-7.4",
+    "banking-transactions",
+    "user-authentication"
+  ],
+  "owners": [
+    "business impact: Notify Head ICT immediately",
+    "unresolved 15min: Escalate to IDC support team"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.108",
+      "source_section": "service status checks",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.109",
+      "source_section": "service status checks",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "ssh to server: ssh root@<server_ip>",
+      "source_section": "service status checks",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "check process: ps -ef | grep *Server* | grep core",
+      "source_section": "service status checks",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "check port: netstat -an | grep :8080 | grep LISTEN",
+      "source_section": "service status checks",
+      "sequence": 7
+    },
+    {
+      "type": "command",
+      "value": "test endpoint: Attempt connection to service endpoint",
+      "source_section": "service status checks",
+      "sequence": 8
+    },
+    {
+      "type": "command",
+      "value": "tail recent logs: tail -100 server.log",
+      "source_section": "log health checks",
+      "sequence": 11
+    },
+    {
+      "type": "command",
+      "value": "monitor live logs: tail -f server.log",
+      "source_section": "log health checks",
+      "sequence": 12
+    },
+    {
+      "type": "threshold",
+      "value": "5 seconds",
+      "source_section": "performance indicators",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": "10 seconds",
+      "source_section": "performance indicators",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "schedule: after restart: Following any service restart",
+      "source_section": "scheduled health time",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "DEGRADED: description: Service running with warnings, intermittent errors",
+      "source_section": "health status criteria",
+      "sequence": 8
+    },
+    {
+      "type": "command",
+      "value": "UNHEALTHY: description: Service down, critical errors, multiple dependencies unavailable",
+      "source_section": "health status criteria",
+      "sequence": 10
+    },
+    {
+      "type": "command",
+      "value": "first attempt: Restart service per SOP-B procedures",
+      "source_section": "escalation path",
+      "sequence": 2
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:55.044097",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-IDC-HEALTH-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "5c5816693fb6ca2bfb884b9113124b362c4cf5d74be90de2bd6399a9ef9c0369",
+    "wrapper_key": "SOP-E-IDC-HEALTH-001",
+    "ingested_at": "2026-05-15T07:25:55.044097",
+    "normalized_at": "2026-05-15T07:25:55.044097"
+  },
+  "source_sections": [
+    "application health checks",
+    "dependency checks",
+    "documentation requirements",
+    "escalation path",
+    "health status criteria",
+    "log health checks",
+    "notes",
+    "performance indicators",
+    "scheduled health time",
+    "service status checks"
+  ]
+}

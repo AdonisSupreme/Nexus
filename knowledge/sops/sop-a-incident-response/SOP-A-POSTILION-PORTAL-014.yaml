@@ -1,0 +1,55 @@
+id: SOP-A-014
+class: A
+title: Postilion Portal Unavailable
+severity: medium
+
+services:
+  - apache-tomcat
+  - postilion-office
+  - sql-server
+  - portal-application
+
+environments:
+  - PROD
+  - TEST
+
+aliases:
+  - portal login failing
+  - postilion web interface down
+  - cannot access transaction portal
+  - HTTP 404/500 errors on portal
+
+symptoms:
+  - portal URL (http://192.168.0.225:8080/portal/Login.faces) not loading
+  - login page errors
+  - transaction view unavailable
+  - portal slow or unresponsive
+
+checks:
+  - verify Apache Tomcat 9.0 service running
+  - check Postilion Office server (0.34) is up (portal connects to Office DB)
+  - verify SQL Server services running
+  - check URL case sensitivity (must be exact)
+  - review Tomcat logs for errors
+
+likely_causes:
+  - Apache Tomcat service stopped
+  - Postilion Office server down
+  - SQL Server service issues
+  - Incorrect URL or port
+  - License file issues
+
+recommended_actions:
+  - restart Apache Tomcat 9.0 service
+  - ensure Postilion Office server is started first (0.34)
+  - verify SQL Server services running
+  - check exact URL http://192.168.0.225:8080/portal/Login.faces
+  - reboot portal server if needed (after Office server)
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - portal depends on Office DB - Office server must start first
+  - 'reboot order: Office server first, then Portal server'
+  - license file issues can affect portal accessibility

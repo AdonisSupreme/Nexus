@@ -1,0 +1,231 @@
+{
+  "id": "SOP-B-009",
+  "class_code": "B",
+  "title": "Restart CAE Service on Servers 112 and 113",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "cae-service",
+    "jboss-eap-7.4",
+    "customer-alerts-engine"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart alerts engine",
+    "stop/start CAE on 112/113",
+    "restart SMS/Email alerts"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "verify no critical alerts in queue",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check alert delivery status",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with operations team",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SSH to server 192.168.1.112 or 192.168.1.113",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /rpool1/CAE/jboss-eap-7.4/bin",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Stop the service: ./stopCAE.sh",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start the service: ./startCAE.sh",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Repeat on second server",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify CAE service is running",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "test alert generation",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check alert delivery logs",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check configuration",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "restore from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "CAE handles SMS and Email alerts",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart may delay alert delivery",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "non-critical during off-peak hours",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "cae-service",
+    "jboss-eap-7.4",
+    "customer-alerts-engine"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.112",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.1.112 or 192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "verify CAE service is running",
+      "source_section": "procedure",
+      "sequence": 9
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check configuration",
+      "source_section": "rollback",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.424609",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-CAE-RESTART-009.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "c382070ed518cad5c97b444ff99e65b514d74cb29a44a7e206e8679670db2a08",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.424609",
+    "normalized_at": "2026-05-15T07:25:53.424609"
+  },
+  "source_sections": [
+    "notes",
+    "procedure",
+    "rollback"
+  ]
+}

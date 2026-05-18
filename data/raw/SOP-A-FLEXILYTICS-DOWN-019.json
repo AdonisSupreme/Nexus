@@ -1,0 +1,57 @@
+{
+  "id": "SOP-A-019",
+  "class": "A",
+  "title": "Flexilytics Reports Not Updating",
+  "severity": "low",
+  "services": [
+    "flexilytics-api",
+    "flexilytics-portal",
+    "mysql-database",
+    "task-scheduler",
+    "reporting-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "merchant reports not updating",
+    "e-channels data stale",
+    "automated emails not sending",
+    "graph data not refreshing"
+  ],
+  "symptoms": [
+    "merchant reports showing outdated data",
+    "e-channels reports not updating",
+    "automated email reports not delivered",
+    "graph data stagnant"
+  ],
+  "checks": [
+    "verify XAMPP services on server 0.68",
+    "check API running on port 8000",
+    "check portal running on port 9001",
+    "verify task scheduler services running",
+    "check reporting services status"
+  ],
+  "likely_causes": [
+    "XAMPP services stopped",
+    "task scheduler not running",
+    "reporting services stopped",
+    "API service down",
+    "database connectivity issues"
+  ],
+  "recommended_actions": [
+    "start XAMPP services (Apache & MySQL).",
+    "start FlexiWebApp Task Scheduler.",
+    "start AFCFlexiAnalyticsFastAPI Service.",
+    "start AFCFlexiAnalyticsReport Service.",
+    "verify database connectivity."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "multiple services must run concurrently",
+    "automated email delivery depends on report service",
+    "weekly/monthly graph data requires task scheduler"
+  ]
+}

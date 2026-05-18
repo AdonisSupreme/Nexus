@@ -1,0 +1,115 @@
+SOP-E-POSTILION-HEALTH-002:
+  id: SOP-E-POSTILION-HEALTH-002
+  class: SOP-E
+  title: Verify Postilion Transaction Processing Health
+  severity: High
+  services:
+    - postilion-realtime
+    - transaction-manager
+    - zimswitch-interchange
+    - card-transaction-processing
+  environments:
+    - PROD
+    - TEST
+    - DR
+  aliases:
+    - Check Postilion status
+    - Verify card transaction health
+    - ATM/POS system verification
+    - Transaction flow monitoring
+
+  realtime_monitor_checks:
+    description: "Verify nodes, connectivity, and overall Postilion system health"
+    steps:
+      - access_monitor: "Access Postilion Realtime Monitor"
+      - verify_node_status:
+          expected: "All working Nodes gray, arrows black"
+          warnings: "No red or yellow indicators"
+      - check_zimswitch_status: "Verify ZimSwitch interchange status"
+      - verify_afc_node_connectivity: "Check AFCIntellect node connectivity"
+      - transaction_manager_status: "Check Transaction Manager status"
+
+  transaction_query_checks:
+    description: "Validate transaction flow using Postilion queries"
+    steps:
+      - navigate_query_console: "Queries → Transactions → Operational Query → Last 10 Transactions"
+      - select_date: "Current Date"
+      - filter_nodes: "Source Node = Any, Sink Node = Any"
+      - search_transactions: "Click Search multiple times to verify flow"
+      - verify_response_codes: "Response Code field should show zeros ('0') for approved transactions"
+
+  trace_monitoring:
+    description: "Monitor transaction flow traces for abnormal patterns"
+    steps:
+      - reset_traces: "Turn traces off, clear all, turn them back on"
+      - monitor_abnormal_patterns: "Check for timeout errors or rejections"
+
+  event_log_checks:
+    description: "Check Postilion event logs for errors and warnings"
+    steps:
+      - navigate_events: "Events under Realtime Monitor"
+      - select_date_range: "Specify date range and search"
+      - monitor_errors: "Look for error events and system warnings"
+      - check_license_events: "Check for license-related events"
+
+  license_verification:
+    description: "Ensure licenses are valid and not expired"
+    steps:
+      - select_application: "eftcAFCIntellect"
+      - command_type: "License_?"
+      - send_command: "Click Send"
+      - verify_expiry: "Ensure expiry date is valid"
+      - repeat_for_critical_nodes: true
+
+  sql_server_health:
+    description: "Verify SQL Server memory, services, and database connection health"
+    checks:
+      - memory_usage: "Monitor SQL Server memory usage on Postilion servers"
+      - service_status: "Verify SQL Server service running"
+      - connection_counts: "Check database connection counts"
+      - transaction_log_size: "Monitor transaction log size"
+
+  performance_metrics:
+    transaction_approval_rate: ">99%"
+    avg_response_time: "< 2 seconds for authorization"
+    peak_transaction_volume_handling: true
+    error_rate: "<0.5% of total transactions"
+
+  scheduled_check_times:
+    - "Every hour during business hours"
+    - "After Postilion service restarts"
+    - "Following license updates"
+    - "During known peak transaction periods"
+
+  health_status_criteria:
+    HEALTHY:
+      description: "All nodes gray, arrows black, continuous transaction flow, approval rate >99.5%, no critical errors"
+      color_code: "Green"
+    DEGRADED:
+      description: "Intermittent transaction failures, some nodes yellow, approval rate 95-99.5%, non-critical warnings"
+      color_code: "Yellow"
+    UNHEALTHY:
+      description: "Transaction flow stopped, critical nodes red/offline, approval rate <95%, multiple critical errors"
+      color_code: "Red"
+
+  escalation_procedure:
+    immediate: "Check SQL Server memory, restart if >90% (SOP-B-010)"
+    within_5_minutes: "Restart Postilion services if nodes red"
+    within_15_minutes: "Escalate to card operations team"
+    within_30_minutes: "Notify Head ICT if unresolved"
+
+  documentation:
+    description: "Maintain detailed logs for monitoring and auditing"
+    items:
+      - hourly_status_log
+      - transaction_statistics
+      - error_counts_and_types
+      - response_time_metrics
+      - corrective_actions_taken
+
+  notes:
+    - "Critical for 24/7 card transaction processing"
+    - "Real-time monitoring essential"
+    - "License expiry can cause complete outage"
+    - "SQL Server memory issues are common cause of problems"
+    - "Coordinate with ZSS operations for escalations"

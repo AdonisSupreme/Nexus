@@ -1,0 +1,54 @@
+{
+  "id": "SOP-A-010",
+  "class": "A",
+  "title": "Treasury End of Day (EOD) Failing",
+  "severity": "high",
+  "services": [
+    "treasury-application",
+    "batch-processing",
+    "interface-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "treasury batch failing",
+    "treasury processing stuck",
+    "eod jobs failing"
+  ],
+  "symptoms": [
+    "treasury eod jobs showing \"FAILED\" status",
+    "system prompting to skip jobs",
+    "date not advancing in treasury module",
+    "error messages in batch processing"
+  ],
+  "checks": [
+    "verify treasury application accessibility",
+    "check batch job status in treasury interface",
+    "validate parameter [BRANCH=1] is set in job configuration",
+    "review job instance logs for specific errors"
+  ],
+  "likely_causes": [
+    "incorrect job parameters",
+    "database connectivity issues",
+    "interface service down",
+    "authorization failures",
+    "data validation errors"
+  ],
+  "recommended_actions": [
+    "ensure job parameter is set to [BRANCH=1]",
+    "do NOT skip jobs without IDC Support Team authorization",
+    "restart failed jobs from treasury interface",
+    "check interface services on servers 110 and 111",
+    "escalate to IDC Support Team immediately"
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "must run daily, including weekends and public holidays",
+    "must complete BEFORE IDC EOD",
+    "never skip treasury eod jobs without authorization",
+    "critical for financial date advancement"
+  ]
+}

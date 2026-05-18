@@ -1,0 +1,235 @@
+{
+  "id": "SOP-B-005",
+  "class_code": "B",
+  "title": "Restart LMS Service on Servers 110 and 111",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "lending-service",
+    "jboss-eap-7.4",
+    "loan-management-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart lending service",
+    "stop/start LMS on 110/111",
+    "restart loan system"
+  ],
+  "preconditions": [
+    {
+      "text": "verify no loan disbursements in progress",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check loan batch processing status",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with lending department",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify LMS is accessible from IDC",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test loan inquiry functionality",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check batch loan processing",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "SSH to server 192.168.1.110 or 192.168.1.111",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /rpool1/lending/jboss-eap-7.4/bin",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Stop the service: ./stopLend.sh",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start the service: ./startLend.sh",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor startup logs",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Repeat on second server",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check database connectivity",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify configuration files",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "LMS handles loan management",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart may affect loan disbursements",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with lending department",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "lending-service",
+    "jboss-eap-7.4",
+    "loan-management-system"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.1.110 or 192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check database connectivity",
+      "source_section": "rollback",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.677547",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-LMS-RESTART-005.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "3af45590ae6d6fa1accdacb596e4e035384f4b49d5737de3a7407538a8953427",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.677547",
+    "normalized_at": "2026-05-15T07:25:53.677547"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

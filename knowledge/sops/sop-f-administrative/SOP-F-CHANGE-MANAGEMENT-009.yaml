@@ -1,0 +1,102 @@
+id: SOP-F-009
+class: F
+title: Change Management and Authorization Workflows
+severity: high
+
+services:
+  - change-control-system
+  - release-management
+  - configuration-management
+  - approval-workflows
+
+environments:
+  - PROD
+  - DR
+  - TEST
+
+aliases:
+  - Change management procedures
+  - Change authorization workflows
+  - CAB processes
+  - Change control administration
+
+checks:
+  - "Verify requester is authorized (System Administrator or Business User)"
+  - "Ensure technical and business assessment completed"
+  - "Confirm Change Advisory Board (CAB) approval obtained"
+  - "Validate ICT Operations Team ready for implementation"
+  - "Check Quality Assurance and Business Users available for verification"
+
+recommended_actions:
+  - "For Category A (Major changes): New system implementations, major upgrades, architecture changes, significant configuration changes"
+  - "Category A approval: CAB + Head ICT + Business Owner required"
+  - "For Category B (Standard changes): Routine patches, minor enhancements, configuration adjustments, pre-approved changes"
+  - "Category B approval: CAB or delegated authority required"
+  - "For Category C (Emergency changes): Security patches, critical bug fixes, system restoration, immediate business requirements"
+  - "Category C approval: Emergency CAB or Head ICT required"
+  - "Request submission: Complete change request form"
+  - "Request submission: Specify change category"
+  - "Request submission: Document business justification"
+  - "Request submission: Attach technical specifications"
+  - "Request submission: Submit for assessment"
+  - "Technical assessment: Conduct impact analysis"
+  - "Technical assessment: Perform risk assessment"
+  - "Technical assessment: Identify resource requirements"
+  - "Technical assessment: Define testing requirements"
+  - "Technical assessment: Prepare rollback plan"
+  - "Business assessment: Conduct business impact analysis"
+  - "Business assessment: Create user communication plan"
+  - "Business assessment: Identify training requirements"
+  - "Business assessment: Develop business verification plan"
+  - "CAB review: Review all assessments"
+  - "CAB review: Schedule implementation"
+  - "CAB review: Assign resources"
+  - "CAB review: Approve, reject, or request modifications"
+  - "Implementation planning: Create detailed implementation plan"
+  - "Implementation planning: Communicate to stakeholders"
+  - "Implementation planning: Prepare environments"
+  - "Implementation planning: Complete backup and rollback preparation"
+  - "Pre-implementation: Verify backups complete"
+  - "Pre-implementation: Confirm rollback plan ready"
+  - "Pre-implementation: Notify stakeholders"
+  - "Pre-implementation: Prepare implementation team"
+  - "Implementation: Follow implementation plan"
+  - "Implementation: Document all steps"
+  - "Implementation: Monitor for issues"
+  - "Implementation: Be ready to execute rollback if needed"
+  - "Post-implementation: Verify system functionality"
+  - "Post-implementation: Conduct business user verification"
+  - "Post-implementation: Update documentation"
+  - "Post-implementation: Close change request"
+  - "Emergency procedure: Conduct immediate quick impact assessment"
+  - "Emergency procedure: Evaluate risk"
+  - "Emergency procedure: Document urgency justification"
+  - "Emergency procedure: Contact emergency approvers"
+  - "Emergency procedure: Document verbal approvals"
+  - "Emergency procedure: Proceed with implementation"
+  - "Emergency post-implementation: Submit formal change request"
+  - "Emergency post-implementation: Document emergency details"
+  - "Emergency post-implementation: CAB review and ratification"
+  - "Emergency post-implementation: Process improvement recommendations"
+  - "Technical verification: Check system functionality"
+  - "Technical verification: Monitor performance metrics"
+  - "Technical verification: Conduct integration testing"
+  - "Technical verification: Validate security"
+  - "Business verification: Conduct user acceptance testing"
+  - "Business verification: Validate business processes"
+  - "Business verification: Verify reporting"
+  - "Business verification: Check compliance"
+
+notes:
+  - "All changes to production must follow change management process"
+  - "Emergency changes require post-facto documentation"
+  - "Regular CAB meetings for standard changes"
+  - "Change windows scheduled to minimize business impact"
+  - "Comprehensive testing required before production implementation"
+  - "Periodic audits of change management process required"
+  - "Quality gates: All documentation complete, approvals obtained, backups verified, rollback tested, communication sent, resources allocated"
+  - "Escalation path: Level 1: Change Requester, Level 2: CAB Chair, Level 3: Head ICT, Level 4: Executive Management"
+  - "Performance metrics: Change success rate, change-related incidents, implementation duration, approval cycle time, emergency change frequency"
+  - "Continuous improvement: Regular process reviews, lessons learned sessions, process metric analysis, training and awareness, tool and template improvements"
+  - "Documentation requirements: Change request form, technical specifications, impact assessments, risk assessments, implementation plan, rollback plan, approval records, implementation logs, verification results, post implementation review"
+  - "Compliance requirements: Audit trail of all changes, segregation of duties, approval authority validation, testing and verification evidence, rollback capability demonstration"

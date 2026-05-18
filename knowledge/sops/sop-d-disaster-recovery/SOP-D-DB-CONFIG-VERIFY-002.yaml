@@ -1,0 +1,74 @@
+id: SOP-D-002
+class: D
+title: DR Database Configuration and Verification
+severity: critical
+
+services:
+  - oracle-database
+  - database-replication
+  - configuration-management
+  - backup-restoration
+
+environments:
+  - DR
+
+aliases:
+  - DR database setup
+  - Database failover configuration
+  - Oracle DR configuration
+  - Database synchronization check
+
+checks:
+  - "Verify replication is current"
+  - "Check backup integrity"
+  - "Validate storage availability"
+  - "Confirm Oracle service status"
+  - "Test network connectivity to app servers"
+
+recommended_actions:
+  - "Database server specifications: hostname: 192.168.240.2, port: 1521, sid: idcdblive, environment: DR"
+  - "ARX Database Verification Query: SELECT * FROM tb_arm_web_app WHERE URL LIKE '%cbxtre-applive01-dr%' OR URL LIKE '%idcapplive01-dr%' OR URL LIKE '%interfacelive01-dr%';"
+  - "ARX Database Verification Query: SELECT * FROM tb_arm_branch_env WHERE attrib_value IN ('192.168.240.2', 'idcdblive');"
+  - "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_ip1 = '192.168.254.95' OR dcprop_ip2 = '192.168.254.95';"
+  - "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_console1 = '8398';"
+  - "IDC Database Verification Query: SELECT * FROM eftendptm WHERE eftep_endpt_url LIKE '%interfacelive01-dr%' OR eftep_endpt_url LIKE '%192.168.254.94%';"
+  - "IDC Database Verification Query: SELECT * FROM eodsysconfig WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.254.94%';"
+  - "IDC Database Verification Query: SELECT * FROM extsyspgms WHERE extsyspgms_url LIKE '%cbxtre-applive01-dr%' OR extsyspgms_url LIKE '%interfacelive01-dr%';"
+  - "IDC Database Verification Query: SELECT * FROM procctlopenapi WHERE openapi_url LIKE '%192.168.254.93%';"
+  - "Database startup procedure: SSH to server: ssh root@192.168.240.2"
+  - "Database startup procedure: Start listener: lsnrctl start"
+  - "Database startup procedure: Start database: sqlplus / as sysdba -> startup"
+  - "Database startup procedure: Verify status: SELECT status FROM v$instance;"
+  - "Database startup procedure: Check open mode: SELECT open_mode FROM v$database;"
+  - "Connectivity testing from: 192.168.254.93"
+  - "Connectivity testing from: 192.168.254.94"
+  - "Connectivity testing from: 192.168.254.95"
+  - "Verify connection strings in app configs"
+  - "Run sample queries from each app tier"
+  - "Validate transaction processing capability"
+  - "Check Data Guard status"
+  - "Verify archive log application"
+  - "Detect replication gaps"
+  - "Validate data currency with production"
+  - "Capture baseline metrics"
+  - "Monitor resource utilization: CPU, memory, I/O"
+  - "Identify performance bottlenecks"
+  - "Document performance characteristics"
+  - "During DR activation: Suspend replication from production"
+  - "During DR activation: Enable write operations on DR"
+  - "During DR activation: Monitor data divergence"
+  - "During DR activation: Plan for eventual resynchronization"
+
+rollback:
+  - "Ensure production backup exists"
+  - "Document current DR configuration state"
+  - "Prepare rollback scripts"
+  - "Verify backup restoration procedures"
+
+notes:
+  - "Database is critical DR component"
+  - "Configuration updates must be verified before application activation"
+  - "Performance may differ from production"
+  - "Regular connection testing from all app tiers required"
+  - "Document all verification steps and results"
+  - "Coordinate with database administration team"

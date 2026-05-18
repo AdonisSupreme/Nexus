@@ -1,0 +1,241 @@
+{
+  "id": "SOP-A-015",
+  "class_code": "A",
+  "title": "ZIMRA Link Down",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "zimra-interface",
+    "dcof-services",
+    "network-connectivity",
+    "application-servers"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "ZIMRA transactions failing",
+    "tax payments not processing",
+    "ZIMRA interface offline",
+    "revenue authority link down"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "ZIMRA transactions timing out",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "tax payments failing",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "interface connection errors",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ZIMRA reporting link unavailable",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "ping ZIMRA server: ping 192.168.32",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check DCOF services on servers 112 and 113",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify interface logs at /rpool1/DCOF/jboss-eap-7.4/domain/servers/OF/log",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check network connectivity to ZIMRA network",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "verify network connectivity to ZIMRA",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart DCOF services if needed",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check interface logs for specific errors",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "escalate to Network team if connectivity issues",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "contact ZIMRA technical support if their server is down",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "network connectivity issues",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DCOF services down",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ZIMRA server maintenance",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "interface configuration issues",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "firewall/network policy changes",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "regular monitoring required",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "logs available on servers 1.112 and 1.113",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical during tax payment periods",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "zimra-interface",
+    "dcof-services",
+    "network-connectivity",
+    "application-servers"
+  ],
+  "owners": [],
+  "artifacts": [],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.366700",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-ZIMRA-LINK-015.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "b44eeee301caeb029bb1d3589908411da0d920f7f43e58175c642b76c44f059d",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.366700",
+    "normalized_at": "2026-05-15T07:25:53.366700"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

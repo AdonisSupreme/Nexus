@@ -1,0 +1,208 @@
+{
+  "id": "SOP-E-EXT-CONNECTIVITY-008",
+  "class": "SOP-E",
+  "title": "Verify External System Connectivity",
+  "severity": "Medium",
+  "services": [
+    "zimra-interface",
+    "rtgs-integration",
+    "mobile-money-gateways",
+    "payment-switches",
+    "regulatory-interfaces"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "Check external system links",
+    "Verify interface connectivity",
+    "External gateway monitoring",
+    "Integration point verification"
+  ],
+  "zimra_connectivity_check": {
+    "steps": [
+      {
+        "ping_zimra_server": "ping 192.168.32"
+      },
+      {
+        "analyze_response": {
+          "success": "Connectivity OK",
+          "timeout": "Connectivity issue",
+          "high_latency": "Performance issue"
+        }
+      },
+      {
+        "check_dcof_logs": true
+      },
+      {
+        "verify_transaction_success_rate": true
+      }
+    ]
+  },
+  "rtgs_integration_verification": {
+    "file_transfer_verification": [
+      {
+        "check_mount_points_server": 0.249
+      },
+      {
+        "verify_source_file_generation": true
+      },
+      {
+        "check_destination_file_pickup": true
+      },
+      {
+        "monitor_file_processing_success": true
+      }
+    ],
+    "transaction_flow_verification": [
+      {
+        "check_transaction_logs": true
+      },
+      {
+        "verify_settlement_file_generation": true
+      },
+      {
+        "monitor_reconciliation_reports": true
+      },
+      {
+        "check_failed_transactions": true
+      }
+    ]
+  },
+  "mobile_money_gateways": {
+    "ecocash_connectivity": [
+      {
+        "verify_portal_accessibility": "http://192.168.0.70:8080/"
+      },
+      {
+        "check_transaction_success_rates": true
+      },
+      {
+        "monitor_interface_logs": true
+      },
+      {
+        "test_sample_transaction": true
+      }
+    ],
+    "other_gateways": [
+      {
+        "verify_api_connectivity": true
+      },
+      {
+        "monitor_transaction_responses": true
+      },
+      {
+        "check_settlement_reports": true
+      }
+    ]
+  },
+  "payment_switch_connectivity": {
+    "zimswitch_verification": [
+      {
+        "check_postilion_node_status": true
+      },
+      {
+        "verify_transaction_routing": true
+      },
+      {
+        "monitor_switch_response_times": true
+      },
+      {
+        "check_reconciliation_reports": true
+      }
+    ],
+    "other_switches": [
+      {
+        "verify_interface_services": true
+      },
+      {
+        "check_connection_status": true
+      },
+      {
+        "monitor_transaction_volumes": true
+      },
+      {
+        "verify_settlement_processing": true
+      }
+    ]
+  },
+  "regulatory_interface_verification": [
+    {
+      "check_reporting_interfaces": true
+    },
+    {
+      "verify_file_submission_success": true
+    },
+    {
+      "monitor_rejection_notifications": true
+    },
+    {
+      "check_compliance_reporting_status": true
+    }
+  ],
+  "connectivity_test_methods": [
+    "ping_tests",
+    "port_checks",
+    "api_calls",
+    "transaction_tests",
+    "log_analysis"
+  ],
+  "performance_metrics": {
+    "connection_success_rate": ">99%",
+    "response_time": "<2 seconds",
+    "transaction_success_rate": ">98%",
+    "uptime_percentage": ">99.5%"
+  },
+  "scheduled_check_frequency": [
+    {
+      "critical_interfaces": "every 30 minutes"
+    },
+    {
+      "important_interfaces": "hourly"
+    },
+    {
+      "non_critical_interfaces": "daily"
+    },
+    {
+      "peak_processing": "real-time"
+    }
+  ],
+  "health_status_criteria": {
+    "HEALTHY": {
+      "description": "All connectivity tests passing, performance within SLA, no critical errors, transaction success rate >99%"
+    },
+    "DEGRADED": {
+      "description": "Intermittent connectivity issues, performance below SLA but functional, non-critical errors, transaction success rate 95-99%"
+    },
+    "UNHEALTHY": {
+      "description": "Connectivity lost, critical errors preventing transactions, performance severely degraded, transaction success rate <95%"
+    }
+  },
+  "troubleshooting_steps": [
+    "verify_network_connectivity",
+    "check_interface_service_status",
+    "review_application_logs",
+    "simple_connectivity_tests",
+    "escalate_to_network_team_if_needed"
+  ],
+  "escalation_procedure": {
+    "immediate": "Basic troubleshooting",
+    "15_minutes": "Contact interface provider support",
+    "30_minutes": "Escalate to network team",
+    "60_minutes": "Notify business stakeholders"
+  },
+  "documentation": [
+    "connectivity_test_results",
+    "performance_metrics",
+    "error_logs_summary",
+    "resolution_actions",
+    "interface_provider_communications"
+  ],
+  "notes": [
+    "External dependencies increase system risk",
+    "Regular monitoring essential for early detection",
+    "Performance baselines help identify degradation",
+    "Document all interface changes and issues"
+  ]
+}

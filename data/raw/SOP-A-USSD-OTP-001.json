@@ -1,0 +1,57 @@
+{
+  "id": "SOP-A-001",
+  "class": "A",
+  "title": "USSD OTP Not Delivered",
+  "severity": "high",
+  "services": [
+    "ussd-service",
+    "notification-service",
+    "sms-gateway",
+    "cnm-service"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "otp not coming",
+    "ussd otp failure",
+    "confirmation sms missing",
+    "customers not receiving otp",
+    "otp not delivered"
+  ],
+  "symptoms": [
+    "users do not receive otp during ussd transactions",
+    "ussd sessions complete without confirmation",
+    "delayed or missing sms notifications",
+    "customer complaints related to otp delivery"
+  ],
+  "checks": [
+    "verify sms gateway reachability",
+    "check notification-service queue depth on server 192.168.0.249",
+    "confirm ussd-service is reachable",
+    "inspect recent notification error logs at /srv/log/ate/txn-messenger/txn-notification-service",
+    "verify cnm (communication network manager) is processing otp requests"
+  ],
+  "likely_causes": [
+    "sms gateway outage or increased latency",
+    "notification-service message queue backlog",
+    "ussd-service connectivity degradation",
+    "queue processing stopped or stalled on server 192.168.0.249",
+    "cnm service not processing or forwarding otp messages"
+  ],
+  "recommended_actions": [
+    "check message queue status on server 192.168.0.249 using the ate script (main.sh option 2)",
+    "if the queue is blocked or not processing, follow the relevant sop-b procedure for notification-service restart",
+    "verify cnm service status and confirm it is actively processing otp requests",
+    "escalate to the sms gateway provider if the gateway is unreachable or responding with errors"
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "avoid service restarts during peak transaction windows unless explicit approval is granted",
+    "always confirm the target environment (prod or dr) before performing any checks or actions",
+    "if the issue appears replicated, verify otp delivery behavior in both prod and dr environments"
+  ]
+}

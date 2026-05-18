@@ -1,0 +1,298 @@
+{
+  "id": "SOP-B-001",
+  "class_code": "B",
+  "title": "Restart IDC Service on Servers 108 and 109",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "idc-jboss-service",
+    "jboss-eap-7.4",
+    "core-banking-application"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart IDC JBoss",
+    "restart core banking service",
+    "stop/start IDC on 108/109"
+  ],
+  "preconditions": [
+    {
+      "text": "verify no critical banking transactions in progress",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check IDC transaction monitor for active sessions",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with operations team before restart during business hours",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ensure DR environment is synchronized",
+      "sequence": 4,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify IDC login is accessible",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check basic transactions can be processed",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor logs for startup errors",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "SSH to server 192.168.1.108 or 192.168.1.109",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /rpool1/core/jboss-eap-7.4/bin",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Stop the service: ./stopIDC.sh",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify process is stopped: ps -ef | grep Server",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "If process still running, kill it: kill -9 <PID> (PID is first number)",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start the service: ./startIDC.sh",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor logs: tail -f /rpool1/core/jboss-eap-7.4/standalone/log",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Repeat on second server",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check logs for specific errors",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "restore from backup configuration if configuration corrupted",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team immediately",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "perform during low transaction periods if possible",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with branches if during business hours",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service restart may take 5-10 minutes",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command",
+        "threshold"
+      ]
+    },
+    {
+      "text": "always restart on both servers for load balancing",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "idc-jboss-service",
+    "jboss-eap-7.4",
+    "core-banking-application"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.108",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.109",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.1.108 or 192.168.1.109",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "Verify process is stopped: ps -ef | grep Server",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "Monitor logs: tail -f /rpool1/core/jboss-eap-7.4/standalone/log",
+      "source_section": "procedure",
+      "sequence": 7
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check logs for specific errors",
+      "source_section": "rollback",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "service restart may take 5-10 minutes",
+      "source_section": "notes",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": "10 minutes",
+      "source_section": "notes",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.611895",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-IDC-RESTART-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "ed737260ee146a2a7ee118e946c2976e4015262244202d7c1c52e30e5b133e4b",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.611895",
+    "normalized_at": "2026-05-15T07:25:53.611895"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

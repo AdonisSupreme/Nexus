@@ -1,0 +1,44 @@
+id: SOP-B-002
+class: B
+title: Restart IDC COB Service on Servers 108 and 109
+severity: medium
+
+services:
+  - idc-cob-service
+  - jboss-eap-7.4
+  - cob-application
+
+environments:
+  - PROD
+
+aliases:
+  - restart COB service
+  - stop/start COB on 108/109
+  - restart IDC batch service
+
+pre_checks:
+  - verify COB batch jobs are not running
+  - check batch schedule for pending jobs
+  - confirm with operations team
+
+procedure:
+  - SSH to server 192.168.1.108 or 192.168.1.109
+  - "Navigate to directory: cd /rpool1/ACOB/jboss-eap-7.4/bin"
+  - "Stop the service: ./stopCOB.sh"
+  - "Start the service: ./startCOB.sh"
+  - Monitor startup logs
+  - Repeat on second server
+
+post_verification:
+  - verify COB services are running
+  - check batch job scheduler status
+
+rollback:
+  - if service fails to start, check logs
+  - restore configuration from backup
+  - escalate to IDC support team
+
+notes:
+  - COB handles batch processing
+  - restart may affect scheduled batch jobs
+  - coordinate with batch schedule

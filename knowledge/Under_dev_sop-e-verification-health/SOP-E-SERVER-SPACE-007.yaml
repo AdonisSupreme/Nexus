@@ -1,0 +1,128 @@
+SOP-E-SERVER-SPACE-007:
+  id: SOP-E-SERVER-SPACE-007
+  class: SOP-E
+  title: Verify Server Space and Log Health
+  severity: Medium
+  services:
+    - all-servers
+    - disk-space-management
+    - log-rotation
+    - backup-systems
+  environments:
+    - PROD
+    - DR
+    - TEST
+  aliases:
+    - Check server disk space
+    - Verify log rotation working
+    - Storage health monitoring
+    - Log management verification
+
+  space_check_procedure:
+    steps:
+      - ssh_to_target_server: true
+      - run_space_check: "df -h"
+      - analyze_output:
+          root_partition_free: ">20%"
+          application_partitions_free: ">30%"
+          backup_partitions_free: ">40%"
+          high_usage_threshold: 80%
+
+  detailed_space_analysis:
+    steps:
+      - for_high_usage_partitions:
+          - du_analysis: "du -sh *"
+          - identify_largest_directories: true
+          - check_large_log_files: true
+          - identify_temp_files: true
+          - identify_old_backups: true
+
+  log_health_verification:
+    IDC_servers:
+      check_directory: "/rpool1"
+      verify_logs_compressed: true
+      check_tape_backup_logs: true
+      monitor_log_growth_patterns: true
+    mobile_banking_servers:
+      servers: [0.249, 0.62]
+      check_nohup_files:
+        - "/srv"
+        - "/root"
+      verify_logback_config:
+        - path: "/srv/afc/txn-messenger/txn-notification-service/etc/logback.xml"
+          maxHistory_days: 3
+        - path: "/srv/afc/txn-vendor/txn-vendor-service/etc/logback.xml"
+          maxHistory_days: 3
+      verify_automatic_log_maintenance: true
+    internet_banking_servers:
+      laravel_log_directory: "C:\\Users\\ibadmin\\Documents\\ib\\internet-banking-laravel-backend\\storage\\logs"
+      monitor_log_file_sizes: true
+      verify_log_rotation_config: true
+      check_error_log_buildup: true
+
+  critical_thresholds:
+    space_usage_alerts:
+      warning: "80-90%"
+      critical: ">90%"
+      emergency: ">95%"
+    log_age_alerts:
+      warning: "Logs older than retention + 1 day"
+      critical: "Logs older than retention + 3 days"
+
+  automated_cleanup_verification:
+    verify_cron_or_scheduled_tasks: true
+    check_last_execution_time: true
+    verify_cleanup_logs_for_errors: true
+    confirm_backup_completion_before_cleanup: true
+
+  backup_verification:
+    check_tape_backup_logs: true
+    verify_logs_written_to_tape: true
+    confirm_backup_integrity: true
+    document_backup_verification: true
+
+  performance_impact_monitoring:
+    monitor_server_performance: true
+    check_io_wait_times: true
+    monitor_app_response_times: true
+    correlate_space_issues_to_performance: true
+
+  scheduled_check_frequency:
+    - daily_production_servers
+    - twice_daily_high_transaction_servers
+    - after_major_batch_processing
+    - following_large_file_operations
+
+  health_status_criteria:
+    HEALTHY:
+      description: "All partitions <80%, log rotation OK, backups verified, no performance issues"
+    DEGRADED:
+      description: "Some partitions 80-90%, minor log rotation issues, pending backup verification, slight performance impact"
+    UNHEALTHY:
+      description: "Critical partitions >90%, log rotation failed, backups incomplete, severe performance degradation"
+
+  corrective_actions:
+    - clear_temporary_files
+    - compress_and_archive_old_logs
+    - extend_storage_if_consistently_high_usage
+    - adjust_log_retention_policies
+    - optimize_backup_strategies
+
+  escalation:
+    warning: "Document and monitor"
+    critical: "Immediate cleanup action required"
+    emergency: "All-hands response, possible service impact"
+
+  documentation:
+    - space_utilization_reports
+    - log_health_status
+    - cleanup_actions_performed
+    - backup_verification_records
+    - performance_impact_analysis
+
+  notes:
+    - "Proactive space management prevents outages"
+    - "Log rotation critical for performance and compliance"
+    - "Backup verification essential before log cleanup"
+    - "Regular monitoring identifies trends"
+    - "Coordinate with infrastructure team for persistent issues"

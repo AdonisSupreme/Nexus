@@ -1,0 +1,51 @@
+id: SOP-A-017
+class: A
+title: Ecocash Portal Services Down
+severity: medium
+
+services:
+  - ecocash-portal
+  - mysql-database
+  - apache-web-server
+  - afc-links-module
+
+environments:
+  - PROD
+
+aliases:
+  - ecocash linking portal down
+  - mobile money linking failing
+  - ecocash interface unavailable
+  - portal login issues
+
+symptoms:
+  - ecocash portal (192.168.0.70:8080) unavailable
+  - AFC Links module inaccessible
+  - ecocash linking processes failing
+  - customer complaints about mobile money services
+
+checks:
+  - verify XAMPP services on server 0.70 (Apache & MySQL)
+  - check application running on port 8080
+  - verify MySQL service connectivity
+  - check application logs
+
+likely_causes:
+  - XAMPP services stopped
+  - MySQL service down
+  - Apache web server issues
+  - application errors
+
+recommended_actions:
+  - start XAMPP services (Apache & MySQL).
+  - restart application if needed.
+  - check server space.
+  - verify database connectivity.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - affects overdrafts robots if MySQL down
+  - critical for Ecocash linking services
+  - migration to MSSQL in progress

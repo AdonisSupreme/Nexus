@@ -1,0 +1,673 @@
+{
+  "id": "SOP-F-002",
+  "class_code": "F",
+  "title": "Postilion Portal User Account Management",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "postilion-portal",
+    "card-management-system",
+    "transaction-monitoring",
+    "user-access-control"
+  ],
+  "environments": [
+    "PROD",
+    "TEST"
+  ],
+  "aliases": [
+    "Postilion user administration",
+    "Card management system user setup",
+    "Portal user account management",
+    "Transaction monitoring user access"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify ICT Operations Staff with Postilion admin rights available",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm Line Management approver available via User Access Form",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate Card Operations Manager as business owner",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check Internal Audit available for periodic access review",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm completed User Access Form approved by Line Management",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify role requirements defined and validated",
+      "sequence": 6,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate business owner approval obtained",
+      "sequence": 7,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Portal access URL: http://192.168.0.225:8080/portal/Login.faces (case-sensitive)",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "Requirements: Admin credentials required",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Login to Postilion Portal as Administrator",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Navigate to: Employees → Add an Employee",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Capture personal details as per User Access Form",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Click Save",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Select Enrol Portal Access",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "User creation: Create username using convention: <first_letter_of_first_name><surname> (e.g., MMoyo)",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Set temporary password",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Click Enroll",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Navigate to: Roles and Permissions → Manage Roles",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Assign approved role",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User creation: Click Save",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Role assignment rules: Contact Centre access level: Transaction viewing only",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Role assignment rules: Administrator access level: Full system access",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Role assignment rules: Supervisor access level: Approval and supervisory rights",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Role assignment rules: Reports Only access level: Read-only reporting access",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Login to Postilion Portal as Administrator",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Navigate to: Employees → Find an Employee",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Search user by name",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Select user → Access tab",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Password reset: Click Reset Portal Password",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Set temporary password",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Confirm user is forced to change password on first login",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account unlocking: Navigate to: Employees → Find an Employee",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account unlocking: Select user → Access tab",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Account unlocking: Click Portal Unlock",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account unlocking: Confirm user can log in with existing password",
+      "sequence": 28,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account disable/block: Navigate to: Employees → Find an Employee",
+      "sequence": 29,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account disable/block: Select user",
+      "sequence": 30,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Account disable/block: Click Disable User or Disable Portal Access",
+      "sequence": 31,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account deletion: Navigate to: Employees → Find an Employee",
+      "sequence": 32,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account deletion: Select checkbox next to user",
+      "sequence": 33,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Account deletion: Click Delete",
+      "sequence": 34,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account deletion: Confirm deletion",
+      "sequence": 35,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: User can log in with temporary credentials",
+      "sequence": 36,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Forced password change occurs on first login",
+      "sequence": 37,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Assigned roles enforce correct permissions",
+      "sequence": 38,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Audit trail entries recorded for access actions",
+      "sequence": 39,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Username format: First letter of first name + Surname",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Assigned roles must align strictly with job responsibilities",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Account disabling is preferred over deletion for auditability",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular review of active portal users is mandatory",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Temporary passwords should follow complexity requirements",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Unique username convention enforced",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Temporary passwords with mandatory change on first login",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Role-based access control (RBAC)",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Account lockout after repeated failed login attempts",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Periodic access reviews conducted",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 1: ICT Operations (routine user administration)",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 2: Card Operations Team (role and access validation)",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 3: Head ICT (policy or exception handling)",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 4: Internal Audit (compliance and audit findings)",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Approved User Access Form",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Role assignment records",
+      "sequence": 16,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Password reset logs",
+      "sequence": 17,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Account enable/disable history",
+      "sequence": 18,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: User deletion audit trail",
+      "sequence": 19,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: PCI-DSS compliance for card data access",
+      "sequence": 20,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Segregation of duties enforced",
+      "sequence": 21,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Regular user access reviews",
+      "sequence": 22,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Complete and immutable audit trail maintained",
+      "sequence": 23,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "postilion-portal",
+    "card-management-system",
+    "transaction-monitoring",
+    "user-access-control"
+  ],
+  "owners": [
+    "Escalation path Level 1: ICT Operations (routine user administration)",
+    "Escalation path Level 2: Card Operations Team (role and access validation)",
+    "Escalation path Level 3: Head ICT (policy or exception handling)"
+  ],
+  "artifacts": [
+    {
+      "type": "url",
+      "value": "http://192.168.0.225:8080/portal/Login.faces",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.225",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "User creation: Select Enrol Portal Access",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "sql",
+      "value": "Password reset: Select user → Access tab",
+      "source_section": "recommended actions",
+      "sequence": 21
+    },
+    {
+      "type": "sql",
+      "value": "Account unlocking: Select user → Access tab",
+      "source_section": "recommended actions",
+      "sequence": 26
+    },
+    {
+      "type": "sql",
+      "value": "Account disable/block: Select user",
+      "source_section": "recommended actions",
+      "sequence": 30
+    },
+    {
+      "type": "sql",
+      "value": "Account deletion: Select checkbox next to user",
+      "source_section": "recommended actions",
+      "sequence": 33
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.587140",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative\\SOP-F-POSTILION-USER-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative",
+    "source_format": "yaml",
+    "source_hash": "d995080617cad6a49f72097179d13099fa6b26f40739484433d7d91bd8bd3f5a",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.587140",
+    "normalized_at": "2026-05-15T07:25:54.587140"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions"
+  ]
+}

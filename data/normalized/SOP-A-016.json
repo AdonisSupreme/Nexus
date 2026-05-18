@@ -1,0 +1,275 @@
+{
+  "id": "SOP-A-016",
+  "class_code": "A",
+  "title": "Database Backup Failures",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "oracle-database",
+    "sql-server",
+    "postgresql",
+    "backup-software"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "backup jobs failing",
+    "database backups incomplete",
+    "RMAN backup errors",
+    "SQL backup failures"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "backup job failure notifications",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup files missing or incomplete",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database alert logs showing backup errors",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space warnings on backup destinations",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "check Oracle RMAN backup logs on 192.168.81.2",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "verify SQL Server backup jobs on Postilion servers",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check PostgreSQL backup schedules",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify backup destination space availability",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "review Veeam backup status",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "clear space on backup destinations.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check RMAN script parameters (correct paths).",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "verify database connectivity.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart SQL Server Agent if needed.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check network connectivity to backup storage.",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "destination space exhaustion",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity issues",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "RMAN script errors",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SQL Server agent issues",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "network connectivity to backup storage",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for disaster recovery",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "daily incremental and weekly full backups required",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "refer to AFC Backup Procedure Manual for details",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DR server must be updated within 72 hours of LIVE changes",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "systems": [
+    "oracle-database",
+    "sql-server",
+    "postgresql",
+    "backup-software"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.81.2",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "threshold",
+      "value": " 72 hours",
+      "source_section": "notes",
+      "sequence": 9
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:52.869814",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-DB-BACKUP-016.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "1b766d05e80552b4fbf70f5e901c53bbef38c9dbb91a89480f0ad576975bda70",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:52.869814",
+    "normalized_at": "2026-05-15T07:25:52.869814"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

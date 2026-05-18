@@ -1,0 +1,440 @@
+{
+  "id": "SOP-E-TREASURY-EOD-003",
+  "class_code": "E",
+  "title": "Verify Treasury EOD Completion Status",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "treasury-application",
+    "batch-processing",
+    "eod-jobs",
+    "financial-date-management"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Check Treasury end-of-day status",
+    "Verify EOD job completion",
+    "Treasury batch processing health",
+    "Financial date advancement check"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "check failed jobs: If any job failed, review exception messages and parameters",
+      "sequence": 1,
+      "source_section": "error checking",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify branch parameter: Confirm [BRANCH=1] parameter is set correctly",
+      "sequence": 2,
+      "source_section": "error checking",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify reports: Check Treasury reports availability",
+      "sequence": 3,
+      "source_section": "post completion checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate interface files: Confirm interface file generation",
+      "sequence": 4,
+      "source_section": "post completion checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm data consistency: Validate data consistency",
+      "sequence": 5,
+      "source_section": "post completion checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup verification: Confirm backup completion",
+      "sequence": 6,
+      "source_section": "post completion checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "login application: Login to Treasury application",
+      "sequence": 1,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "navigate batch eod: Navigate to Batch EOD → Jobs tab",
+      "sequence": 2,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check job status: description: Verify each EOD job status and exit code",
+      "sequence": 3,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check job status: expected: Status = 'Completed', No FAILED jobs",
+      "sequence": 4,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "access job logs: Access job instance logs",
+      "sequence": 5,
+      "source_section": "log verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "select job: Click on Job Name (e.g., TREASURY_EOD)",
+      "sequence": 6,
+      "source_section": "log verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "review execution log: Verify no error messages, check timestamps",
+      "sequence": 7,
+      "source_section": "log verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "relogin: Logout and login again to Treasury",
+      "sequence": 8,
+      "source_section": "system date verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify business date: Check new business date is correct",
+      "sequence": 9,
+      "source_section": "system date verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm calendar consistency: Confirm date consistency with financial calendar",
+      "sequence": 10,
+      "source_section": "system date verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify interfaces: All interface services running",
+      "sequence": 11,
+      "source_section": "dependency verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check db connectivity: Database connectivity verified",
+      "sequence": 12,
+      "source_section": "dependency verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate file system: File system access confirmed",
+      "sequence": 13,
+      "source_section": "dependency verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check blocking processes: No blocking processes",
+      "sequence": 14,
+      "source_section": "dependency verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Immediately after EOD initiation",
+      "sequence": 15,
+      "source_section": "scheduled verification time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Every 30 minutes during EOD processing",
+      "sequence": 16,
+      "source_section": "scheduled verification time",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Final verification after expected completion time",
+      "sequence": 17,
+      "source_section": "scheduled verification time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Morning following EOD execution",
+      "sequence": 18,
+      "source_section": "scheduled verification time",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Check job parameters and logs",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "within 15 minutes: Contact IDC support team",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 30 minutes: Escalate to Treasury department",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 60 minutes: Notify Head ICT",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "SUCCESSFUL: description: All EOD jobs completed successfully, system date advanced, no errors, reports generated",
+      "sequence": 1,
+      "source_section": "completion criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "COMPLETED WITH WARNINGS: description: EOD completed with non-critical warnings, system date advanced, some job warnings",
+      "sequence": 2,
+      "source_section": "completion criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "FAILED: description: One or more critical jobs failed, system date not advanced, manual intervention required",
+      "sequence": 3,
+      "source_section": "completion criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "eod_start_time",
+      "sequence": 4,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "eod_completion_time",
+      "sequence": 5,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "job_status_summary",
+      "sequence": 6,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "errors_or_warnings",
+      "sequence": 7,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "system_date_before_after",
+      "sequence": 8,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verification_personnel",
+      "sequence": 9,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Must run daily including weekends and holidays",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Must complete before IDC EOD",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Never skip Treasury EOD without IDC Support Team authorization",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical for financial date management",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "treasury-application",
+    "batch-processing",
+    "eod-jobs",
+    "financial-date-management"
+  ],
+  "owners": [
+    "Never skip Treasury EOD without IDC Support Team authorization"
+  ],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "select job: Click on Job Name (e.g., TREASURY_EOD)",
+      "source_section": "log verification",
+      "sequence": 6
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "scheduled verification time",
+      "sequence": 16
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 60 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:55.332768",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-TRY-EOD-COMPLETION-003.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "37b4962640e6cb0ded05fefdba4a5336445a7a1f63d6e24dac852036f85a293a",
+    "wrapper_key": "SOP-E-TREASURY-EOD-003",
+    "ingested_at": "2026-05-15T07:25:55.332768",
+    "normalized_at": "2026-05-15T07:25:55.332768"
+  },
+  "source_sections": [
+    "completion criteria",
+    "completion verification",
+    "dependency verification",
+    "documentation requirements",
+    "error checking",
+    "escalation procedure",
+    "log verification",
+    "notes",
+    "post completion checks",
+    "scheduled verification time",
+    "system date verification"
+  ]
+}

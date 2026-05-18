@@ -1,0 +1,668 @@
+{
+  "id": "SOP-E-EXT-CONNECTIVITY-008",
+  "class_code": "E",
+  "title": "Verify External System Connectivity",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "zimra-interface",
+    "rtgs-integration",
+    "mobile-money-gateways",
+    "payment-switches",
+    "regulatory-interfaces"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "Check external system links",
+    "Verify interface connectivity",
+    "External gateway monitoring",
+    "Integration point verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "ping zimra server: ping 192.168.32",
+      "sequence": 1,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze response: success: Connectivity OK",
+      "sequence": 2,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze response: timeout: Connectivity issue",
+      "sequence": 3,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze response: high latency: Performance issue",
+      "sequence": 4,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check dcof logs: True",
+      "sequence": 5,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify transaction success rate: True",
+      "sequence": 6,
+      "source_section": "zimra connectivity check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical interfaces: every 30 minutes",
+      "sequence": 7,
+      "source_section": "scheduled check frequency",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "important interfaces: hourly",
+      "sequence": 8,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "non critical interfaces: daily",
+      "sequence": 9,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "peak processing: real-time",
+      "sequence": 10,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "file transfer verification: check mount points server: 0.249",
+      "sequence": 1,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "file transfer verification: verify source file generation: True",
+      "sequence": 2,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "file transfer verification: check destination file pickup: True",
+      "sequence": 3,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "file transfer verification: monitor file processing success: True",
+      "sequence": 4,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction flow verification: check transaction logs: True",
+      "sequence": 5,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction flow verification: verify settlement file generation: True",
+      "sequence": 6,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction flow verification: monitor reconciliation reports: True",
+      "sequence": 7,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction flow verification: check failed transactions: True",
+      "sequence": 8,
+      "source_section": "rtgs integration verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check reporting interfaces: True",
+      "sequence": 9,
+      "source_section": "regulatory interface verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify file submission success: True",
+      "sequence": 10,
+      "source_section": "regulatory interface verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor rejection notifications: True",
+      "sequence": 11,
+      "source_section": "regulatory interface verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check compliance reporting status: True",
+      "sequence": 12,
+      "source_section": "regulatory interface verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All connectivity tests passing, performance within SLA, no critical errors, transaction success rate >99%",
+      "sequence": 13,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: Intermittent connectivity issues, performance below SLA but functional, non-critical errors, transaction success rate 95-99%",
+      "sequence": 14,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: description: Connectivity lost, critical errors preventing transactions, performance severely degraded, transaction success rate <95%",
+      "sequence": 15,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Basic troubleshooting",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "15 minutes: Contact interface provider support",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "30 minutes: Escalate to network team",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "60 minutes: Notify business stakeholders",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "ecocash connectivity: verify portal accessibility: http://192.168.0.70:8080/",
+      "sequence": 1,
+      "source_section": "mobile money gateways",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "ecocash connectivity: check transaction success rates: True",
+      "sequence": 2,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ecocash connectivity: monitor interface logs: True",
+      "sequence": 3,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ecocash connectivity: test sample transaction: True",
+      "sequence": 4,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other gateways: verify api connectivity: True",
+      "sequence": 5,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other gateways: monitor transaction responses: True",
+      "sequence": 6,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other gateways: check settlement reports: True",
+      "sequence": 7,
+      "source_section": "mobile money gateways",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "zimswitch verification: check postilion node status: True",
+      "sequence": 8,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "zimswitch verification: verify transaction routing: True",
+      "sequence": 9,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "zimswitch verification: monitor switch response times: True",
+      "sequence": 10,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "zimswitch verification: check reconciliation reports: True",
+      "sequence": 11,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other switches: verify interface services: True",
+      "sequence": 12,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other switches: check connection status: True",
+      "sequence": 13,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other switches: monitor transaction volumes: True",
+      "sequence": 14,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "other switches: verify settlement processing: True",
+      "sequence": 15,
+      "source_section": "payment switch connectivity",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ping_tests",
+      "sequence": 16,
+      "source_section": "connectivity test methods",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "port_checks",
+      "sequence": 17,
+      "source_section": "connectivity test methods",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "api_calls",
+      "sequence": 18,
+      "source_section": "connectivity test methods",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction_tests",
+      "sequence": 19,
+      "source_section": "connectivity test methods",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "log_analysis",
+      "sequence": 20,
+      "source_section": "connectivity test methods",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "connection success rate: >99%",
+      "sequence": 21,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "response time: <2 seconds",
+      "sequence": 22,
+      "source_section": "performance metrics",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "transaction success rate: >98%",
+      "sequence": 23,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "uptime percentage: >99.5%",
+      "sequence": 24,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify_network_connectivity",
+      "sequence": 25,
+      "source_section": "troubleshooting steps",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check_interface_service_status",
+      "sequence": 26,
+      "source_section": "troubleshooting steps",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "review_application_logs",
+      "sequence": 27,
+      "source_section": "troubleshooting steps",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "simple_connectivity_tests",
+      "sequence": 28,
+      "source_section": "troubleshooting steps",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate_to_network_team_if_needed",
+      "sequence": 29,
+      "source_section": "troubleshooting steps",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "connectivity_test_results",
+      "sequence": 30,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "performance_metrics",
+      "sequence": 31,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "error_logs_summary",
+      "sequence": 32,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "resolution_actions",
+      "sequence": 33,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "interface_provider_communications",
+      "sequence": 34,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "External dependencies increase system risk",
+      "sequence": 35,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular monitoring essential for early detection",
+      "sequence": 36,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance baselines help identify degradation",
+      "sequence": 37,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document all interface changes and issues",
+      "sequence": 38,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "zimra-interface",
+    "rtgs-integration",
+    "mobile-money-gateways",
+    "payment-switches",
+    "regulatory-interfaces"
+  ],
+  "owners": [
+    "escalate_to_network_team_if_needed"
+  ],
+  "artifacts": [
+    {
+      "type": "url",
+      "value": "http://192.168.0.70:8080/",
+      "source_section": "mobile money gateways",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.70",
+      "source_section": "mobile money gateways",
+      "sequence": 1
+    },
+    {
+      "type": "threshold",
+      "value": "2 seconds",
+      "source_section": "performance metrics",
+      "sequence": 22
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "scheduled check frequency",
+      "sequence": 7
+    },
+    {
+      "type": "threshold",
+      "value": "15 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": "30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": "60 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.835624",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-EXTERNAL-SYS-CON-008.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "36dd5d6a0bfab8c0dbfa05763410a6b3e5d2486376937a7ab40da9810ac3a956",
+    "wrapper_key": "SOP-E-EXT-CONNECTIVITY-008",
+    "ingested_at": "2026-05-15T07:25:54.835624",
+    "normalized_at": "2026-05-15T07:25:54.835624"
+  },
+  "source_sections": [
+    "connectivity test methods",
+    "documentation",
+    "escalation procedure",
+    "health status criteria",
+    "mobile money gateways",
+    "notes",
+    "payment switch connectivity",
+    "performance metrics",
+    "regulatory interface verification",
+    "rtgs integration verification",
+    "scheduled check frequency",
+    "troubleshooting steps",
+    "zimra connectivity check"
+  ]
+}

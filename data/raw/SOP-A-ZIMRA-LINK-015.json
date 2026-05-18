@@ -1,0 +1,55 @@
+{
+  "id": "SOP-A-015",
+  "class": "A",
+  "title": "ZIMRA Link Down",
+  "severity": "medium",
+  "services": [
+    "zimra-interface",
+    "dcof-services",
+    "network-connectivity",
+    "application-servers"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "ZIMRA transactions failing",
+    "tax payments not processing",
+    "ZIMRA interface offline",
+    "revenue authority link down"
+  ],
+  "symptoms": [
+    "ZIMRA transactions timing out",
+    "tax payments failing",
+    "interface connection errors",
+    "ZIMRA reporting link unavailable"
+  ],
+  "checks": [
+    "ping ZIMRA server: ping 192.168.32",
+    "check DCOF services on servers 112 and 113",
+    "verify interface logs at /rpool1/DCOF/jboss-eap-7.4/domain/servers/OF/log",
+    "check network connectivity to ZIMRA network"
+  ],
+  "likely_causes": [
+    "network connectivity issues",
+    "DCOF services down",
+    "ZIMRA server maintenance",
+    "interface configuration issues",
+    "firewall/network policy changes"
+  ],
+  "recommended_actions": [
+    "verify network connectivity to ZIMRA",
+    "restart DCOF services if needed",
+    "check interface logs for specific errors",
+    "escalate to Network team if connectivity issues",
+    "contact ZIMRA technical support if their server is down"
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "regular monitoring required",
+    "logs available on servers 1.112 and 1.113",
+    "critical during tax payment periods"
+  ]
+}

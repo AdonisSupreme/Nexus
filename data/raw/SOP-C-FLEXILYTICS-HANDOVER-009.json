@@ -1,0 +1,86 @@
+{
+  "id": "SOP-C-009",
+  "class": "C",
+  "title": "Flexilytics API and Portal Handover",
+  "severity": "medium",
+  "services": [
+    "flexilytics-api",
+    "flexilytics-portal",
+    "mysql-database",
+    "reporting-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Flexilytics service management",
+    "Merchant reports system",
+    "E-channels reporting",
+    "Analytics platform maintenance"
+  ],
+  "system_functions": [
+    "Generates Merchant Services Reports",
+    "Automation of email merchant reports",
+    "Automation of daily/monthly data for graphs",
+    "Contains E-channels reports (Zipit Send, Bill Payments, etc.)"
+  ],
+  "api_management": {
+    "server": "192.168.0.68",
+    "procedure": [
+      "Login to server with credentials",
+      "Go to Xampp (Apache and MySQL), start if down",
+      {
+        "Check application running on port": "http://192.168.0.68:8000/docs/"
+      }
+    ]
+  },
+  "portal_management": {
+    "server": "192.168.0.68",
+    "procedure": [
+      "Login via remote desktop",
+      "Go to Xampp (Apache and MySQL), start if down",
+      {
+        "Check application running on port": "http://192.168.0.68:9001/"
+      }
+    ]
+  },
+  "error_handling": {
+    "xampp_not_running": [
+      "Start Xampp services immediately"
+    ],
+    "weekly_monthly_data_not_updating": [
+      "Check if FlexiWebApp Task Scheduler is running"
+    ],
+    "e_channels_merchants_data_not_retrieved": [
+      "Check if AFCFlexiAnalyticsFastAPI Service is running"
+    ],
+    "merchants_not_receiving_emails": [
+      "Check if AFCFlexiAnalyticsReport Service is running"
+    ]
+  },
+  "maintenance_procedures": [
+    "Regular service status checks",
+    "Database connectivity verification",
+    "Report generation validation",
+    "Email delivery confirmation",
+    "Graph data update monitoring"
+  ],
+  "backup_requirements": [
+    "Database backup scheduling",
+    "Report configuration backups",
+    "Email template backups",
+    "Service configuration backups"
+  ],
+  "performance_monitoring": [
+    "API response time monitoring",
+    "Report generation performance",
+    "Database query optimization",
+    "Email delivery latency"
+  ],
+  "notes": [
+    "Multiple interdependent services",
+    "Automated reporting critical for merchant services",
+    "Regular monitoring prevents reporting failures",
+    "Email delivery verification essential"
+  ]
+}

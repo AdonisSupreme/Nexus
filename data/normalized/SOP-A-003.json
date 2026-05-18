@@ -1,0 +1,232 @@
+{
+  "id": "SOP-A-003",
+  "class_code": "A",
+  "title": "USSD service unreachable",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "ussd-service",
+    "integration-layer",
+    "network-gateway"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "ussd is down",
+    "ussd not responding",
+    "mobile banking ussd dead"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "users unable to initiate ussd sessions",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ussd short code not responding",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "timeout errors during session initiation",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify ussd-service host availability",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "confirm network gateway connectivity",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "inspect ussd-service application logs",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check recent deployments or config changes",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "follow SOP-B for ussd-service restart if confirmed safe",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "rollback recent changes if applicable",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "escalate to network team if gateway unreachable",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "restore previous service state if restart worsens impact",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "ussd-service process failure",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "network gateway outage",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "recent configuration or deployment issue",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm whether issue is isolated or system-wide",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "document timing and scope for post-incident review",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "ussd-service",
+    "integration-layer",
+    "network-gateway"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "verify ussd-service host availability",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "inspect ussd-service application logs",
+      "source_section": "checks",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "ussd-service process failure",
+      "source_section": "likely causes",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "follow SOP-B for ussd-service restart if confirmed safe",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "restore previous service state if restart worsens impact",
+      "source_section": "rollback",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.340561",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-USSD-UNREACHABLE-003.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "10a5b5a57f057fe89b7aaee25f6bae862d1156ff2f9ec1eecbf1315ce0955c91",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.340561",
+    "normalized_at": "2026-05-15T07:25:53.340561"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

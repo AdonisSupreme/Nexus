@@ -1,0 +1,56 @@
+id: SOP-C-001
+class: C
+title: Application Server Patch Management and Release Deployment
+severity: high
+
+services:
+  - all-application-servers
+  - jboss-eap-7.4
+  - deployment-systems
+  - configuration-management
+
+environments:
+  - TEST
+  - PROD
+  - DR
+
+aliases:
+  - Software deployment procedure
+  - Patch management process
+  - Release deployment
+  - Application updates
+
+pre_checks:
+  - Verify release notes and deployment guide are available and reviewed
+  - Confirm approval from change advisory board (CAB)
+  - Check TEST environment deployment success
+  - Validate backup of current deployment exists
+  - Verify DR environment synchronization status
+
+procedure:
+  - Execute deployment using release notes as guide
+  - Follow deployment guide step-by-step
+  - Validate deployment on LIVE environment
+  - Update DR server with same release within 72 hours of LIVE deployment
+  - Amend hard-coded parameters at DR to match LIVE configuration
+
+post_verification:
+  - Verify application functionality on LIVE environment
+  - Validate DR environment configuration matches LIVE
+  - Check service health and performance
+  - Monitor for any deployment-related issues
+  - Document deployment completion
+
+rollback:
+  - Restore from pre-deployment backup
+  - Revert configuration changes
+  - Restart affected services
+  - Validate system returns to pre-deployment state
+  - Document rollback and reasons
+
+notes:
+  - DR server must be updated within 72 hours of LIVE deployment
+  - Hard-coded parameters must be manually adjusted at DR
+  - TEST environment verification is mandatory before LIVE deployment
+  - Document all deployment activities and validations
+  - Coordinate with flexidocs change management for scheduling deployments

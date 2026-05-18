@@ -1,0 +1,40 @@
+id: SOP-B-009
+class: B
+title: Restart CAE Service on Servers 112 and 113
+severity: medium
+
+services:
+  - cae-service
+  - jboss-eap-7.4
+  - customer-alerts-engine
+
+environments:
+  - PROD
+
+aliases:
+  - restart alerts engine
+  - stop/start CAE on 112/113
+  - restart SMS/Email alerts
+
+procedure:
+  - verify no critical alerts in queue
+  - check alert delivery status
+  - confirm with operations team
+  - SSH to server 192.168.1.112 or 192.168.1.113
+  - 'Navigate to directory: cd /rpool1/CAE/jboss-eap-7.4/bin'
+  - 'Stop the service: ./stopCAE.sh'
+  - 'Start the service: ./startCAE.sh'
+  - Repeat on second server
+  - verify CAE service is running
+  - test alert generation
+  - check alert delivery logs
+
+rollback:
+  - if service fails to start, check configuration
+  - restore from backup
+  - escalate to IDC support team
+
+notes:
+  - CAE handles SMS and Email alerts
+  - restart may delay alert delivery
+  - non-critical during off-peak hours

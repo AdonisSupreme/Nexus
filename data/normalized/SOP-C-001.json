@@ -1,0 +1,298 @@
+{
+  "id": "SOP-C-001",
+  "class_code": "C",
+  "title": "Application Server Patch Management and Release Deployment",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "all-application-servers",
+    "jboss-eap-7.4",
+    "deployment-systems",
+    "configuration-management"
+  ],
+  "environments": [
+    "TEST",
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "Software deployment procedure",
+    "Patch management process",
+    "Release deployment",
+    "Application updates"
+  ],
+  "preconditions": [
+    {
+      "text": "Verify release notes and deployment guide are available and reviewed",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm approval from change advisory board (CAB)",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check TEST environment deployment success",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate backup of current deployment exists",
+      "sequence": 4,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify DR environment synchronization status",
+      "sequence": 5,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "Verify application functionality on LIVE environment",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate DR environment configuration matches LIVE",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check service health and performance",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Monitor for any deployment-related issues",
+      "sequence": 4,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document deployment completion",
+      "sequence": 5,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "Execute deployment using release notes as guide",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Follow deployment guide step-by-step",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate deployment on LIVE environment",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Update DR server with same release within 72 hours of LIVE deployment",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql",
+        "threshold"
+      ]
+    },
+    {
+      "text": "Amend hard-coded parameters at DR to match LIVE configuration",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Restore from pre-deployment backup",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Revert configuration changes",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart affected services",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate system returns to pre-deployment state",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document rollback and reasons",
+      "sequence": 5,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "DR server must be updated within 72 hours of LIVE deployment",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Hard-coded parameters must be manually adjusted at DR",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "TEST environment verification is mandatory before LIVE deployment",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document all deployment activities and validations",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with flexidocs change management for scheduling deployments",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "all-application-servers",
+    "jboss-eap-7.4",
+    "deployment-systems",
+    "configuration-management"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "Update DR server with same release within 72 hours of LIVE deployment",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "threshold",
+      "value": " 72 hours",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "Check service health and performance",
+      "source_section": "post verification",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 72 hours",
+      "source_section": "notes",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.097011",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-PATCH-DEPLOY-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "e7e1ca8fe52fec78615387c48ebd32dc6eceeaa0abb1ac2e54445c02278bd47d",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.097011",
+    "normalized_at": "2026-05-15T07:25:54.097011"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

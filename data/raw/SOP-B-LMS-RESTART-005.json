@@ -1,0 +1,47 @@
+{
+  "id": "SOP-B-005",
+  "class": "B",
+  "title": "Restart LMS Service on Servers 110 and 111",
+  "severity": "medium",
+  "services": [
+    "lending-service",
+    "jboss-eap-7.4",
+    "loan-management-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart lending service",
+    "stop/start LMS on 110/111",
+    "restart loan system"
+  ],
+  "pre_checks": [
+    "verify no loan disbursements in progress",
+    "check loan batch processing status",
+    "confirm with lending department"
+  ],
+  "procedure": [
+    "SSH to server 192.168.1.110 or 192.168.1.111",
+    "Navigate to directory: cd /rpool1/lending/jboss-eap-7.4/bin",
+    "Stop the service: ./stopLend.sh",
+    "Start the service: ./startLend.sh",
+    "Monitor startup logs",
+    "Repeat on second server"
+  ],
+  "post_verification": [
+    "verify LMS is accessible from IDC",
+    "test loan inquiry functionality",
+    "check batch loan processing"
+  ],
+  "rollback": [
+    "if service fails to start, check database connectivity",
+    "verify configuration files",
+    "escalate to IDC support team"
+  ],
+  "notes": [
+    "LMS handles loan management",
+    "restart may affect loan disbursements",
+    "coordinate with lending department"
+  ]
+}

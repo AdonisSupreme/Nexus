@@ -1,0 +1,267 @@
+{
+  "id": "SOP-A-022",
+  "class_code": "A",
+  "title": "Digital Engagement Platform Down",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "corporate online banking down",
+    "admin portal unavailable",
+    "DEP services offline",
+    "CBXC portal inaccessible"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "corporate online banking portal unavailable",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "admin portal inaccessible",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction processing failing",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service timeouts or errors",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify CBXC-FO services on servers 108 and 109",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify CBXC-BO services on servers 108 and 109",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check JBoss application server status",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify OliveFabric runtime services",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check deployment paths for WAR/COAR files",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "restart CBXC-BO services first, then CBXC-FO.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "verify deployment file integrity.",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check application logs for errors.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "verify database connectivity.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check server resources (memory, space).",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "JBoss services stopped",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "deployment file issues",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service restart order incorrect",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "database connectivity issues",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "memory/space constraints",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart order critical: BO first, then FO",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "multiple deployment types: WAR files and COAR files",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for corporate banking services",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "service timeouts or errors",
+      "source_section": "symptoms",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "service restart order incorrect",
+      "source_section": "likely causes",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:52.892059",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-DEP-DOWN-022.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "00f8df96a8b0a093d8c0863a078cc181f9711465177637446c89f4f2de4bfa76",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:52.892059",
+    "normalized_at": "2026-05-15T07:25:52.892059"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

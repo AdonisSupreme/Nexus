@@ -1,0 +1,255 @@
+{
+  "id": "SOP-A-010",
+  "class_code": "A",
+  "title": "Treasury End of Day (EOD) Failing",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "treasury-application",
+    "batch-processing",
+    "interface-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "treasury batch failing",
+    "treasury processing stuck",
+    "eod jobs failing"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "treasury eod jobs showing \"FAILED\" status",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "system prompting to skip jobs",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "date not advancing in treasury module",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "error messages in batch processing",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify treasury application accessibility",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check batch job status in treasury interface",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate parameter [BRANCH=1] is set in job configuration",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "review job instance logs for specific errors",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "ensure job parameter is set to [BRANCH=1]",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "do NOT skip jobs without IDC Support Team authorization",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart failed jobs from treasury interface",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check interface services on servers 110 and 111",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC Support Team immediately",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "incorrect job parameters",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity issues",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "interface service down",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "authorization failures",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "data validation errors",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "must run daily, including weekends and public holidays",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "must complete BEFORE IDC EOD",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "never skip treasury eod jobs without authorization",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for financial date advancement",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "treasury-application",
+    "batch-processing",
+    "interface-services"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "interface service down",
+      "source_section": "likely causes",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.280181",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-TRY-EOD-010.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "a8df591d02eed2c86e759e4bb563fe3021232cf8a9c05221936f459552eeca3a",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.280181",
+    "normalized_at": "2026-05-15T07:25:53.280181"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

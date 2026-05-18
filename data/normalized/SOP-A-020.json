@@ -1,0 +1,286 @@
+{
+  "id": "SOP-A-020",
+  "class_code": "A",
+  "title": "Branch POS Portal Down",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "branchpos-api",
+    "branchpos-portal",
+    "mysql-database",
+    "mssql-server",
+    "apache-web-server"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "teller login failing",
+    "branch POS offline",
+    "PIN reset unavailable",
+    "teller management down"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "branch POS API (0.9:1212) unavailable",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "branch POS Portal (0.68:9002) inaccessible",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "teller login failures",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PIN reset functionality unavailable",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify XAMPP services on server 0.9 (API) and 0.68 (Portal)",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check MSSQL Server running",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify API on port 1212",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify Portal on port 9002",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check service dependencies",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "start XAMPP services on both servers.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "start MSSQL Server (after XAMPP).",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "verify API and Portal accessibility.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check error logs for specific issues.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart services in correct order.",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "XAMPP services stopped",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "MSSQL Server not running",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "API service down",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Portal service down",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "service start order incorrect",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "XAMPP must start before MSSQL Server",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Portal depends on API service",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for branch teller operations",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "branchpos-api",
+    "branchpos-portal",
+    "mysql-database",
+    "mssql-server",
+    "apache-web-server"
+  ],
+  "owners": [
+    "critical for branch teller operations"
+  ],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "check service dependencies",
+      "source_section": "checks",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "API service down",
+      "source_section": "likely causes",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "Portal service down",
+      "source_section": "likely causes",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "service start order incorrect",
+      "source_section": "likely causes",
+      "sequence": 5
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:52.846376",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-020.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "aa3ab3d59a338a4a136771b6631218611bc74bf99d20057eb09a4c961f526267",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:52.846376",
+    "normalized_at": "2026-05-15T07:25:52.846376"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

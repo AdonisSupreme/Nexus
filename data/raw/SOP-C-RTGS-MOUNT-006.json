@@ -1,0 +1,62 @@
+{
+  "id": "SOP-C-006",
+  "class": "C",
+  "title": "Mounting RTGS and Ewallet Folders",
+  "severity": "high",
+  "services": [
+    "file-sharing",
+    "samba-mounts",
+    "rtgs-processing",
+    "ewallet-integration"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Folder mounting procedure",
+    "RTGS file share mounting",
+    "Ewallet folder connection",
+    "Server 249 mount management"
+  ],
+  "pre_mount_checks": [
+    "Login to server 192.168.0.45",
+    "Backup PaymentsToSTPLink folder (compress/rename existing)",
+    "Backup PaymentsFromSTPLink folder",
+    "Verify Linux server backup folder is empty"
+  ],
+  "payments_to_stp_procedure": [
+    "Navigate to folder: cd /home/administrator/batch-files/rtgs/outward/toTrustLink",
+    "Check backup folder: ls -1 /home/administrator/batch-files/rtgs/outward/backup | wc -l",
+    "If count not 0, delete files: rm backup/*",
+    "Move existing files to backup: mv toTrustLink/*.txt backup/",
+    "Mount outward folder: sudo mount -t cifs //192.168.0.45/PaymentsToSTPLink /home/administrator/batch-files/rtgs/outward/toTrustLink -o username=RTGS,password=*******",
+    "If no files in toTrustLink, restore from backup: mv backup/* toTrustLink/"
+  ],
+  "payments_from_stp_procedure": [
+    "Mount inward folder: sudo mount -t cifs //192.168.0.45/PaymentsFromSTPLink /home/administrator/batch-files/rtgs/inward/idc -o username=RTGS,password=*******"
+  ],
+  "ewallet_mount_procedure": [
+    "Mount ewallet folder: sudo mount -t cifs //192.168.0.45/EwalletProd /home/administrator/batch-files/rtgs/inward/digipay/ -o username=RTGS,password=*******"
+  ],
+  "post_mount_validation": [
+    "Check mounts: df -h",
+    "Verify all three mounts appear: PaymentsToSTPLink, PaymentsFromSTPLink, EwalletProd",
+    "Test file accessibility",
+    "Verify file transfer functionality"
+  ],
+  "troubleshooting": [
+    "If mounts fail: Check network connectivity, verify credentials are correct, check Windows server folder sharing permissions, validate firewall settings"
+  ],
+  "schedule_requirements": [
+    "Daily procedure",
+    "Must be completed before 07:00",
+    "Critical for RTGS and Ewallet processing"
+  ],
+  "notes": [
+    "Backup essential before mounting",
+    "Duplicate files acceptable (Trustlink handles duplicates)",
+    "All three mounts critical for complete functionality",
+    "Mount failures will stop RTGS and Ewallet processing",
+    "Coordinate with Treasury team if issues arise"
+  ]
+}

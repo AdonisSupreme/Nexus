@@ -1,0 +1,198 @@
+{
+  "id": "SOP-A-004",
+  "class_code": "A",
+  "title": "Notification queue backlog",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "notification-service",
+    "message-queue"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "notifications delayed",
+    "sms backlog",
+    "messages not sending"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "delayed sms or push notifications",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "increasing message queue depth",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "no immediate delivery failures reported",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "inspect message queue depth",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify notification-service resource usage",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "confirm downstream gateways are reachable",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "monitor queue trend before taking action.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "follow SOP-B for controlled restart if backlog grows.",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "coordinate with downstream providers if delays persist.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "temporary spike in message volume",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "degraded downstream gateway performance",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "notification-service resource exhaustion",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "avoid unnecessary restarts for transient spikes",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "this SOP is often a precursor to OTP failures",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "notification-service",
+    "message-queue"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "verify notification-service resource usage",
+      "source_section": "checks",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "notification-service resource exhaustion",
+      "source_section": "likely causes",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.106785",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-NOTIF-QUEUE-004.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "7182e4ac9f3b1590ac5db4908324c7fb3e2188b3d0c31d04ff3d3f0dec33840f",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.106785",
+    "normalized_at": "2026-05-15T07:25:53.106785"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

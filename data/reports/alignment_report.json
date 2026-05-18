@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-05-15T07:25:56.186682",
+  "total_documents": 72,
+  "normalized_documents": 72,
+  "classes": {
+    "A": 21,
+    "B": 17,
+    "C": 10,
+    "D": 4,
+    "F": 10,
+    "E": 10
+  },
+  "statuses": {
+    "verified_from_corpus": 72,
+    "pending_manual_reconciliation": 72
+  },
+  "source_directories": [
+    "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops",
+    "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health"
+  ],
+  "warnings": [
+    "Manual reconciliation is still pending for all corpus-derived SOPs."
+  ]
+}

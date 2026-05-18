@@ -1,0 +1,58 @@
+{
+  "id": "SOP-A-016",
+  "class": "A",
+  "title": "Database Backup Failures",
+  "severity": "high",
+  "services": [
+    "oracle-database",
+    "sql-server",
+    "postgresql",
+    "backup-software"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "backup jobs failing",
+    "database backups incomplete",
+    "RMAN backup errors",
+    "SQL backup failures"
+  ],
+  "symptoms": [
+    "backup job failure notifications",
+    "backup files missing or incomplete",
+    "database alert logs showing backup errors",
+    "space warnings on backup destinations"
+  ],
+  "checks": [
+    "check Oracle RMAN backup logs on 192.168.81.2",
+    "verify SQL Server backup jobs on Postilion servers",
+    "check PostgreSQL backup schedules",
+    "verify backup destination space availability",
+    "review Veeam backup status"
+  ],
+  "likely_causes": [
+    "destination space exhaustion",
+    "database connectivity issues",
+    "RMAN script errors",
+    "SQL Server agent issues",
+    "network connectivity to backup storage"
+  ],
+  "recommended_actions": [
+    "clear space on backup destinations.",
+    "check RMAN script parameters (correct paths).",
+    "verify database connectivity.",
+    "restart SQL Server Agent if needed.",
+    "check network connectivity to backup storage."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "critical for disaster recovery",
+    "daily incremental and weekly full backups required",
+    "refer to AFC Backup Procedure Manual for details",
+    "DR server must be updated within 72 hours of LIVE changes"
+  ]
+}

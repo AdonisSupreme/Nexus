@@ -1,0 +1,48 @@
+{
+  "id": "SOP-A-006",
+  "class": "A",
+  "title": "Mobile banking login failures",
+  "severity": "high",
+  "services": [
+    "mobile-banking-service",
+    "authentication-service",
+    "notification-service"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "users cannot log in",
+    "mobile app login failing",
+    "authentication errors"
+  ],
+  "symptoms": [
+    "users receive login error messages",
+    "repeated authentication failures",
+    "otp requested but login not completed"
+  ],
+  "checks": [
+    "verify authentication-service availability",
+    "check otp delivery status",
+    "inspect authentication error logs",
+    "confirm no recent config changes"
+  ],
+  "likely_causes": [
+    "authentication-service degradation",
+    "otp delivery delays",
+    "misconfigured authentication parameters"
+  ],
+  "recommended_actions": [
+    "correlate with SOP-A-USSD-OTP-001 if otp involved.",
+    "follow SOP-B for authentication-service restart if needed.",
+    "escalate to security team if suspicious patterns detected."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "watch for brute-force or abuse indicators",
+    "customer impact is immediate and reputational"
+  ]
+}

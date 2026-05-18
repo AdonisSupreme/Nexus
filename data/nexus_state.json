@@ -1,0 +1,976 @@
+{
+  "services": [
+    {
+      "service_uuid": "0b403590-71a5-46a8-bf37-bb730148909e",
+      "service_id": "sigma-studio",
+      "service_name": "Sigma Studio",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "sigma-studio",
+      "tags": [
+        "sigma",
+        "studio"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": "",
+        "healthcheck_url": "",
+        "metrics_url": "",
+        "logs_url": "",
+        "traces_url": "",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "",
+        "dashboard_url": ""
+      },
+      "observation_config": {
+        "network_service_id": "c5d4cee1-535f-446a-bf34-6857f9db5a8d",
+        "agent_id": "",
+        "systemd_unit": "",
+        "host_group": "Intellect",
+        "log_selector": "",
+        "metrics_namespace": "",
+        "trace_service_name": "",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": ""
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "787d2b11-ffa8-44a7-9416-17daa8b210e8",
+      "service_id": "rlo",
+      "service_name": "RLO",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "rlo",
+      "tags": [
+        "loan"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": "",
+        "healthcheck_url": "",
+        "metrics_url": "",
+        "logs_url": "",
+        "traces_url": "",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "",
+        "dashboard_url": ""
+      },
+      "observation_config": {
+        "network_service_id": "576818b8-a966-43e5-9cbf-84eccb4c1f4c",
+        "agent_id": "",
+        "systemd_unit": "",
+        "host_group": "Intellect",
+        "log_selector": "",
+        "metrics_namespace": "",
+        "trace_service_name": "",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": ""
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "8c634240-18c5-4a1a-9798-1b72d8eb9e6f",
+      "service_id": "lms",
+      "service_name": "LMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "loan-management",
+      "tags": [
+        "lms"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": "",
+        "healthcheck_url": "",
+        "metrics_url": "",
+        "logs_url": "",
+        "traces_url": "",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "",
+        "dashboard_url": ""
+      },
+      "observation_config": {
+        "network_service_id": "945b107c-05da-43c4-8d17-1df5718e2b60",
+        "agent_id": "",
+        "systemd_unit": "",
+        "host_group": "Intellect",
+        "log_selector": "",
+        "metrics_namespace": "",
+        "trace_service_name": "",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": ""
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "7eba5ac2-5563-4982-9741-61b494e05d09",
+      "service_id": "idc-core",
+      "service_name": "IDC Core",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-core",
+      "tags": [
+        "core-banking"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": true,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": null,
+        "healthcheck_url": null,
+        "metrics_url": null,
+        "logs_url": null,
+        "traces_url": null,
+        "diagnostics_url": null,
+        "restart_url": null,
+        "extraction_url": null,
+        "formatting_url": null,
+        "shipping_url": null,
+        "dashboard_url": null
+      },
+      "observation_config": {
+        "network_service_id": "79de84f6-3315-4c40-9641-3bfdd8808166",
+        "agent_id": null,
+        "systemd_unit": null,
+        "host_group": "Intellect",
+        "log_selector": null,
+        "metrics_namespace": null,
+        "trace_service_name": null,
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": null
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "2a7584f3-8acf-40ab-9de4-9c154ff553a8",
+      "service_id": "collect",
+      "service_name": "Collect Admin",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collect-admin",
+      "tags": [
+        "collect"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": null,
+        "healthcheck_url": null,
+        "metrics_url": null,
+        "logs_url": null,
+        "traces_url": null,
+        "diagnostics_url": null,
+        "restart_url": null,
+        "extraction_url": null,
+        "formatting_url": null,
+        "shipping_url": null,
+        "dashboard_url": null
+      },
+      "observation_config": {
+        "network_service_id": "cff165c6-d621-4d61-977b-f42e7334befd",
+        "agent_id": null,
+        "systemd_unit": null,
+        "host_group": "Intellect",
+        "log_selector": null,
+        "metrics_namespace": null,
+        "trace_service_name": null,
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": null
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "0a646ca7-8917-41a0-abd2-df88813707a3",
+      "service_id": "collateral-clms",
+      "service_name": "Collateral CLMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collateral-clms",
+      "tags": [
+        "collateral",
+        "clms"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": null,
+        "healthcheck_url": null,
+        "metrics_url": null,
+        "logs_url": null,
+        "traces_url": null,
+        "diagnostics_url": null,
+        "restart_url": null,
+        "extraction_url": null,
+        "formatting_url": null,
+        "shipping_url": null,
+        "dashboard_url": null
+      },
+      "observation_config": {
+        "network_service_id": "4d051581-f914-4045-ae0f-1db058199f94",
+        "agent_id": null,
+        "systemd_unit": null,
+        "host_group": "Intellect",
+        "log_selector": null,
+        "metrics_namespace": null,
+        "trace_service_name": null,
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": null
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "9addf764-9c4d-4263-8e4b-9bf716f4b11c",
+      "service_id": "cob",
+      "service_name": "COB",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-cob",
+      "tags": [
+        "cob"
+      ],
+      "cluster": "idc-prod-a",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": null,
+        "healthcheck_url": null,
+        "metrics_url": null,
+        "logs_url": null,
+        "traces_url": null,
+        "diagnostics_url": null,
+        "restart_url": null,
+        "extraction_url": null,
+        "formatting_url": null,
+        "shipping_url": null,
+        "dashboard_url": null
+      },
+      "observation_config": {
+        "network_service_id": "7a4549bd-fa4f-4296-83f2-5655ace8a69d",
+        "agent_id": null,
+        "systemd_unit": null,
+        "host_group": "Intellect",
+        "log_selector": null,
+        "metrics_namespace": null,
+        "trace_service_name": null,
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": null
+      },
+      "metadata": {}
+    },
+    {
+      "service_uuid": "f07a738f-7141-486b-869d-fe6a11d1591e",
+      "service_id": "arx",
+      "service_name": "ARX",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "auth-api",
+      "tags": [
+        "idc",
+        "identity"
+      ],
+      "cluster": "intellect",
+      "cluster_ids": [
+        "idc-prod-a",
+        "intellect"
+      ],
+      "restart_policy": {
+        "allow_restart": true,
+        "requires_human_approval": false,
+        "cooldown_minutes": 10,
+        "allowed_service_types": [
+          "app",
+          "worker"
+        ]
+      },
+      "endpoint_config": {
+        "collector_url": null,
+        "healthcheck_url": null,
+        "metrics_url": null,
+        "logs_url": null,
+        "traces_url": null,
+        "diagnostics_url": null,
+        "restart_url": null,
+        "extraction_url": null,
+        "formatting_url": null,
+        "shipping_url": null,
+        "dashboard_url": null
+      },
+      "observation_config": {
+        "network_service_id": "49aae386-7be1-464e-8be0-cf2ff4eaed0a",
+        "agent_id": null,
+        "systemd_unit": null,
+        "host_group": "Intellect",
+        "log_selector": null,
+        "metrics_namespace": null,
+        "trace_service_name": null,
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Admin",
+        "certified_at": null,
+        "notes": null
+      },
+      "metadata": {}
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "intellect",
+      "cluster_name": "Intellect",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "",
+      "service_ids": [
+        "arx",
+        "cob",
+        "collateral-clms",
+        "collect",
+        "idc-core",
+        "lms",
+        "rlo",
+        "sigma-studio"
+      ],
+      "entry_services": [
+        "arx"
+      ],
+      "routing_config": {
+        "topology_doc_url": "",
+        "dashboard_url": "",
+        "collector_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "query_url": "",
+        "notes_url": ""
+      },
+      "tags": [
+        "core-banking"
+      ],
+      "metadata": {}
+    }
+  ],
+  "dependency_edges": [
+    {
+      "edge_id": "intellect:idc-core->arx:sync_api",
+      "cluster_id": "intellect",
+      "from_service_id": "idc-core",
+      "to_service_id": "arx",
+      "dependency_type": "sync_api",
+      "criticality_weight": 1.0,
+      "timeout_budget_ms": 2500,
+      "is_hard_dependency": true,
+      "metadata": {}
+    }
+  ],
+  "signals": [
+    {
+      "signal_id": "sig-dispatch-queue",
+      "signal_type": "metric",
+      "service_id": "worker-dispatch",
+      "service_name": "Dispatch Worker",
+      "instance_id": null,
+      "severity": "WARN",
+      "timestamp": "2026-04-19T15:01:16.755563",
+      "source": "prometheus",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Queue lag increased for Dispatch Worker.",
+      "fingerprint": null,
+      "attributes": {
+        "metric": "queue_lag",
+        "value": 49
+      },
+      "raw_excerpt": null,
+      "signature": null
+    },
+    {
+      "signal_id": "sig-mem-auth-cache",
+      "signal_type": "metric",
+      "service_id": "auth-cache",
+      "service_name": "Auth Cache",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:07:16.755563",
+      "source": "prometheus",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Memory saturation breached 95% for auth-cache.",
+      "fingerprint": null,
+      "attributes": {
+        "metric": "memory_usage_percent",
+        "value": 96.4
+      },
+      "raw_excerpt": null,
+      "signature": null
+    },
+    {
+      "signal_id": "sig-log-auth-cache-oom",
+      "signal_type": "log",
+      "service_id": "auth-cache",
+      "service_name": "Auth Cache",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:10:16.755563",
+      "source": "loki",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "OOM signature detected on auth-cache.",
+      "fingerprint": null,
+      "attributes": {
+        "label_set": {
+          "service": "auth-cache",
+          "environment": "production",
+          "cluster": "idc-prod-a",
+          "severity": "critical"
+        }
+      },
+      "raw_excerpt": "kernel: Out of memory: Kill process 18321 (auth-cache) score 924",
+      "signature": {
+        "signature_id": "sig-auth-cache-oom",
+        "service_id": "auth-cache",
+        "signature_family": "memory_pressure",
+        "error_class": "oom_kill",
+        "exception_name": "OutOfMemory",
+        "timeout_type": null,
+        "oom_flag": true,
+        "db_error_code": null,
+        "first_seen_at": "2026-04-19T15:06:16.755563",
+        "last_seen_at": "2026-04-19T15:19:16.755563",
+        "count": 4,
+        "samples": [
+          "kernel: Out of memory: Kill process 18321 (auth-cache) score 924",
+          "auth-cache: fatal allocator expansion failed for session map"
+        ]
+      }
+    },
+    {
+      "signal_id": "sig-alert-auth-cache-restart",
+      "signal_type": "alert",
+      "service_id": "auth-cache",
+      "service_name": "Auth Cache",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:12:16.755563",
+      "source": "alertmanager",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Restart loop detected on auth-cache.",
+      "fingerprint": null,
+      "attributes": {
+        "metric": "restarts_10m",
+        "value": 3
+      },
+      "raw_excerpt": null,
+      "signature": null
+    },
+    {
+      "signal_id": "sig-latency-auth-api",
+      "signal_type": "metric",
+      "service_id": "auth-api",
+      "service_name": "Auth API",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:13:16.755563",
+      "source": "prometheus",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "p95 latency breached on Auth API.",
+      "fingerprint": null,
+      "attributes": {
+        "metric": "p95_latency_ms",
+        "value": 1640
+      },
+      "raw_excerpt": null,
+      "signature": null
+    },
+    {
+      "signal_id": "sig-log-auth-api-timeout",
+      "signal_type": "log",
+      "service_id": "auth-api",
+      "service_name": "Auth API",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:14:16.755563",
+      "source": "loki",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Auth API dependency timeout against auth-cache.",
+      "fingerprint": null,
+      "attributes": {
+        "label_set": {
+          "service": "auth-api",
+          "environment": "production",
+          "cluster": "idc-prod-a",
+          "severity": "critical"
+        }
+      },
+      "raw_excerpt": "auth-api: timeout waiting for auth-cache response after 220ms",
+      "signature": {
+        "signature_id": "sig-auth-api-timeout",
+        "service_id": "auth-api",
+        "signature_family": "dependency_timeout",
+        "error_class": "timeout",
+        "exception_name": null,
+        "timeout_type": "cache_dependency",
+        "oom_flag": false,
+        "db_error_code": null,
+        "first_seen_at": "2026-04-19T15:09:16.755563",
+        "last_seen_at": "2026-04-19T15:21:16.755563",
+        "count": 18,
+        "samples": [
+          "auth-api: timeout waiting for auth-cache response after 220ms",
+          "auth-api: request path /login exhausted cache dependency timeout budget"
+        ]
+      }
+    },
+    {
+      "signal_id": "sig-alert-gateway-errors",
+      "signal_type": "alert",
+      "service_id": "idc-gateway",
+      "service_name": "IDC Gateway",
+      "instance_id": null,
+      "severity": "CRITICAL",
+      "timestamp": "2026-04-19T15:16:16.755563",
+      "source": "alertmanager",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Gateway 5xx ratio spiking for IDC login path.",
+      "fingerprint": null,
+      "attributes": {
+        "metric": "http_5xx_ratio",
+        "value": 0.17
+      },
+      "raw_excerpt": null,
+      "signature": null
+    },
+    {
+      "signal_id": "sig-trace-user-session",
+      "signal_type": "trace",
+      "service_id": "user-session",
+      "service_name": "User Session Service",
+      "instance_id": null,
+      "severity": "WARN",
+      "timestamp": "2026-04-19T15:17:16.755563",
+      "source": "otel",
+      "environment": "production",
+      "cluster": "idc-prod-a",
+      "message": "Failed traces concentrated on auth-api -> auth-cache path.",
+      "fingerprint": null,
+      "attributes": {
+        "failed_trace_share": 0.78,
+        "path": [
+          "user-session",
+          "auth-api",
+          "auth-cache"
+        ]
+      },
+      "raw_excerpt": null,
+      "signature": null
+    }
+  ],
+  "change_events": [
+    {
+      "change_id": "chg-maintenance-db",
+      "service_id": "postgres-primary",
+      "change_type": "maintenance_window",
+      "timestamp": "2026-04-19T10:23:16.755563",
+      "source": "ops-calendar",
+      "summary": "Database maintenance window ended cleanly.",
+      "metadata": {
+        "status": "completed"
+      }
+    },
+    {
+      "change_id": "chg-auth-api-deploy",
+      "service_id": "auth-api",
+      "change_type": "deployment",
+      "timestamp": "2026-04-19T14:57:16.755563",
+      "source": "cicd",
+      "summary": "Auth API build 2026.04.19-rc2 deployed to idc-prod-a.",
+      "metadata": {
+        "version": "2026.04.19-rc2"
+      }
+    }
+  ],
+  "incidents": [],
+  "diagnostics": [
+    {
+      "bundle_id": "diag-0daad056-3e9a-4acb-9c00-c9c4966e0f42",
+      "incident_id": "b8730405-ccf9-50df-a687-f873b0410555",
+      "service_id": "auth-cache",
+      "requested_at": "2026-04-19T17:58:54.854025",
+      "requested_by": "ashumba",
+      "status": "READY",
+      "commands": [
+        {
+          "command_id": "systemd_status",
+          "label": "systemctl status",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway"
+          ],
+          "requires_root": false,
+          "execution_hint": "systemctl status <service> --no-pager"
+        },
+        {
+          "command_id": "recent_journal",
+          "label": "Recent journal",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway"
+          ],
+          "requires_root": false,
+          "execution_hint": "journalctl -u <service> -n 200 --no-pager"
+        },
+        {
+          "command_id": "health_check",
+          "label": "Health check",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway"
+          ],
+          "requires_root": false,
+          "execution_hint": "curl -fsS http://127.0.0.1:<port>/health"
+        },
+        {
+          "command_id": "memory_summary",
+          "label": "Memory summary",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway",
+            "db"
+          ],
+          "requires_root": false,
+          "execution_hint": "free -m"
+        },
+        {
+          "command_id": "disk_summary",
+          "label": "Disk summary",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway",
+            "db"
+          ],
+          "requires_root": false,
+          "execution_hint": "df -h"
+        },
+        {
+          "command_id": "socket_summary",
+          "label": "Socket summary",
+          "service_type_scope": [
+            "app",
+            "worker",
+            "gateway",
+            "db"
+          ],
+          "requires_root": false,
+          "execution_hint": "ss -lntp"
+        }
+      ],
+      "evidence_snapshot": [
+        {
+          "evidence_id": "ev-sig-mem-auth-cache",
+          "signal_id": "sig-mem-auth-cache",
+          "service_id": "auth-cache",
+          "service_name": "Auth Cache",
+          "timestamp": "2026-04-19T15:07:16.755563",
+          "evidence_class": "metric",
+          "severity": "CRITICAL",
+          "source": "prometheus",
+          "summary": "Memory saturation breached 95% for auth-cache.",
+          "raw_excerpt": null,
+          "signature_family": null,
+          "provenance_url": null
+        },
+        {
+          "evidence_id": "ev-sig-log-auth-cache-oom",
+          "signal_id": "sig-log-auth-cache-oom",
+          "service_id": "auth-cache",
+          "service_name": "Auth Cache",
+          "timestamp": "2026-04-19T15:10:16.755563",
+          "evidence_class": "log",
+          "severity": "CRITICAL",
+          "source": "loki",
+          "summary": "OOM signature detected on auth-cache.",
+          "raw_excerpt": "kernel: Out of memory: Kill process 18321 (auth-cache) score 924",
+          "signature_family": "memory_pressure",
+          "provenance_url": null
+        },
+        {
+          "evidence_id": "ev-sig-alert-auth-cache-restart",
+          "signal_id": "sig-alert-auth-cache-restart",
+          "service_id": "auth-cache",
+          "service_name": "Auth Cache",
+          "timestamp": "2026-04-19T15:12:16.755563",
+          "evidence_class": "alert",
+          "severity": "CRITICAL",
+          "source": "alertmanager",
+          "summary": "Restart loop detected on auth-cache.",
+          "raw_excerpt": null,
+          "signature_family": null,
+          "provenance_url": null
+        },
+        {
+          "evidence_id": "ev-sig-latency-auth-api",
+          "signal_id": "sig-latency-auth-api",
+          "service_id": "auth-api",
+          "service_name": "Auth API",
+          "timestamp": "2026-04-19T15:13:16.755563",
+          "evidence_class": "metric",
+          "severity": "CRITICAL",
+          "source": "prometheus",
+          "summary": "p95 latency breached on Auth API.",
+          "raw_excerpt": null,
+          "signature_family": null,
+          "provenance_url": null
+        },
+        {
+          "evidence_id": "ev-sig-log-auth-api-timeout",
+          "signal_id": "sig-log-auth-api-timeout",
+          "service_id": "auth-api",
+          "service_name": "Auth API",
+          "timestamp": "2026-04-19T15:14:16.755563",
+          "evidence_class": "log",
+          "severity": "CRITICAL",
+          "source": "loki",
+          "summary": "Auth API dependency timeout against auth-cache.",
+          "raw_excerpt": "auth-api: timeout waiting for auth-cache response after 220ms",
+          "signature_family": "dependency_timeout",
+          "provenance_url": null
+        },
+        {
+          "evidence_id": "ev-sig-alert-gateway-errors",
+          "signal_id": "sig-alert-gateway-errors",
+          "service_id": "idc-gateway",
+          "service_name": "IDC Gateway",
+          "timestamp": "2026-04-19T15:16:16.755563",
+          "evidence_class": "alert",
+          "severity": "CRITICAL",
+          "source": "alertmanager",
+          "summary": "Gateway 5xx ratio spiking for IDC login path.",
+          "raw_excerpt": null,
+          "signature_family": null,
+          "provenance_url": null
+        }
+      ],
+      "notes": null,
+      "diagnostics_url": null,
+      "dispatch_status": null
+    }
+  ],
+  "action_executions": [],
+  "operator_feedback": [],
+  "task_handoffs": [
+    {
+      "task_id": "nexus-task-f38454c8-8898-4f80-bf7e-6d3120368712",
+      "incident_id": "b8730405-ccf9-50df-a687-f873b0410555",
+      "title": "[Nexus] HIGH incident on Auth Cache",
+      "description": "Auth Cache is the most likely root cause for the current IDC incident. The incident spans Auth API, Auth Cache, IDC Gateway with dependency timeout as the dominant evidence pattern across the last 6 signals.\n\nProbable root cause: Auth Cache\nConfidence: 0.49\nAffected services: auth-api, auth-cache, idc-gateway\nNotes: No additional notes.",
+      "created_at": "2026-04-19T17:58:59.331096",
+      "created_by": "ashumba",
+      "route_hint": "/tasks?task=incident-auth-api-auth-cache-idc-gateway",
+      "status": "created",
+      "tags": [
+        "nexus",
+        "incident:incident-auth-api-auth-cache-idc-gateway",
+        "service:auth-api",
+        "service:auth-cache",
+        "service:idc-gateway"
+      ],
+      "external_task_id": null,
+      "assigned_to": null,
+      "task_status": null
+    }
+  ],
+  "agent_heartbeats": [],
+  "fabric_summary": {
+    "total_services": 8,
+    "total_clusters": 1,
+    "total_edges": 1,
+    "mapped_network_services": 8,
+    "diagnostics_ready_services": 0,
+    "restart_ready_services": 0,
+    "active_incidents": 0,
+    "last_sync_at": "2026-04-24T12:48:55.953071",
+    "sync_health": "success",
+    "sync_message": "Synchronized 0 live evidence records for 8 mapped services."
+  }
+}

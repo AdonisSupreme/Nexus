@@ -1,0 +1,305 @@
+{
+  "id": "SOP-A-014",
+  "class_code": "A",
+  "title": "Postilion Portal Unavailable",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "apache-tomcat",
+    "postilion-office",
+    "sql-server",
+    "portal-application"
+  ],
+  "environments": [
+    "PROD",
+    "TEST"
+  ],
+  "aliases": [
+    "portal login failing",
+    "postilion web interface down",
+    "cannot access transaction portal",
+    "HTTP 404/500 errors on portal"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "portal URL (http://192.168.0.225:8080/portal/Login.faces) not loading",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "login page errors",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction view unavailable",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "portal slow or unresponsive",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify Apache Tomcat 9.0 service running",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check Postilion Office server (0.34) is up (portal connects to Office DB)",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify SQL Server services running",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check URL case sensitivity (must be exact)",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "review Tomcat logs for errors",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "restart Apache Tomcat 9.0 service",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "ensure Postilion Office server is started first (0.34)",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "verify SQL Server services running",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check exact URL http://192.168.0.225:8080/portal/Login.faces",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "reboot portal server if needed (after Office server)",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Apache Tomcat service stopped",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Postilion Office server down",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SQL Server service issues",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Incorrect URL or port",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "License file issues",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "portal depends on Office DB - Office server must start first",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "reboot order: Office server first, then Portal server",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "license file issues can affect portal accessibility",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "apache-tomcat",
+    "postilion-office",
+    "sql-server",
+    "portal-application"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "url",
+      "value": "http://192.168.0.225:8080/portal/Login.faces)",
+      "source_section": "symptoms",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.225",
+      "source_section": "symptoms",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "verify Apache Tomcat 9.0 service running",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "Apache Tomcat service stopped",
+      "source_section": "likely causes",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SQL Server service issues",
+      "source_section": "likely causes",
+      "sequence": 3
+    },
+    {
+      "type": "url",
+      "value": "http://192.168.0.225:8080/portal/Login.faces",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.225",
+      "source_section": "recommended actions",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.170648",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-POSTILION-PORTAL-014.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "5c795dc8c1ff83abac499519015be885501d2cb630260be695947674a5af09d9",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.170648",
+    "normalized_at": "2026-05-15T07:25:53.170648"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

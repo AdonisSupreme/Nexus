@@ -1,0 +1,55 @@
+id: SOP-C-003
+class: C
+title: Database Backup Procedures
+severity: high
+services:
+  - oracle-database
+  - sql-server
+  - postgresql
+  - backup-software
+environments:
+  - PROD
+  - DR
+  - TEST
+aliases:
+  - Database backup management
+  - Backup schedule execution
+  - Database protection procedures
+  - Backup verification
+checks:
+  - Verify backup storage destinations have sufficient space
+  - Confirm database connectivity
+  - Ensure backup scripts are accessible and tested
+  - Validate schedule adherence for incremental and full backups
+recommended_actions:
+  - SSH to Oracle database server 192.168.81.2
+  - "Enter Recovery Manager: rman target /"
+  - Execute daily backup scripts
+  - "For Sunday (Level 0 - Full Weekly): run backup incremental level 0 cumulative database format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/db_%U.dbf'"
+  - "For Sunday (Level 0 - Full Weekly): run backup archivelog all format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/arc_%U.arc' delete input"
+  - "For Sunday (Level 0 - Full Weekly): run backup current controlfile for standby format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/standby.ctl'"
+  - "For Monday-Saturday (Level 1 - Incremental): run CONFIGURE CHANNEL DEVICE TYPE DISK FORMAT '/LiveBackup/Backup/[DAY]_AFTEREOD_[DATE]/arc_%U.arc' delete input"
+  - "For Monday-Saturday (Level 1 - Incremental): run BACKUP INCREMENTAL LEVEL 1 CUMULATIVE DATABASE"
+  - Check for "Backup Complete" message
+  - "Verify folder structure: /LiveBackup/Backup/"
+  - "List contents: ll or ls -ltr"
+  - Exit RMAN
+  - "For Postilion SQL Backup: Automatic twice-daily backup for Realtime and Postcard databases"
+  - "For Postilion SQL Backup: Store backups at G:\\BackUps"
+  - "For Postilion SQL Backup: Compress .bak files to save space"
+  - "For Postilion SQL Backup: Move compressed files to removable media"
+  - "For PostgreSQL Backup: Refer to AFC Backup Procedure Manual"
+  - Confirm backup file creation
+  - Verify backup integrity
+  - Check backup destination space
+  - Validate restoration capability (periodic testing)
+  - "If backup fails: Investigate immediately, Check destination space availability, Verify database connectivity, Check RMAN script parameters, Escalate to DBA if unresolved"
+rollback:
+  - Restore from previous backup if current backup fails
+  - Follow database restoration procedures
+notes:
+  - Critical for business continuity
+  - Backup files must be compressed and moved to removable media
+  - Regular restoration testing required
+  - Document all backup activities and validations
+  - Coordinate with DBA team for any issues

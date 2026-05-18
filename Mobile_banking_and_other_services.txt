@@ -1,0 +1,146 @@
+Mobile_banking_and_other_services
+
+MOBILE BANKING AND OTHER SERVICES SETUP
+
+1. txn-mobile-ussd  service
+{USSD_SERVICE_NAME=txn-mobile-ussd
+USSD_JAR=$JAR_HOME/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar
+USSD_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-ussd/etc/application.yml
+USSD_LOG=$LOG_HOME/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.log}
+
+2. txn-ussd-adapter service
+{USSD_ADAPTER_SERVICE_NAME=txn-ussd-adapter
+USSD_ADAPTER_JAR=$JAR_HOME/txn-mobile/txn-ussd-adapter/lib/txn-ussd-adapter-0.0.1-SNAPSHOT.jar
+USSD_ADAPTER_JAR_PROP=$JAR_HOME/txn-mobile/txn-ussd-adapter/etc/application.yml
+USSD_ADAPTER_LOG=$LOG_HOME/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log}
+
+3. txn-transaction-service service
+{TXN_SERVICE_NAME=txn-transaction-service
+TXN_JAR=$JAR_HOME/txn-gateway/txn-transaction-service/lib/txn-transaction-service-0.0.1-SNAPSHOT.jar
+TXN_JAR_PROP=$JAR_HOME/txn-gateway/txn-transaction-service/etc/application.yaml
+TXN_LOG=$LOG_HOME/txn-gateway/txn-transaction-service/txn-transaction-service-human.log}
+
+4. txn-integration-idc service
+{IDC_INTEGRATION_NAME=txn-integration-idc
+IDC_INTEGRATION_JAR=$JAR_HOME/txn-integration/txn-integration-idc/lib/txn-integration-idc-0.0.1-SNAPSHOT.jar
+IDC_INTEGRATION_PROP=$JAR_HOME/txn-integration/txn-integration-idc/etc/application.yml
+IDC_INTEGRATION_LOG=$LOG_HOME/txn-integration/txn-integration-idc/txn-integration-idc-human.log}
+
+5. txn-integration-postilion service
+{POSTILION_SERVICE_NAME=txn-integration-postilion
+POSTILION_JAR=$JAR_HOME/txn-integration/txn-integration-postilion/lib/txn-integration-postilion-0.0.1-SNAPSHOT.jar
+POSTILION_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-postilion/etc/application.yml
+POSTILION_LOG=$LOG_HOME/txn-integration/txn-integration-postilion/txn-integration-postilion-human.log}
+
+6. txn-profile-service service
+{PROFILE_SERVICE_NAME=txn-profile-service
+PROFILE_JAR=$JAR_HOME/txn-gateway/txn-profile-service/lib/txn-profile-service-0.0.1-SNAPSHOT.jar
+PROFILE_JAR_PROP=$JAR_HOME/txn-gateway/txn-profile-service/etc/application.yml
+PROFILE_LOG=$LOG_HOME/txn-gateway/txn-profile-service/txn-profile-service-human.log}
+
+7. txn-oauth-server service
+{AUTH_SERVICE_NAME=txn-oauth-server
+AUTH_JAR=$JAR_HOME/txn-gateway/txn-oauth-server/lib/txn-oauth-server-0.0.1-SNAPSHOT.jar
+AUTH_JAR_PROP=$JAR_HOME/txn-gateway/txn-oauth-server/etc/application.yml
+AUTH_LOG=$LOG_HOME/txn-gateway/txn-oauth-server/txn-oauth-server-human.log}
+
+8. txn-notification-service service
+{NOTIFICATION_SERVICE_NAME=txn-notification-service
+NOTIFICATION_JAR=$JAR_HOME/txn-messenger/txn-notification-service/lib/txn-notification-service-0.0.1-SNAPSHOT.jar
+NOTIFICATION_JAR_PROP=$JAR_HOME/txn-messenger/txn-notification-service/etc/application.yaml
+NOTIFICATION_LOG=$LOG_HOME/txn-messenger/txn-notification-service/txn-notification-service-human.log}
+
+9. txn-portal-service service
+{PORTAL_SERVICE_NAME=txn-portal-service
+PORTAL_JAR=$JAR_HOME/txn-administration/txn-portal-service/lib/txn-portal-service-0.0.1-SNAPSHOT.jar
+PORTAL_LOG=$LOG_HOME/txn-administration/txn-portal-service/txn-portal-service-human.log
+PORTAL_JAR_PROP=$JAR_HOME/txn-administration/txn-portal-service/etc/application.yaml}
+
+10. txn-mobile-smartphone service
+{SMARTPHONE_SERVICE_NAME=txn-mobile-smartphone
+SMARTPHONE_JAR=$JAR_HOME/txn-mobile/txn-mobile-smartphone/lib/txn-mobile-smartphone-0.0.1-SNAPSHOT.jar
+SMARTPHONE_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-smartphone/etc/application.yaml
+SMARTPHONE_LOG=$LOG_HOME/txn-mobile/txn-mobile-smartphone/txn-mobile-smartphone-human.log}
+
+11. txn-vendor-service service NO MORE
+
+12. txn-ewallet-integration service
+{E_WALLET_NAME=txn-ewallet-integration
+E_WALLET_JAR=$JAR_HOME/txn-integration/txn-ewallet-integration/lib/txn-ewallet-integration-0.0.1-SNAPSHOT.jar
+E_WALLET_JAR_PROP=$JAR_HOME/txn-integration/txn-ewallet-integration/etc/application.yml
+E_WALLET_LOG=$LOG_HOME/txn-integration/txn-ewallet-integration/txn-ewallet-integration-human.log}
+
+13. txn-agency-banking service
+{AGENCY_NAME=txn-agency-banking
+AGENCY_JAR=$JAR_HOME/txn-banking/txn-agency-banking/lib/txn-agency-banking-0.0.1-SNAPSHOT.jar
+AGENCY_JAR_PROP=$JAR_HOME/txn-banking/txn-agency-banking/etc/application.yaml
+AGENCY_LOG=$LOG_HOME/txn-banking/txn-agency-banking/txn-agency-banking-human.log}
+
+14. txn-equals service
+{EQUALS_SERVICE_NAME=txn-equals
+EQUALS_JAR=$JAR_HOME/txn-integration/txn-equals-integration/lib/txn-equals-0.0.1-SNAPSHOT.jar
+EQUALS_LOG=$LOG_HOME/txn-integration/txn-equals/txn-equals-human.log
+EQUALS_JAR_PROP=$JAR_HOME/txn-integration/txn-equals-integration/etc/application.yml}
+
+15. txn-internet-banking service
+{INTERNET_NAME=txn-internet-banking
+INTERNET_JAR=$JAR_HOME/txn-banking/txn-internet-banking/lib/txn-internet-banking-0.0.1-SNAPSHOT.jar
+INTERNET_JAR_PROP=$JAR_HOME/txn-banking/txn-internet-banking/etc/application.yaml
+INTERNET_LOG=$LOG_HOME/txn-banking/txn-internet-banking/txn-internet-banking-human.log}
+
+16. txn-zimswitch-integration service
+{ZIPIT_SMART=txn-zimswitch-integration
+ZIPIT_SMART_JAR=$JAR_HOME/txn-integration/txn-zimswitch-integration/lib/txn-zimswitch-integration-0.0.1-SNAPSHOT.jar
+ZIPIT_SMART_JAR_PROP=$JAR_HOME/txn-integration/txn-zimswitch-integration/etc/application.yml
+ZIPIT_SMART_LOG=$LOG_HOME/txn-integration/txn-zimswitch-integration/txn-zimswitch-integration-human.log}
+
+17. txn-batch-service service
+{BATCH_SERVICE_NAME=txn-batch-service
+BATCH_SERVICE_JAR=$JAR_HOME/txn-gateway/txn-batch-service/lib/txn-batch-service-0.0.1-SNAPSHOT.jar
+BATCH_SERVICE_JAR_PROP=$JAR_HOME/txn-gateway/txn-batch-service/etc/application.yml
+BATCH_SERVICE_LOG=$LOG_HOME/txn-gateway/txn-batch-service/txn-batch-service-human.log}
+
+18. txn-forwarder service
+{FORWARDER_SERVICE_NAME=txn-forwarder
+FORWARDER_SERVICE_JAR=$JAR_HOME/txn-gateway/txn-forwarder-service/lib/txn-forwarder-0.0.1-SNAPSHOT.jar
+FORWARDER_SERVICE_JAR_PROP=$JAR_HOME/txn-gateway/txn-forwarder-service/etc/application.yml
+FORWARDER_SERVICE_LOG=$LOG_HOME/txn-gateway/txn-forwarder/txn-forwarder-human.log}
+
+19. txn-digital-express service
+{EXPRESS_SERVICE_NAME=txn-digital-express
+EXPRESS_SERVICE_JAR=$JAR_HOME/txn-integration/txn-digital-express/lib/txn-digital-express-0.0.1-SNAPSHOT.jar
+EXPRESS_SERVICE_JAR_PROP=$JAR_HOME/txn-integration/txn-digital-express/etc/application.yml
+EXPRESS_SERVICE_LOG=$LOG_HOME/txn-integration/txn-digital-express/txn-digital-express-human.log}
+
+20. txn-mobile-whatsapp service
+{WHATSAPP_SERVICE_NAME=txn-mobile-whatsapp
+WHATSAPP_JAR=$JAR_HOME/txn-mobile/txn-mobile-whatsapp/lib/txn-mobile-whatsapp-0.0.1-SNAPSHOT.jar
+WHATSAPP_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-whatsapp/etc/application.yml
+WHATSAPP_LOG=$LOG_HOME/txn-mobile/txn-mobile-whatsapp/txn-mobile-whatsapp-human.log}
+
+21. api-gateway service
+{API_CLOUD_GATEWAY_NAME=api-gateway
+API_CLOUD_GATEWAY_JAR=$JAR_HOME/txn-gateway/txn-api-gateway/lib/txn-api-gateway-0.0.1-SNAPSHOT.jar
+API_CLOUD_GATEWAY_PROP=$JAR_HOME/txn-gateway/txn-api-gateway/etc/application.yml
+API_CLOUD_GATEWAY_LOG=$LOG_HOME/txn-gateway/txn-api-gateway/txn-api-gateway-human.log}
+
+22. txn-zimswitch-integration service
+{ZIPIT_SMART=txn-zimswitch-integration
+ZIPIT_SMART_JAR=$JAR_HOME/txn-integration/txn-zimswitch-integration/lib/txn-zimswitch-integration-0.0.1-SNAPSHOT.jar
+ZIPIT_SMART_JAR_PROP=$JAR_HOME/txn-integration/txn-zimswitch-integration/etc/application.yml
+ZIPIT_SMART_LOG=$LOG_HOME/txn-integration/txn-zimswitch-integration/txn-zimswitch-integration-human.log}
+
+23. txn-integration-visa service
+{VISA_SERVICE=txn-integration-visa
+VISA_SERVICE_JAR=$JAR_HOME/txn-integration/txn-integration-visa/lib/txn-integration-visa-0.0.1-SNAPSHOT.jar
+VISA_SERVICE_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-visa/etc/application.yaml
+VISA_SERVICE_LOG=$LOG_HOME/txn-integration/txn-integration-visa/txn-integration-visa-human.log}
+
+24. txn-cottco-validation service NO MORE
+
+25. txn-integration-craft-silicon service
+{CRAFT_SILICON_SERVICE_NAME=txn-integration-craft-silicon
+CRAFT_SILICON_JAR=$JAR_HOME/txn-integration/txn-integration-craft-silicon/lib/txn-integration-craft-silicon-0.0.1-SNAPSHOT.jar
+CRAFT_SILICON_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-craft-silicon/etc/application.yml
+CRAFT_SILICON_LOG=$LOG_HOME/txn-integration/txn-integration-craft-silicon/txn-integration-craft-silicon-human.log}
+

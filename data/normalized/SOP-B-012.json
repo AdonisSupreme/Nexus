@@ -1,0 +1,303 @@
+{
+  "id": "SOP-B-012",
+  "class_code": "B",
+  "title": "Restart Mobile Banking ATE Services on Server 249",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "ate-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart USSD services",
+    "restart mobile banking",
+    "stop/start ATE on 249"
+  ],
+  "preconditions": [
+    {
+      "text": "verify mount points are active",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check server space availability",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with operations team",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "check service status (option 2)",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify USSD functionality",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test mobile banking transaction",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "SSH to server 192.168.0.249",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /srv",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Run ATE script: sudo ./main.sh",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Enter password when prompted",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Select option 5 to stop services",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Select * to stop all services",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Wait for all services to stop",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Select option 3 to start services",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Select * to start all services",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Wait for all services to start (be patient)",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if services fail to start, check logs",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify mount points",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check server space",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to mobile banking support",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "script has delays - do not terminate session",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "must be done during night shift if possible",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for 24/7 mobile banking",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "ate-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "Select option 5 to stop services",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "sql",
+      "value": "Select * to stop all services",
+      "source_section": "procedure",
+      "sequence": 6
+    },
+    {
+      "type": "sql",
+      "value": "Select option 3 to start services",
+      "source_section": "procedure",
+      "sequence": 8
+    },
+    {
+      "type": "sql",
+      "value": "Select * to start all services",
+      "source_section": "procedure",
+      "sequence": 9
+    },
+    {
+      "type": "command",
+      "value": "check service status (option 2)",
+      "source_section": "post verification",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.745451",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-MOBILE-ATE-RESTART-012.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "12f021788ce350a47e1e93756694d33dd036fc3e2e9e5723adf32d1768df3032",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.745451",
+    "normalized_at": "2026-05-15T07:25:53.745451"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

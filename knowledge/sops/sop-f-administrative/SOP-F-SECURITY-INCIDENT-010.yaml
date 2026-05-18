@@ -1,0 +1,132 @@
+id: SOP-F-010
+class: F
+title: Security Incident Response and Reporting
+severity: critical
+
+services:
+  - security-incident-management
+  - threat-detection
+  - breach-response
+  - regulatory-reporting
+
+environments:
+  - PROD
+  - DR
+  - TEST
+
+aliases:
+  - Security incident response
+  - Breach response procedures
+  - Cybersecurity incident management
+  - Threat response protocols
+
+checks:
+  - "Verify ICT Operations as First Responder (24/7 availability)"
+  - "Confirm Cyber Security Specialists available in Security Team"
+  - "Validate Management contacts: Head ICT, Legal, Compliance"
+  - "Check External contacts: Regulators, Law Enforcement, Vendors"
+  - "Confirm Executive notification path to Board-level if required"
+
+recommended_actions:
+  - "Incident classification Category 1 Critical: Data breach confirmed, system compromise, ransomware infection, major denial of service"
+  - "Category 1 response: Immediate, 24/7, executive notification"
+  - "Incident classification Category 2 Major: Suspected breach, multiple failed access attempts, malware detection, system vulnerability exploitation"
+  - "Category 2 response: Immediate, security team engagement"
+  - "Incident classification Category 3 Minor: Single failed access attempt, suspicious activity, policy violation, security alert"
+  - "Category 3 response: Investigate, document, remediate"
+  - "Phase 1 Detection/Initial Response: Incident detection automated or manual"
+  - "Phase 1: Immediate isolation if necessary"
+  - "Phase 1: Initial assessment and classification"
+  - "Phase 1: First responder actions to contain"
+  - "Phase 2 Investigation/Analysis: Security team engagement"
+  - "Phase 2: Evidence collection and preservation"
+  - "Phase 2: Root cause analysis"
+  - "Phase 2: Impact assessment"
+  - "Phase 2: Containment strategy development"
+  - "Phase 3 Containment/Eradication: Execute containment measures"
+  - "Phase 3: Remove threat from environment"
+  - "Phase 3: Verify threat elimination"
+  - "Phase 3: Secure affected systems"
+  - "Phase 4 Recovery/Restoration: Restore systems from clean backups"
+  - "Phase 4: Verify system integrity"
+  - "Phase 4: Implement additional security measures"
+  - "Phase 4: Monitor for reinfection"
+  - "Phase 5 Post Incident: Lessons learned analysis"
+  - "Phase 5: Process improvement implementation"
+  - "Phase 5: Documentation completion"
+  - "Phase 5: Training and awareness updates"
+  - "Internal notification Immediate: Security team, Head ICT"
+  - "Internal notification within 1 hour: Legal, Compliance, Risk Management"
+  - "Internal notification within 4 hours: Executive Management"
+  - "Internal notification within 24 hours: Board notification if required"
+  - "External notification to Regulators: As per regulatory requirements"
+  - "External notification to Law Enforcement: If criminal activity suspected"
+  - "External notification to Customers: If customer data breached"
+  - "External notification to Vendors: If vendor systems involved"
+  - "External notification to Public: If public disclosure required"
+  - "Evidence preservation: System logs preservation"
+  - "Evidence preservation: Network traffic capture"
+  - "Evidence preservation: Malware samples preservation"
+  - "Evidence preservation: Access logs retention"
+  - "Evidence preservation: Chain of custody documentation"
+  - "RBZ regulatory reporting: Immediate notification of major incidents"
+  - "RBZ regulatory reporting: Detailed report within specified timeframe"
+  - "RBZ regulatory reporting: Remediation plan submission"
+  - "RBZ regulatory reporting: Regular updates until resolution"
+  - "Other regulatory reporting: PCI-DSS requirements for card data"
+  - "Other regulatory reporting: Data protection regulations"
+  - "Other regulatory reporting: Financial sector regulations"
+  - "Other regulatory reporting: Cybersecurity regulations"
+  - "Business impact assessment: Financial impact estimation"
+  - "Business impact assessment: Customer impact assessment"
+  - "Business impact assessment: Reputation damage assessment"
+  - "Business impact assessment: Regulatory compliance impact"
+  - "Business impact assessment: Operational disruption assessment"
+  - "Recovery prioritization: Critical banking systems first"
+  - "Recovery prioritization: Customer facing channels"
+  - "Recovery prioritization: Payment and settlement systems"
+  - "Recovery prioritization: Internal systems"
+  - "Recovery prioritization: Reporting and management systems"
+  - "Training and preparedness: Regular incident response drills"
+  - "Training and preparedness: Security awareness training"
+  - "Training and preparedness: Tabletop exercises"
+  - "Training and preparedness: Tool and process training"
+  - "Training and preparedness: Role-specific training"
+  - "Continuous improvement: Post incident reviews"
+  - "Continuous improvement: Process gap analysis"
+  - "Continuous improvement: Tool and technology evaluation"
+  - "Continuous improvement: Policy and procedure updates"
+  - "Continuous improvement: Training program updates"
+
+notes:
+  - "Assume breach mentality"
+  - "Regular testing of incident response plans"
+  - "Cross-functional team involvement"
+  - "Legal and compliance early engagement"
+  - "Customer trust preservation priority"
+  - "Internal communication: Secure communication channels"
+  - "Internal communication: Need-to-know basis"
+  - "Internal communication: Documented communications"
+  - "Internal communication: Regular updates to stakeholders"
+  - "External communication: Approved spokespersons only"
+  - "External communication: Pre-approved communication templates"
+  - "External communication: Legal review before release"
+  - "External communication: Regulatory coordination"
+  - "Incident report requirements: Incident detection details"
+  - "Incident report requirements: Timeline of events"
+  - "Incident report requirements: Actions taken"
+  - "Incident report requirements: Evidence collected"
+  - "Incident report requirements: Impact assessment"
+  - "Incident report requirements: Root cause analysis"
+  - "Incident report requirements: Remediation actions"
+  - "Incident report requirements: Lessons learned"
+  - "Incident report requirements: Improvement recommendations"
+  - "Legal and compliance documentation: Regulatory notification records"
+  - "Legal and compliance documentation: Legal advice documentation"
+  - "Legal and compliance documentation: Customer notification records"
+  - "Legal and compliance documentation: Public communication records"
+  - "Compliance requirements: Regulatory reporting timelines"
+  - "Compliance requirements: Evidence preservation requirements"
+  - "Compliance requirements: Notification protocols"
+  - "Compliance requirements: Documentation standards"
+  - "Compliance requirements: Audit trail requirements"

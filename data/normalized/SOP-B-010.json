@@ -1,0 +1,250 @@
+{
+  "id": "SOP-B-010",
+  "class_code": "B",
+  "title": "Daily Restart of Postilion and SQL Server Services",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "postilion-realtime",
+    "sql-server",
+    "transaction-manager",
+    "certificate-manager"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "daily Postilion restart",
+    "SQL Server memory release",
+    "transaction manager restart"
+  ],
+  "preconditions": [
+    {
+      "text": "verify no critical transactions in progress",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check Postilion realtime monitor",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ensure time is before 07:00hrs",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify all services are running",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check Postilion realtime monitor",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test transaction flow",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "log into Postilion Realtime Server (192.168.0.91)",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "stop Transaction Manager service",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "stop SQL Server MSSQLSERVER service",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "start SQL Server MSSQLSERVER service",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart Certificate Manager service",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart Scheduler service",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart SSF Monitor service",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart AFCIntellect service",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "start Transaction Manager service",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if services fail to start, check SQL Server memory",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart services in order",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to Postilion support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "must be done daily before 07:00hrs",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "frees up memory usage",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for transaction processing stability",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with ZSS operations team if needed",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "postilion-realtime",
+    "sql-server",
+    "transaction-manager",
+    "certificate-manager"
+  ],
+  "owners": [
+    "coordinate with ZSS operations team if needed"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.777971",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-POSTILION-DAILY-010.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "62e2962216841400e81d4af0761c130a1ae543d5aee573c480a105d494585e87",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.777971",
+    "normalized_at": "2026-05-15T07:25:53.777971"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

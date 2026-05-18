@@ -1,0 +1,261 @@
+{
+  "id": "SOP-B-014",
+  "class_code": "B",
+  "title": "Delete RTGS Files from PaymentsToSTPLink Folder",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "rtgs-file-management",
+    "file-cleanup",
+    "treasury-reconciliation"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "remove RTGS payment files",
+    "cleanup transaction files",
+    "delete specific RTGS files"
+  ],
+  "preconditions": [
+    {
+      "text": "verify Treasury department authorization",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm reference list from Treasury",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup folder before deletion",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify files are deleted",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check for any error messages",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "report completion to Treasury",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "receive Excel file with transaction references from Treasury",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "append \"DFTMT103\" to beginning and \".txt\" to end of each reference: Excel formula: =CONCATENATE(\"DFTMT103\",A1,\".txt\")",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "copy column values and transpose to row",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "paste row into Notepad",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "replace tab spaces with single spaces (Ctrl+H)",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "add \"sudo rm\" at beginning of command",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SSH to server 192.168.0.249",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "navigate to: /batch-files/rtgs/outward/toTrustLink",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "paste command and execute",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "enter administrator password when prompted",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "files cannot be recovered once deleted",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "if errors, remove DFTMT103 prefix and .txt suffix",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "send failed references back to Treasury",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "files permanently deleted",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "no recovery possible",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "double-check references before deletion",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate closely with Treasury department",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "rtgs-file-management",
+    "file-cleanup",
+    "treasury-reconciliation"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 7
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 7
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.834780",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-RTGS-DELETE-014.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "b9f0f4595981d464fc437406c51ddd419ad9ff02256b747a12080728383a4c11",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.834780",
+    "normalized_at": "2026-05-15T07:25:53.834780"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

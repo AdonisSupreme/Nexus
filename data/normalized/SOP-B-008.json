@@ -1,0 +1,310 @@
+{
+  "id": "SOP-B-008",
+  "class_code": "B",
+  "title": "Restart DC and OF Interfaces on Servers 112 and 113",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "dc-interface",
+    "of-interface",
+    "jboss-eap-7.4",
+    "delivery-channel-olifabric"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart Postilion interface",
+    "restart Olifabric interface",
+    "stop/start DCOF on 112/113"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Restart OF Only: verify no ATM/POS transactions in progress",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: check Postilion realtime monitor",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: confirm with card operations team",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: communicate with Zimswitch before restarting DC services",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: SSH to server 192.168.1.112 or 192.168.1.113",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Restart OF Only: Navigate: cd /rpool1/DCOF/jboss-eap-7.4/bin",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: Stop: ./OFonlyStop.sh",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: Start: ./OFonlyStart.sh",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart OF Only: Repeat on second server",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: verify no ATM/POS transactions in progress",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: check Postilion realtime monitor",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: confirm with card operations team",
+      "sequence": 12,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: communicate with Zimswitch before restarting DC services",
+      "sequence": 13,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: SSH to server 192.168.1.112 or 192.168.1.113",
+      "sequence": 14,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Restart DC Only: Navigate: cd /rpool1/DCOF/jboss-eap-7.4/bin",
+      "sequence": 15,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: Stop: ./DConlyStop.sh",
+      "sequence": 16,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: Start: ./DConlyStart.sh",
+      "sequence": 17,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart DC Only: Repeat on second server",
+      "sequence": 18,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if interfaces fail to start, check configuration",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restore from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "DC handles Postilion interface transactions",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "OF handles other Olifabric channel transactions",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for card transactions",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "avoid restarting DC services unless communicated with Zimswitch",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "avoid using scripts stopDCOF.sh, startDCOF.sh, DCOnlystop.sh, DCOnlystart.sh unless critical",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "dc-interface",
+    "of-interface",
+    "jboss-eap-7.4",
+    "delivery-channel-olifabric"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.112",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "Restart OF Only: SSH to server 192.168.1.112 or 192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.112",
+      "source_section": "procedure",
+      "sequence": 14
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 14
+    },
+    {
+      "type": "command",
+      "value": "Restart DC Only: SSH to server 192.168.1.112 or 192.168.1.113",
+      "source_section": "procedure",
+      "sequence": 14
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.490150",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-DC-OF-RESTART-008.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "31b5a28dc068ac87734077abd8904dad7405f17420d4b2e01eccc8cdb28d4467",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.490150",
+    "normalized_at": "2026-05-15T07:25:53.490150"
+  },
+  "source_sections": [
+    "notes",
+    "procedure",
+    "rollback"
+  ]
+}

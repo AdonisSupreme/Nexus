@@ -1,0 +1,62 @@
+id: SOP-A-002
+class: A
+title: ATM/POS Transactions Failing
+severity: critical
+
+services:
+  - postilion-realtime
+  - transaction-manager
+  - zimswitch-interchange
+  - afcintellect-node
+  - sql-server
+
+environments:
+  - PROD
+  - UAT
+
+aliases:
+  - cards declining
+  - pos terminals offline
+  - atm transactions failing
+  - eft transactions stuck
+  - postilion transaction errors
+
+symptoms:
+  - pos terminals display "transaction failed"
+  - atm cards are being declined
+  - zimswitch transactions timing out
+  - postilion portal shows transaction processing errors
+  - eft transactions remain in pending or failed state
+
+checks:
+  - check postilion realtime monitor for node status (arrows should be black and nodes gray)
+  - verify zimswitch interchange status and connectivity
+  - confirm transaction-manager service is running
+  - inspect postilion events and logs for transaction-related errors
+  - verify afcintellect node connectivity and error status
+  - check sql server memory utilization; note if memory usage exceeds 90 percent
+  - verify postilion license status and expiry dates
+
+likely_causes:
+  - postilion realtime service degradation or failure
+  - zimswitch interchange outage or interface disruption
+  - transaction-manager service stopped or unresponsive
+  - sql server memory exhaustion affecting transaction processing
+  - expired or near-expiry postilion license
+  - afcintellect node communication failure
+
+recommended_actions:
+  - follow the relevant sop-b procedures for controlled postilion service restarts.
+  - validate postilion license expiry dates using sop-b-008.
+  - confirm zimswitch connectivity and escalate if interface is down.
+  - if sql server memory usage exceeds 90 percent, follow sop-b procedures for sql service restart.
+  - escalate to idc support if afcintellect node reports persistent errors.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - this is a critical incident during business hours and requires immediate escalation
+  - "always verify both live and dr nodes: 192.168.0.91 (live), 192.168.254.91 (dr)"
+  - transaction queries in the postilion portal can be used to review the last 10 transaction statuses
+  - avoid repeated restarts without identifying the underlying cause

@@ -1,0 +1,366 @@
+{
+  "id": "SOP-B-011",
+  "class_code": "B",
+  "title": "Apply Postilion License",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "postilion-license",
+    "realtime-server",
+    "office-server",
+    "portal-server"
+  ],
+  "environments": [
+    "TEST",
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "load Postilion license",
+    "update license keys",
+    "license renewal"
+  ],
+  "preconditions": [
+    {
+      "text": "verify license file is correct for environment",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check current license expiry date",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm license keys received via email",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup existing license file",
+      "sequence": 4,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify new license expiry dates",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check transaction flow",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify portal accessibility",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91): Rename existing license: postilion.lic to postilion.lic--DD.MM.YYYY",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91): Copy new .lic file to: C:\\Postilion\\real-time\\license",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91): Apply interchange/sink node license keys in Postilion Console",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91): Resync applications: ZIMSWITCH, IDC Node (eftcAFCIntellect)",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91): Restart services in order: Top 3 Panel, Sink Nodes",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Step 2: Postilion Office (0.34) and Portal (0.225): Copy same .lic file to: C:\\Postilion\\real-time\\license",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Step 2: Postilion Office (0.34) and Portal (0.225): Reboot Office server first",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Step 2: Postilion Office (0.34) and Portal (0.225): Start services: Certificate Manager, Scheduler, Transaction Manager, Office Sentinel",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Step 2: Postilion Office (0.34) and Portal (0.225): Reboot Portal server after Office is up",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Step 2: Postilion Office (0.34) and Portal (0.225): Start Apache Tomcat 9.0 on Portal",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "restore backup license file",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "reboot servers",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "contact Postilion support if issues",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "always load on TEST first and verify",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "never include spaces when pasting license keys",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify hostname matches license file",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Office server must reboot before Portal server",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with Zimswitch for interchange licenses",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "postilion-license",
+    "realtime-server",
+    "office-server",
+    "portal-server"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.197",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.197",
+      "source_section": "procedure",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "procedure",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.197",
+      "source_section": "procedure",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "procedure",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.197",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.197",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "procedure",
+      "sequence": 5
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.808440",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-POSTILION-LICENSE-011.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "8a3d29bd435ee24fe8752b70bdcd958b006990675ad67b46bd06ac39d5c803b7",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.808440",
+    "normalized_at": "2026-05-15T07:25:53.808440"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

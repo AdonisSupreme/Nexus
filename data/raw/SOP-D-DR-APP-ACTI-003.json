@@ -1,0 +1,85 @@
+{
+  "id": "SOP-D-003",
+  "class": "D",
+  "title": "DR Application Server Activation Sequence",
+  "severity": "critical",
+  "services": [
+    "jboss-application-servers",
+    "microservices",
+    "authentication-services",
+    "interface-services"
+  ],
+  "environments": [
+    "DR"
+  ],
+  "aliases": [
+    "DR server startup sequence",
+    "Application service activation",
+    "JBoss server startup in DR",
+    "Service dependency management"
+  ],
+  "checks": [
+    "Verify database server 192.168.240.2 is running first (MUST be running first)",
+    "Check authentication services availability at 192.168.254.94 (Required for all logins)",
+    "Validate core banking services at 192.168.254.93 (Business critical)",
+    "Confirm interface services at 192.168.254.95 (External connectivity)",
+    "Verify all supporting services"
+  ],
+  "recommended_actions": [
+    "Server 192.168.254.94 activation: SSH to server: ssh root@192.168.254.94",
+    "Server 192.168.254.94: Start ARX Authentication service: cd /rpool1/arx/jboss-eap-7.4/bin/ && ./startARX.sh",
+    "Server 192.168.254.94: Start Lending Services: cd /rpool1/lending/jboss-eap-7.4/bin && ./startLend.sh",
+    "Server 192.168.254.94: Start Collection Services: cd /rpool1/Collect/jboss-eap-7.4/bin && ./startCollect.sh && ./startCOLBatch.sh",
+    "Server 192.168.254.94: Start Treasury Interfaces: cd /rpool1/TRY/jboss-eap-7.4/standalone/log && nohup ./standalone.sh &",
+    "Server 192.168.254.94: Start ALM & RLO Services (specific procedures TBD)",
+    "Server 192.168.254.93 activation: SSH to server: ssh root@192.168.254.93",
+    "Server 192.168.254.93: Start IDC Core Banking: cd /rpool1/core/jboss-eap-7.4/bin && ./startIDC.sh",
+    "Server 192.168.254.93: Start COB Service: cd /rpool1/ACOB/jboss-eap-7.4/bin && ./startCOB.sh",
+    "Server 192.168.254.93: Start Microservices: cd /rpool1/MICRO && ./startup.sh",
+    "Server 192.168.254.93: Start DEP Back Office: cd /rpool1/CBXR-BO/jboss-eap-7.4/bin && ./startCBXRBO.sh",
+    "Server 192.168.254.93: Start DEP Front Office: cd /rpool1/CBXR-FO/jboss-eap-7.4/bin && ./startFO.sh",
+    "Server 192.168.254.95 activation: SSH to server: ssh root@192.168.254.95",
+    "Server 192.168.254.95: Start CAE Service: cd /rpool1/CAE/jboss-eap-7.4/bin && ./startCAE.sh",
+    "Server 192.168.254.95: Start DCOF Services: cd /rpool1/DCOF/jboss-eap-7.4/bin && ./DConlyStart.sh && ./OFonlyStart.sh",
+    "Verify database connectivity from each server",
+    "Check inter-service communication",
+    "Validate authentication service availability",
+    "Test service-to-service API calls",
+    "Monitor startup logs for dependency errors",
+    "Monitor log files during startup for 'started' messages",
+    "Check dependency injection failures in logs",
+    "Verify port bindings for all services",
+    "Monitor memory allocation during startup",
+    "Critical startup timeouts: Authentication services: 5 minutes, Core banking: 10 minutes, Interface services: 7 minutes",
+    "If timeout occurs: Investigate immediately",
+    "If failure: Check service-specific logs",
+    "If failure: Verify configuration files",
+    "If failure: Check database connectivity",
+    "If failure: Verify port availability",
+    "If failure: Restart service with debug logging",
+    "If unresolved after 15 minutes: Escalate",
+    "Health verification: Basic connectivity via ping and SSH",
+    "Health verification: Check required processes are running",
+    "Health verification: Verify ports are listening",
+    "Health verification: Check logs for critical errors",
+    "Health verification: Verify dependent services are available"
+  ],
+  "rollback": [
+    "Document exact startup times",
+    "Record startup errors or warnings",
+    "Note resource utilization during startup",
+    "Record any configuration adjustments made",
+    "Update activation checklist with actual times",
+    "Stop all services in reverse activation order",
+    "Document any issues encountered during shutdown",
+    "Prepare for potential fallback to previous state"
+  ],
+  "notes": [
+    "Activation sequence critical for dependency management",
+    "Database must be operational before application startup",
+    "Authentication services required before user services",
+    "Monitor resource utilization (memory, CPU) during activation",
+    "Document deviations from standard procedure",
+    "Activation sequence: Database → Authentication → Core banking → Interface → Supporting"
+  ]
+}

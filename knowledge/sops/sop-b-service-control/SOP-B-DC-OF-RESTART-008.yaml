@@ -1,0 +1,54 @@
+id: SOP-B-008
+class: B
+title: Restart DC and OF Interfaces on Servers 112 and 113
+severity: high
+
+services:
+  - dc-interface
+  - of-interface
+  - jboss-eap-7.4
+  - delivery-channel-olifabric
+
+environments:
+  - PROD
+
+aliases:
+  - restart Postilion interface
+  - restart Olifabric interface
+  - stop/start DCOF on 112/113
+
+procedure:
+
+  Restart OF Only:
+    - verify no ATM/POS transactions in progress
+    - check Postilion realtime monitor
+    - confirm with card operations team
+    - communicate with Zimswitch before restarting DC services
+    - SSH to server 192.168.1.112 or 192.168.1.113
+    - "Navigate: cd /rpool1/DCOF/jboss-eap-7.4/bin"
+    - "Stop: ./OFonlyStop.sh"
+    - "Start: ./OFonlyStart.sh"
+    - "Repeat on second server"
+
+  Restart DC Only:
+    - verify no ATM/POS transactions in progress
+    - check Postilion realtime monitor
+    - confirm with card operations team
+    - communicate with Zimswitch before restarting DC services
+    - SSH to server 192.168.1.112 or 192.168.1.113
+    - "Navigate: cd /rpool1/DCOF/jboss-eap-7.4/bin"
+    - "Stop: ./DConlyStop.sh"
+    - "Start: ./DConlyStart.sh"
+    - Repeat on second server
+
+rollback:
+  - if interfaces fail to start, check configuration
+  - restore from backup
+  - escalate to IDC support team
+
+notes:
+  - DC handles Postilion interface transactions
+  - OF handles other Olifabric channel transactions
+  - critical for card transactions
+  - avoid restarting DC services unless communicated with Zimswitch
+  - avoid using scripts stopDCOF.sh, startDCOF.sh, DCOnlystop.sh, DCOnlystart.sh unless critical

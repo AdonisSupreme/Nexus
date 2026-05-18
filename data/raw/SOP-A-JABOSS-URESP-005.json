@@ -1,0 +1,49 @@
+{
+  "id": "SOP-A-005",
+  "class": "A",
+  "title": "JBoss application unresponsive",
+  "severity": "high",
+  "services": [
+    "jboss-app-server",
+    "application-service"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "application not responding",
+    "jboss is hung",
+    "java app frozen",
+    "service timeout errors"
+  ],
+  "symptoms": [
+    "application endpoints not responding",
+    "increased response time or timeouts",
+    "jboss console inaccessible"
+  ],
+  "checks": [
+    "verify jboss process is running",
+    "check cpu and memory utilization on host",
+    "inspect jboss logs for out-of-memory or thread errors",
+    "confirm no active deployments in progress"
+  ],
+  "likely_causes": [
+    "memory exhaustion",
+    "thread pool saturation",
+    "long-running transactions",
+    "failed or partial deployment"
+  ],
+  "recommended_actions": [
+    "follow SOP-B for controlled jboss restart if resource exhaustion confirmed.",
+    "rollback recent deployment if applicable.",
+    "escalate if issue recurs after restart."
+  ],
+  "rollback": [
+    "restore previous application state"
+  ],
+  "notes": [
+    "confirm business impact before restart",
+    "avoid restart during peak processing windows"
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "id": "SOP-E-IBANK-HEALTH-006",
+  "class": "SOP-E",
+  "title": "Verify Internet Banking Services Health",
+  "severity": "High",
+  "services": [
+    "nginx-load-balancer",
+    "laravel-application",
+    "sql-server-database",
+    "queue-processing",
+    "xampp-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Check online banking status",
+    "Verify internet banking health",
+    "Web banking service monitoring",
+    "Customer portal verification"
+  ],
+  "nginx_health_check": {
+    "server": "192.168.0.25",
+    "steps": [
+      {
+        "ssh_to_server": true
+      },
+      {
+        "check_service_status": "systemctl status nginx"
+      },
+      {
+        "verify_ports_listening": [
+          80,
+          443
+        ]
+      },
+      {
+        "monitor_access_logs": true
+      },
+      {
+        "check_error_logs_for_critical_issues": true
+      }
+    ]
+  },
+  "application_server_health": {
+    "servers": [
+      "192.168.0.176",
+      "192.168.0.181"
+    ],
+    "steps": [
+      {
+        "remote_desktop": true
+      },
+      {
+        "verify_xampp_services": {
+          "apache_running": true,
+          "mysql_running": true
+        }
+      },
+      {
+        "verify_laravel_application": {
+          "process_running": "php -S 192.168.0.181:8000 -t public/",
+          "port_listening": 8000
+        }
+      },
+      {
+        "verify_queue_processing": {
+          "queue_worker_running": true,
+          "jobs_processing_normally": true
+        }
+      }
+    ]
+  },
+  "database_server_health": {
+    "server": "192.168.0.184",
+    "checks": [
+      {
+        "verify_sql_server_running": true
+      },
+      {
+        "verify_connectivity_from_app_servers": true
+      },
+      {
+        "check_transaction_log_space": true
+      },
+      {
+        "monitor_connection_pool_usage": true
+      }
+    ]
+  },
+  "end_user_access_testing": {
+    "steps": [
+      {
+        "access_portal": "https://banking.afcholdings.co.zw/auth/login"
+      },
+      {
+        "test_login_functionality": true
+      },
+      {
+        "verify_page_loading_times": "< 3 seconds"
+      },
+      {
+        "check_transaction_processing": true
+      },
+      {
+        "test_otp_delivery": true
+      }
+    ]
+  },
+  "error_monitoring": {
+    "common_errors": {
+      "nginx_502_bad_gateway": {
+        "check_xampp_running": true,
+        "verify_application_processes_running": true
+      },
+      "nginx_403_access_denied": {
+        "check_nginx_configuration": true,
+        "verify_ip_blocking_rules": true
+      },
+      "nginx_500_internal_server_error": {
+        "check_laravel_logs_path": "C:\\Users\\ibadmin\\Documents\\ib\\internet-banking-laravel-backend\\storage\\logs",
+        "look_for_errors": [
+          "PDOException",
+          "SQL Server errors"
+        ],
+        "check_sql_server_log_space": true
+      }
+    }
+  },
+  "performance_metrics": {
+    "page_load_time_max_seconds": 3,
+    "login_response_time_max_seconds": 2,
+    "transaction_processing_time_max_seconds": 5,
+    "otp_delivery_time_max_seconds": 30,
+    "concurrent_user_capacity": true
+  },
+  "queue_health_monitoring": {
+    "steps": [
+      {
+        "verify_queue_workers_processing": true
+      },
+      {
+        "check_queue_backlog": true
+      },
+      {
+        "monitor_failed_jobs_count": true
+      },
+      {
+        "verify_job_retry_mechanisms": true
+      }
+    ]
+  },
+  "scheduled_check_frequency": [
+    "every_15_min_business_hours",
+    "hourly_off_peak",
+    "after_deployments_or_changes",
+    "during_peak_usage_periods"
+  ],
+  "health_status_criteria": {
+    "HEALTHY": {
+      "description": "All services running, portal accessible, no critical errors, queue processing normal, OTP delivery functional"
+    },
+    "DEGRADED": {
+      "description": "Intermittent access issues, slower performance, non-critical warnings, queue backlog building"
+    },
+    "UNHEALTHY": {
+      "description": "Portal inaccessible, critical services down, database connectivity issues, OTP failing, multiple errors"
+    }
+  },
+  "escalation_procedure": {
+    "immediate": "Restart affected services",
+    "within_10_minutes": "Check and resolve error logs",
+    "within_20_minutes": "Escalate to application support",
+    "within_30_minutes": "Notify Head ICT if unresolved"
+  },
+  "documentation": {
+    "items": [
+      "service_status_all_servers",
+      "performance_metrics",
+      "error_log_summary",
+      "queue_processing_status",
+      "user_access_test_results"
+    ]
+  },
+  "notes": [
+    "Multiple server dependencies",
+    "Regular performance monitoring essential",
+    "Queue processing critical for OTP delivery",
+    "SQL Server log space common issue",
+    "Coordinate with digital systems support team for escalations"
+  ]
+}

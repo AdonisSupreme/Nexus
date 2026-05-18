@@ -1,0 +1,55 @@
+{
+  "id": "SOP-B-007",
+  "class": "B",
+  "title": "Restart IDC Treasury Interfaces on Servers 110 and 111",
+  "severity": "high",
+  "services": [
+    "treasury-interface",
+    "jboss-eap-7.4",
+    "orbiconfig"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart Treasury interface",
+    "stop/start Treasury interfaces on 110/111"
+  ],
+  "pre_checks": [
+    "verify Treasury EOD is not running",
+    "check no Treasury transactions in progress",
+    "confirm with Treasury department"
+  ],
+  "procedure": [
+    "SSH to server 192.168.1.110 or 192.168.1.111",
+    {
+      "Find the process ID": "ps -ef | grep \"ORBIConfig.prop\""
+    },
+    {
+      "Kill the process": "kill -9 <PID> (PID is first number)"
+    },
+    {
+      "Navigate to directory": "cd /rpool1/TRY/jboss-eap-7.4/standalone/log"
+    },
+    {
+      "Start JBOSS": "nohup ./standalone.sh &"
+    },
+    "Repeat on second server"
+  ],
+  "post_verification": [
+    "verify Treasury interface connectivity",
+    "test Treasury transactions",
+    "check interface logs for errors"
+  ],
+  "rollback": [
+    "if interface fails to start, check ORBIConfig properties",
+    "restore configuration from backup",
+    "escalate to IDC support team"
+  ],
+  "notes": [
+    "critical for Treasury operations",
+    "restart may affect Treasury transactions",
+    "coordinate with Treasury department",
+    "perform during low transaction periods if possible"
+  ]
+}

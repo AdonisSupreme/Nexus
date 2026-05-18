@@ -1,0 +1,42 @@
+id: SOP-B-006
+class: B
+title: Restart Collect Service on Servers 110 and 111
+severity: medium
+
+services:
+  - collect-service
+  - jboss-eap-7.4
+  - collections-system
+
+environments:
+  - PROD
+
+aliases:
+  - restart collections service
+  - stop/start Collect on 110/111
+
+
+procedure:
+  - verify no collection batches in progress
+  - check collection schedule
+  - confirm with collections department
+  - SSH to server 192.168.1.110 or 192.168.1.111
+  - 'Navigate to directory: cd /rpool1/Collect/jboss-eap-7.4/bin'
+  - 'Stop the service: ./stopCollect.sh'
+  - 'Start the service: ./startCollect.sh'
+  - 'Start batch service: ./startCOLBatch.sh'
+  - Repeat on second server
+  - verify Collect service is running
+  - check batch collection processing
+  - test collection inquiries
+
+rollback:
+  - if service fails to start, check configuration
+  - restore from backup
+  - escalate to IDC support team
+
+notes:
+  - Collect handles collections processing
+  - batch service must be started separately
+  - coordinate with collections department
+  - restart may affect collection processing temporarily

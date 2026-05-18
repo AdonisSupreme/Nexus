@@ -1,0 +1,205 @@
+{
+  "id": "SOP-E-DB-BACKUP-HEALTH-009",
+  "class": "SOP-E",
+  "title": "Verify Database Backup Health",
+  "severity": "High",
+  "services": [
+    "oracle-database-backups",
+    "sql-server-backups",
+    "postgresql-backups",
+    "backup-verification",
+    "recovery-testing"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check database backup status",
+    "Verify backup completion",
+    "Backup health monitoring",
+    "Recovery capability verification"
+  ],
+  "oracle_backup_verification": {
+    "live_server": "192.168.81.2",
+    "steps": [
+      "Check RMAN backup logs for \"Backup Complete\" message",
+      "Verify backup file creation in /LiveBackup/Backup/",
+      {
+        "Confirm backup file integrity": [
+          "File size not zero bytes",
+          "Recent timestamps",
+          "Correct file permissions"
+        ]
+      },
+      {
+        "Verify backup schedule adherence": [
+          "Daily incremental backups (Monday–Saturday)",
+          "Weekly full backup (Sunday)"
+        ]
+      },
+      "Confirm correct backup script execution",
+      "Verify archive log backup completion",
+      "Confirm control file backup exists"
+    ]
+  },
+  "backup_log_verification": {
+    "steps": [
+      "Review RMAN log files",
+      "Check for errors or warnings",
+      "Confirm successful archive log processing",
+      "Verify completion timestamps"
+    ]
+  },
+  "space_verification": {
+    "steps": [
+      {
+        "Check backup filesystem usage": {
+          "command": "df -h /LiveBackup"
+        }
+      },
+      "Verify sufficient space for next backup cycle",
+      "Identify obsolete backup files for cleanup",
+      "Monitor space usage trends"
+    ]
+  },
+  "sql_server_backup_verification": {
+    "systems": [
+      "Postilion"
+    ],
+    "steps": [
+      "Verify automatic backup execution",
+      "Check G:\\BackUps directory for recent .bak files",
+      "Validate backup file sizes and timestamps",
+      "Confirm backup compression enabled",
+      "Verify compression ratio",
+      "Confirm backup transfer to removable media (tape/external)",
+      "Verify media rotation schedule",
+      "Check SQL Server Agent job status",
+      "Review job history for failures",
+      "Monitor backup duration trends"
+    ]
+  },
+  "postgresql_backup_verification": {
+    "steps": [
+      "Verify scheduled backup execution",
+      "Confirm backup file creation",
+      "Review PostgreSQL backup logs",
+      "Validate backup completeness and consistency"
+    ]
+  },
+  "recovery_testing_verification": {
+    "steps": [
+      "Perform periodic restore tests",
+      "Verify data integrity after restore",
+      "Validate application functionality post-restore",
+      "Document recovery test results"
+    ]
+  },
+  "backup_policy_compliance": {
+    "checks": [
+      "Retention policy adherence",
+      "Backup encryption (if applicable)",
+      "Off-site backup availability",
+      "Regulatory and audit compliance"
+    ]
+  },
+  "critical_thresholds": {
+    "backup_success_rate": {
+      "HEALTHY": ">99%",
+      "WARNING": "95–99%",
+      "CRITICAL": "<95%"
+    },
+    "backup_age": {
+      "HEALTHY": "<24 hours",
+      "WARNING": "24–48 hours",
+      "CRITICAL": ">48 hours"
+    },
+    "recovery_test_frequency": {
+      "HEALTHY": "<3 months",
+      "WARNING": "3–6 months",
+      "CRITICAL": ">6 months"
+    }
+  },
+  "scheduled_verification_frequency": [
+    {
+      "Daily": "Backup completion verification"
+    },
+    {
+      "Weekly": "Backup integrity validation"
+    },
+    {
+      "Monthly": "Recovery readiness review"
+    },
+    {
+      "Quarterly": "Full recovery test execution"
+    }
+  ],
+  "verification_methods": [
+    "Automated monitoring scripts",
+    "Manual log review",
+    "Spot restoration tests",
+    "Full recovery drills",
+    "Third-party verification tools"
+  ],
+  "health_status_criteria": {
+    "HEALTHY": [
+      "All backups completed successfully",
+      "Backup files verified and intact",
+      "Recovery tests successful",
+      "Compliance requirements met",
+      "Sufficient storage capacity available"
+    ],
+    "DEGRADED": [
+      "Backup completed with warnings",
+      "Minor compliance gaps",
+      "Recovery testing overdue",
+      "Storage capacity trending low"
+    ],
+    "UNHEALTHY": [
+      "Backup failures detected",
+      "Backup files missing or corrupted",
+      "Critical compliance violations",
+      "Recovery capability unverified",
+      "Storage exhausted"
+    ]
+  },
+  "corrective_actions": [
+    "Investigate and resolve backup failures immediately",
+    "Address storage issues proactively",
+    "Schedule and execute overdue recovery tests",
+    "Update backup scripts or schedules if required",
+    "Enhance monitoring and alerting mechanisms"
+  ],
+  "escalation_procedure": {
+    "Immediate": [
+      "Investigate backup failure"
+    ],
+    "15_minutes": [
+      "Escalate to DBA team"
+    ],
+    "30_minutes": [
+      "Notify infrastructure lead"
+    ],
+    "60_minutes": [
+      "Notify Head ICT and Business Continuity team"
+    ],
+    "Compliance_issues": [
+      "Report to compliance officer"
+    ]
+  },
+  "documentation_requirements": [
+    "Daily backup status reports",
+    "Backup success and failure logs",
+    "Recovery test documentation",
+    "Storage utilization trends",
+    "Compliance and audit records"
+  ],
+  "notes": [
+    "Database backups are critical for business continuity",
+    "Verification prevents false backup confidence",
+    "Recovery testing validates real restore capability",
+    "Documentation is mandatory for audits and regulatory reviews"
+  ]
+}

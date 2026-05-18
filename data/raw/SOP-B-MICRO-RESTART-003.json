@@ -1,0 +1,45 @@
+{
+  "id": "SOP-B-003",
+  "class": "B",
+  "title": "Restart Microservices on Servers 108 and 109",
+  "severity": "medium",
+  "services": [
+    "microservices",
+    "various-application-services"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart microservices",
+    "stop/start microservices on 108/109"
+  ],
+  "pre_checks": [
+    "check microservices dependency tree",
+    "verify no critical transactions in progress",
+    "confirm with operations team"
+  ],
+  "procedure": [
+    "SSH to server 192.168.1.108 or 192.168.1.109",
+    "Navigate to directory: cd /rpool1/MICRO",
+    "Stop the services: ./stop_micro.sh",
+    "Start the services: ./startup.sh",
+    "Monitor startup sequence",
+    "Repeat on second server"
+  ],
+  "post_verification": [
+    "verify all microservices are running",
+    "check health endpoints of critical microservices",
+    "test basic functionality"
+  ],
+  "rollback": [
+    "if services fail to start, check individual service logs",
+    "restart failed services individually",
+    "escalate to development team if persistent"
+  ],
+  "notes": [
+    "microservices may have dependencies",
+    "startup order may be important",
+    "some services may take longer to start"
+  ]
+}

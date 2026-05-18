@@ -1,0 +1,302 @@
+{
+  "id": "SOP-C-008",
+  "class_code": "C",
+  "title": "Digital Engagement Platform Deployment",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "DEP deployment procedure",
+    "CBXC web deployment",
+    "Corporate banking updates",
+    "DEP service deployment"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Backup existing Corp-online.war in: /rpool1/CBXR-FO/WAR",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Move new build Corp-online.war to same path",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Execute restart procedure after build movement",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Backup existing admin-online.war in: /rpool1/CBXR-BO/WAR",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Move new build admin-online.war to same path",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Execute restart procedure after build movement",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For accounts_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/accounts/deployment, Move new build to same path, Execute restart",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For billpayments_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/billpayments/deployment, Move new build to same path, Execute restart",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For bulkpayments_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/bulkpayments/deployment, Move new build to same path, Execute restart",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For workflow_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/businessprocess/deployment, Move new build to same path, Execute restart",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For common_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/common/deployment, Move new build to same path, Execute restart",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For customers_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/customers/deployment, Move new build to same path, Execute restart",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For iam_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/iam/deployment, Move new build to same path, Execute restart",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For transfers_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/transfers/deployment, Move new build to same path, Execute restart",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For admin_coar: Backup existing in /rpool1/CBXR-BO/OF/OliveFabricRuntime/OF_Deployments/deployment, Move new build to same path, Execute restart",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify all deployments completed successfully",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Test application functionality",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check service health",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Validate DR environment synchronization",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Restore backup WAR/COAR files",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart services",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify rollback success",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document deployment failure and rollback",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Multiple deployment types: WAR files and COAR files",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Backup essential before any deployment",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart order critical: BO first, then FO",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DR environment must be updated within 72 hours",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Coordinate with change management using flexidocs for scheduling",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "Check service health",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "threshold",
+      "value": " 72 hours",
+      "source_section": "notes",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.975794",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-DEP-DEPLOYMENT-008.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "8fe385b6e2df7f924c62210055e2242e8537b3a44095d28978dbd2f9fea966db",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.975794",
+    "normalized_at": "2026-05-15T07:25:53.975794"
+  },
+  "source_sections": [
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

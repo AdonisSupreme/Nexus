@@ -1,0 +1,51 @@
+id: SOP-B-012
+class: B
+title: Restart Mobile Banking ATE Services on Server 249
+severity: high
+
+services:
+  - ate-transaction-engine
+  - ussd-services
+  - notification-services
+  - vendor-services
+
+environments:
+  - PROD
+
+aliases:
+  - restart USSD services
+  - restart mobile banking
+  - stop/start ATE on 249
+
+pre_checks:
+  - verify mount points are active
+  - check server space availability
+  - confirm with operations team
+
+procedure:
+  - SSH to server 192.168.0.249
+  - "Navigate to directory: cd /srv"
+  - "Run ATE script: sudo ./main.sh"
+  - Enter password when prompted
+  - Select option 5 to stop services
+  - Select * to stop all services
+  - Wait for all services to stop
+  - Select option 3 to start services
+  - Select * to start all services
+  - Wait for all services to start (be patient)
+
+post_verification:
+  - check service status (option 2)
+  - verify USSD functionality
+  - test mobile banking transaction
+
+rollback:
+  - if services fail to start, check logs
+  - verify mount points
+  - check server space
+  - escalate to mobile banking support
+
+notes:
+  - script has delays - do not terminate session
+  - must be done during night shift if possible
+  - critical for 24/7 mobile banking

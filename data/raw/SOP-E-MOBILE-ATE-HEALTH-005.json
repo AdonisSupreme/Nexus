@@ -1,0 +1,190 @@
+{
+  "id": "SOP-E-MOBILE-ATE-HEALTH-005",
+  "class": "SOP-E",
+  "title": "Verify Mobile Banking ATE Services Health",
+  "severity": "High",
+  "services": [
+    "ate-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services",
+    "postgresql-database"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "Check USSD services status",
+    "Verify mobile banking health",
+    "ATE service monitoring",
+    "Mobile transaction verification"
+  ],
+  "service_status_check": {
+    "steps": [
+      {
+        "ssh_to_server": "SSH to 192.168.0.249"
+      },
+      {
+        "navigate_directory": "cd /srv"
+      },
+      {
+        "run_ate_script": "sudo ./main.sh"
+      },
+      {
+        "select_option": "2 (Check service status)"
+      },
+      {
+        "verify_services_running": "All ATE services must show 'RUNNING' status and have valid PIDs"
+      }
+    ]
+  },
+  "expected_output_verification": {
+    "criteria": [
+      {
+        "all_services_running": true
+      },
+      {
+        "no_services_stopped_or_failed": true
+      },
+      {
+        "recent_startup_times": true
+      }
+    ]
+  },
+  "mount_point_verification": {
+    "critical_mounts": [
+      "PaymentsToSTPLink",
+      "PaymentsFromSTPLink",
+      "EwalletProd"
+    ],
+    "checks": [
+      {
+        "accessibility": true
+      },
+      {
+        "free_space_percent_minimum": 20
+      }
+    ]
+  },
+  "postgresql_health_check": {
+    "steps": [
+      {
+        "verify_service_status": true
+      },
+      {
+        "check_connectivity": true
+      },
+      {
+        "monitor_connection_pool_usage": true
+      },
+      {
+        "monitor_query_performance": true
+      }
+    ]
+  },
+  "log_health_monitoring": {
+    "notification_service_logs": {
+      "path": "/srv/log/ate/txn-messenger/txn-notification-service",
+      "checks": [
+        {
+          "retention_max_history_days": 3
+        },
+        {
+          "critical_errors_absent": true
+        },
+        {
+          "otp_delivery_success_rate_min": 99
+        }
+      ]
+    },
+    "vendor_service_logs": {
+      "path": "/srv/log/ate/txn-vendor/txn-vendor-service",
+      "checks": [
+        {
+          "log_rotation_functioning": true
+        },
+        {
+          "transaction_errors_absent": true
+        },
+        {
+          "response_times_within_expected": true
+        }
+      ]
+    }
+  },
+  "space_utilization_check": {
+    "steps": [
+      {
+        "verify_usage_percent_max": 90
+      },
+      {
+        "check_large_log_files": true
+      },
+      {
+        "check_nohup_out_files": true
+      }
+    ]
+  },
+  "transaction_flow_verification": {
+    "steps": [
+      {
+        "ussd_transaction_simulation": true
+      },
+      {
+        "verify_otp_delivery": true
+      },
+      {
+        "mobile_app_connectivity_check": true
+      },
+      {
+        "bill_payment_test": true
+      }
+    ]
+  },
+  "performance_metrics": {
+    "ussd_response_time_max_seconds": 3,
+    "otp_delivery_success_rate_min_percent": 99,
+    "service_availability_expected": "24/7",
+    "concurrent_user_handling": true
+  },
+  "scheduled_check_frequency": [
+    "every_30_min_business_hours",
+    "hourly_off_peak",
+    "after_service_restarts",
+    "following_system_changes"
+  ],
+  "health_status_criteria": {
+    "HEALTHY": {
+      "description": "All ATE services running, mount points active, PostgreSQL healthy, transaction success rate >99%, space utilization <80%"
+    },
+    "DEGRADED": {
+      "description": "One non-critical service down, intermittent failures, space utilization 80-90%, slower performance"
+    },
+    "UNHEALTHY": {
+      "description": "Critical services stopped, mount points unavailable, transaction failure rate >5%, space utilization >90%"
+    }
+  },
+  "escalation_procedure": {
+    "immediate": "Restart failed services (SOP-B-012)",
+    "within_10_minutes": "Remount failed mount points",
+    "within_20_minutes": "Clear space if >90% utilization",
+    "within_30_minutes": "Escalate to mobile banking support"
+  },
+  "documentation": {
+    "items": [
+      "service_status_results",
+      "mount_point_verification",
+      "space_utilization_metrics",
+      "transaction_success_rates",
+      "issues_identified_resolved"
+    ]
+  },
+  "notes": [
+    "24/7 service expected",
+    "Mount points critical for RTGS and Ewallet integration",
+    "Regular space management prevents outages",
+    "Log retention set to 3 days max",
+    "Coordinate with digital systems support for escalations"
+  ]
+}

@@ -1,0 +1,51 @@
+id: SOP-B-014
+class: B
+title: Delete RTGS Files from PaymentsToSTPLink Folder
+severity: medium
+
+services:
+  - rtgs-file-management
+  - file-cleanup
+  - treasury-reconciliation
+
+environments:
+  - PROD
+
+aliases:
+  - remove RTGS payment files
+  - cleanup transaction files
+  - delete specific RTGS files
+
+pre_checks:
+  - verify Treasury department authorization
+  - confirm reference list from Treasury
+  - backup folder before deletion
+
+procedure:
+  - receive Excel file with transaction references from Treasury
+  - 'append "DFTMT103" to beginning and ".txt" to end of each reference':
+      - 'Excel formula: =CONCATENATE("DFTMT103",A1,".txt")'
+  - copy column values and transpose to row
+  - paste row into Notepad
+  - replace tab spaces with single spaces (Ctrl+H)
+  - add "sudo rm" at beginning of command
+  - SSH to server 192.168.0.249
+  - 'navigate to: /batch-files/rtgs/outward/toTrustLink'
+  - paste command and execute
+  - enter administrator password when prompted
+
+post_verification:
+  - verify files are deleted
+  - check for any error messages
+  - report completion to Treasury
+
+rollback:
+  - files cannot be recovered once deleted
+  - if errors, remove DFTMT103 prefix and .txt suffix
+  - send failed references back to Treasury
+
+notes:
+  - files permanently deleted
+  - no recovery possible
+  - double-check references before deletion
+  - coordinate closely with Treasury department

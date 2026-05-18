@@ -1,0 +1,59 @@
+{
+  "id": "SOP-C-007",
+  "class": "C",
+  "title": "ZIMRA System Link Monitoring",
+  "severity": "medium",
+  "services": [
+    "zimra-interface",
+    "network-connectivity",
+    "dcof-services",
+    "tax-processing"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "ZIMRA connection monitoring",
+    "Tax system link check",
+    "Revenue authority connectivity",
+    "ZIMRA interface status"
+  ],
+  "checks": [
+    "Daily connectivity verification",
+    "Monitor during tax payment periods",
+    "Check after system maintenance",
+    "Verify after network changes"
+  ],
+  "recommended_actions": [
+    "Open command prompt",
+    "Ping ZIMRA server: ping 192.168.32",
+    "Analyze response: Successful ping indicates link operational",
+    "Analyze response: Timeout/Failure indicates link down",
+    "Document monitoring results",
+    "Report anomalies immediately",
+    "If ping fails: Check network connectivity",
+    "If ping fails: Verify DCOF services on servers 112 and 113",
+    "If ping fails: Check interface logs: /rpool1/DCOF/jboss-eap-7.4/domain/servers/OF/log",
+    "If ping fails: Validate firewall rules",
+    "If ping fails: Contact network team if connectivity issue persists",
+    "Immediate notification to operations team if link down",
+    "Contact network support team",
+    "Engage ZIMRA technical support if server issue",
+    "Document all troubleshooting steps",
+    "Logon to servers 192.168.1.112 and 192.168.1.113",
+    "Navigate to: /rpool1/DCOF/jboss-eap-7.4/domain/servers/OF/log",
+    "Retrieve required log files",
+    "Provide to requesting party with proper authorization",
+    "Regular interface health checks",
+    "Monitor log files for errors",
+    "Update interface configurations as needed",
+    "Coordinate with ZIMRA for maintenance schedules"
+  ],
+  "notes": [
+    "Critical during tax payment periods",
+    "Regular monitoring prevents transaction failures",
+    "Logs available on both servers 112 and 113",
+    "Immediate escalation required for link failures",
+    "Coordinate with network team for connectivity issues"
+  ]
+}

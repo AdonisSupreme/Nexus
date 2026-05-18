@@ -1,0 +1,424 @@
+{
+  "id": "SOP-E-IDC-EOD-STATUS-004",
+  "class_code": "E",
+  "title": "Verify IDC EOD/SOD Completion Status",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "idc-corebanking",
+    "eod-processing",
+    "sod-processing",
+    "loan-management-system"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Check IDC end-of-day status",
+    "Verify start-of-day completion",
+    "Daily processing verification",
+    "Batch job completion check"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "search acmn: Check unauthorized non-financial transactions using ACMN",
+      "sequence": 1,
+      "source_section": "unauthorized transaction check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "clear branch code: View all branches",
+      "sequence": 2,
+      "source_section": "unauthorized transaction check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate records: Verify 'no valid records' message; document if any records exist",
+      "sequence": 3,
+      "source_section": "unauthorized transaction check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "view exceptions: Select 'End of the Day' option in Options menu",
+      "sequence": 4,
+      "source_section": "exception log checking",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "review exception details: Check for ticked items indicating exceptions",
+      "sequence": 5,
+      "source_section": "exception log checking",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "verify branch signout: description: Verify all branches signed out using QBRNSTATUS or 'View Branch Status'",
+      "sequence": 1,
+      "source_section": "pre eod verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify branch signout: parameters: display all branches: YES",
+      "sequence": 2,
+      "source_section": "pre eod verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify branch signout: parameters: total branches not signed off: 0",
+      "sequence": 3,
+      "source_section": "pre eod verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor eeod: After initiating EOD, monitor job progress",
+      "sequence": 4,
+      "source_section": "eod execution monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check job state: Completed jobs = 'processed', running jobs = 'process'",
+      "sequence": 5,
+      "source_section": "eod execution monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check popup notification: Verify 'EOD has been completed' message",
+      "sequence": 6,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "handle exceptions: If 'completed with exceptions', print and share with relevant parties",
+      "sequence": 7,
+      "source_section": "completion verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify sod initiation: After EOD completion, verify SOD initiation",
+      "sequence": 8,
+      "source_section": "sod verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check sod exceptions: Select 'Start of the Day' option, validate completion notification and exceptions",
+      "sequence": 9,
+      "source_section": "sod verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "verify system date: Check system date advancement",
+      "sequence": 10,
+      "source_section": "post processing validation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate reports: Confirm batch and financial reports availability",
+      "sequence": 11,
+      "source_section": "post processing validation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify interface files: Confirm interface file generation",
+      "sequence": 12,
+      "source_section": "post processing validation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "During EOD execution (after 7pm)",
+      "sequence": 13,
+      "source_section": "scheduled verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Morning after EOD completion",
+      "sequence": 14,
+      "source_section": "scheduled verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Following any EOD/SOD errors",
+      "sequence": 15,
+      "source_section": "scheduled verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "After system changes affecting batch processing",
+      "sequence": 16,
+      "source_section": "scheduled verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SUCCESSFUL: description: All branches signed off, no pending unauthorized transactions, EOD and SOD completed, system date advanced correctly",
+      "sequence": 17,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "COMPLETED WITH ISSUES: description: EOD completed with non-critical exceptions, some manual sign-offs, minor warnings, system date advanced",
+      "sequence": 18,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "FAILED: description: EOD stuck/failed, critical exceptions, system date not advanced, manual recovery required",
+      "sequence": 19,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Contact IDC support team for EOD failures",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "within 30 minutes: Escalate to Head ICT",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 60 minutes: Notify business operations teams",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "documentation required: Document all issues and resolutions",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "view pending authorization: Check 'View Pending for Authorisation (Financial)' branch by branch",
+      "sequence": 1,
+      "source_section": "pending financial transactions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "validate records: Verify 'no valid records' message; document any pending transactions",
+      "sequence": 2,
+      "source_section": "pending financial transactions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "eod_sod_start_time",
+      "sequence": 3,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "eod_sod_completion_time",
+      "sequence": 4,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "branch_signoff_status",
+      "sequence": 5,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "exception_log_details",
+      "sequence": 6,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "system_date_verification",
+      "sequence": 7,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "personnel_involved",
+      "sequence": 8,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "EOD should start after 7pm (ZimSwitch cutoff)",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Must run daily including weekends/holidays",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Treasury EOD must complete before IDC EOD",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical for daily financial processing",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "idc-corebanking",
+    "eod-processing",
+    "sod-processing",
+    "loan-management-system"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "view exceptions: Select 'End of the Day' option in Options menu",
+      "source_section": "exception log checking",
+      "sequence": 4
+    },
+    {
+      "type": "sql",
+      "value": "check sod exceptions: Select 'Start of the Day' option, validate completion notification and exceptions",
+      "source_section": "sod verification",
+      "sequence": 9
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": " 60 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.955894",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-IDC-EOD-STAT-004.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "fdb4bb242edb4395485ef87ade183c8b6c38940fd57e3131ae20cc6436366f76",
+    "wrapper_key": "SOP-E-IDC-EOD-STATUS-004",
+    "ingested_at": "2026-05-15T07:25:54.955894",
+    "normalized_at": "2026-05-15T07:25:54.955894"
+  },
+  "source_sections": [
+    "completion verification",
+    "documentation",
+    "eod execution monitoring",
+    "escalation procedure",
+    "exception log checking",
+    "health status criteria",
+    "notes",
+    "pending financial transactions",
+    "post processing validation",
+    "pre eod verification",
+    "scheduled verification",
+    "sod verification",
+    "unauthorized transaction check"
+  ]
+}

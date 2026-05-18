@@ -1,0 +1,521 @@
+{
+  "id": "SOP-F-001",
+  "class_code": "F",
+  "title": "IDC User Account Creation and Access Management",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "arx-authentication-system",
+    "idc-corebanking",
+    "user-profile-management",
+    "access-control-system"
+  ],
+  "environments": [
+    "PROD",
+    "TEST"
+  ],
+  "aliases": [
+    "IDC user account creation",
+    "ARX user administration",
+    "Core banking access management",
+    "User profile creation"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify ICT Operations Staff with ARX input rights available as inputter",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm ARX Authorizer profile available",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate IDC Authorizer profile available",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check Line Management approver available",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm Risk Department approver available via User Access Form",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify Head of respective department as business owner",
+      "sequence": 6,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate completed User Access Request Form signed by: Requesting User, Line Manager, Risk Department",
+      "sequence": 7,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm User Role Matrix document available",
+      "sequence": 8,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify user profile requirements documented and approved",
+      "sequence": 9,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Phase 1 ARX user creation: Login to ARX with inputter profile",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 1 ARX user creation: Navigate to: Initiate → New User",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 1 ARX user creation: Enter user details: user_type: Bank, entity: AFCIDC, primary_authentication: Native, password: Default",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 1 ARX user creation: Submit user creation request",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 1 ARX user creation: Confirm success message displayed",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 2 ARX authorization: Login to ARX as ARX Authorizer",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 2 ARX authorization: Navigate to Pending Approvals",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 2 ARX authorization: Locate user creation request",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 2 ARX authorization: Validate details against User Access Form",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 2 ARX authorization: Approve request",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 3 IDC role assignment: Login to IDC with admin rights",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 3 IDC role assignment: Navigate to: Change User Role",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 3 IDC role assignment: Enter User ID",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 3 IDC role assignment: Change role from SUPER to approved role (per User Access Form)",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 3 IDC role assignment: Submit role change request",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 4 IDC authorization: Login to IDC as IDC Authorizer",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 4 IDC authorization: Navigate to: Authorisation → Non-Financial",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 4 IDC authorization: Review role change request",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Phase 4 IDC authorization: Approve request",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Login verification: Confirm user can log in successfully",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Default password format primary: <first_4_chars_of_username><DDMMYYYY>",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Default password format secondary: <first_4_chars_of_username><MMDDYYYY>",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Default password example: username: NC040885, dob: 08-11-1997, primary: NC0408111997, secondary: NC0411081997",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post login verification: User is prompted to change password on first login",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Post login verification: Password policy enforcement confirmed",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Default SUPER role is temporary and must be changed immediately",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Correct entity selection is critical (AFCIDC for IDC access)",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset may be required if default formats fail",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User must comply with password policy upon first login",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Dual authorization enforced (ARX and IDC)",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: User Access Form mandatory",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Role Matrix validation required",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Least privilege principle applied",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Mandatory password change on first login",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Password complexity and expiry enforced",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 1: ICT Operations (input or authorization issues)",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 2: IDC Support Team (role configuration issues)",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 3: Head ICT (policy exceptions)",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path Level 4: Risk Department (compliance concerns)",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Approved User Access Request Form",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: ARX user creation logs",
+      "sequence": 16,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: IDC role assignment logs",
+      "sequence": 17,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Authorization records",
+      "sequence": 18,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation: User access acknowledgement",
+      "sequence": 19,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Segregation of duties maintained",
+      "sequence": 20,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Least privilege enforced",
+      "sequence": 21,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Full audit trail available",
+      "sequence": 22,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance requirements: Periodic access reviews scheduled",
+      "sequence": 23,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "arx-authentication-system",
+    "idc-corebanking",
+    "user-profile-management",
+    "access-control-system"
+  ],
+  "owners": [
+    "Escalation path Level 1: ICT Operations (input or authorization issues)",
+    "Escalation path Level 2: IDC Support Team (role configuration issues)",
+    "Escalation path Level 3: Head ICT (policy exceptions)"
+  ],
+  "artifacts": [],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.512080",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative\\SOP-F-IDC-USER-CREATE-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative",
+    "source_format": "yaml",
+    "source_hash": "d60d02e5a21f659f8658bbe489c9e6c16e0c76c063b9e946a5db79b3e1f675fc",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.512080",
+    "normalized_at": "2026-05-15T07:25:54.512080"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions"
+  ]
+}

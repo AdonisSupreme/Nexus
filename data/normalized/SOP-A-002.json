@@ -1,0 +1,365 @@
+{
+  "id": "SOP-A-002",
+  "class_code": "A",
+  "title": "ATM/POS Transactions Failing",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "postilion-realtime",
+    "transaction-manager",
+    "zimswitch-interchange",
+    "afcintellect-node",
+    "sql-server"
+  ],
+  "environments": [
+    "PROD",
+    "UAT"
+  ],
+  "aliases": [
+    "cards declining",
+    "pos terminals offline",
+    "atm transactions failing",
+    "eft transactions stuck",
+    "postilion transaction errors"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "pos terminals display \"transaction failed\"",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "atm cards are being declined",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "zimswitch transactions timing out",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion portal shows transaction processing errors",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "eft transactions remain in pending or failed state",
+      "sequence": 5,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "check postilion realtime monitor for node status (arrows should be black and nodes gray)",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify zimswitch interchange status and connectivity",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm transaction-manager service is running",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "inspect postilion events and logs for transaction-related errors",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify afcintellect node connectivity and error status",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check sql server memory utilization; note if memory usage exceeds 90 percent",
+      "sequence": 6,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "verify postilion license status and expiry dates",
+      "sequence": 7,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "follow the relevant sop-b procedures for controlled postilion service restarts.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "validate postilion license expiry dates using sop-b-008.",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "confirm zimswitch connectivity and escalate if interface is down.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "if sql server memory usage exceeds 90 percent, follow sop-b procedures for sql service restart.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "threshold"
+      ]
+    },
+    {
+      "text": "escalate to idc support if afcintellect node reports persistent errors.",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "postilion realtime service degradation or failure",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "zimswitch interchange outage or interface disruption",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction-manager service stopped or unresponsive",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "sql server memory exhaustion affecting transaction processing",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "expired or near-expiry postilion license",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "afcintellect node communication failure",
+      "sequence": 6,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "this is a critical incident during business hours and requires immediate escalation",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "always verify both live and dr nodes: 192.168.0.91 (live), 192.168.254.91 (dr)",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "transaction queries in the postilion portal can be used to review the last 10 transaction statuses",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "avoid repeated restarts without identifying the underlying cause",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "postilion-realtime",
+    "transaction-manager",
+    "zimswitch-interchange",
+    "afcintellect-node",
+    "sql-server"
+  ],
+  "owners": [
+    "transaction-manager service stopped or unresponsive"
+  ],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "confirm transaction-manager service is running",
+      "source_section": "checks",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 90 percent",
+      "source_section": "checks",
+      "sequence": 6
+    },
+    {
+      "type": "command",
+      "value": "postilion realtime service degradation or failure",
+      "source_section": "likely causes",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "transaction-manager service stopped or unresponsive",
+      "source_section": "likely causes",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "follow the relevant sop-b procedures for controlled postilion service restarts.",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "if sql server memory usage exceeds 90 percent, follow sop-b procedures for sql service restart.",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "threshold",
+      "value": " 90 percent",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.91",
+      "source_section": "notes",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.91",
+      "source_section": "notes",
+      "sequence": 8
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:52.822518",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "0b9a62573d1bc406e9e2c6ecf54cd963f35c7f6cf6d65e644509da2569857328",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:52.822518",
+    "normalized_at": "2026-05-15T07:25:52.822518"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

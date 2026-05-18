@@ -1,0 +1,668 @@
+{
+  "id": "SOP-E-SERVER-SPACE-007",
+  "class_code": "E",
+  "title": "Verify Server Space and Log Health",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "all-servers",
+    "disk-space-management",
+    "log-rotation",
+    "backup-systems"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check server disk space",
+    "Verify log rotation working",
+    "Storage health monitoring",
+    "Log management verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "ssh to target server: True",
+      "sequence": 1,
+      "source_section": "space check procedure",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "run space check: df -h",
+      "sequence": 2,
+      "source_section": "space check procedure",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "analyze output: root partition free: >20%",
+      "sequence": 3,
+      "source_section": "space check procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze output: application partitions free: >30%",
+      "sequence": 4,
+      "source_section": "space check procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze output: backup partitions free: >40%",
+      "sequence": 5,
+      "source_section": "space check procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "analyze output: high usage threshold: 80%",
+      "sequence": 6,
+      "source_section": "space check procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "daily_production_servers",
+      "sequence": 7,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "twice_daily_high_transaction_servers",
+      "sequence": 8,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "after_major_batch_processing",
+      "sequence": 9,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "following_large_file_operations",
+      "sequence": 10,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "IDC servers: check directory: /rpool1",
+      "sequence": 1,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC servers: verify logs compressed: True",
+      "sequence": 2,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC servers: check tape backup logs: True",
+      "sequence": 3,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC servers: monitor log growth patterns: True",
+      "sequence": 4,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: servers: 0.249",
+      "sequence": 5,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: servers: 0.62",
+      "sequence": 6,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: check nohup files: /srv",
+      "sequence": 7,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: check nohup files: /root",
+      "sequence": 8,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: verify logback config: path: /srv/afc/txn-messenger/txn-notification-service/etc/logback.xml",
+      "sequence": 9,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: verify logback config: maxHistory days: 3",
+      "sequence": 10,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: verify logback config: path: /srv/afc/txn-vendor/txn-vendor-service/etc/logback.xml",
+      "sequence": 11,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: verify logback config: maxHistory days: 3",
+      "sequence": 12,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking servers: verify automatic log maintenance: True",
+      "sequence": 13,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking servers: laravel log directory: C:\\Users\\ibadmin\\Documents\\ib\\internet-banking-laravel-backend\\storage\\logs",
+      "sequence": 14,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking servers: monitor log file sizes: True",
+      "sequence": 15,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking servers: verify log rotation config: True",
+      "sequence": 16,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking servers: check error log buildup: True",
+      "sequence": 17,
+      "source_section": "log health verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify cron or scheduled tasks: True",
+      "sequence": 18,
+      "source_section": "automated cleanup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check last execution time: True",
+      "sequence": 19,
+      "source_section": "automated cleanup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify cleanup logs for errors: True",
+      "sequence": 20,
+      "source_section": "automated cleanup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm backup completion before cleanup: True",
+      "sequence": 21,
+      "source_section": "automated cleanup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check tape backup logs: True",
+      "sequence": 22,
+      "source_section": "backup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify logs written to tape: True",
+      "sequence": 23,
+      "source_section": "backup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm backup integrity: True",
+      "sequence": 24,
+      "source_section": "backup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "document backup verification: True",
+      "sequence": 25,
+      "source_section": "backup verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor server performance: True",
+      "sequence": 26,
+      "source_section": "performance impact monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check io wait times: True",
+      "sequence": 27,
+      "source_section": "performance impact monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor app response times: True",
+      "sequence": 28,
+      "source_section": "performance impact monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "correlate space issues to performance: True",
+      "sequence": 29,
+      "source_section": "performance impact monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All partitions <80%, log rotation OK, backups verified, no performance issues",
+      "sequence": 30,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: Some partitions 80-90%, minor log rotation issues, pending backup verification, slight performance impact",
+      "sequence": 31,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: description: Critical partitions >90%, log rotation failed, backups incomplete, severe performance degradation",
+      "sequence": 32,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [],
+  "rollback": [],
+  "escalation": [
+    {
+      "text": "warning: Document and monitor",
+      "sequence": 1,
+      "source_section": "escalation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical: Immediate cleanup action required",
+      "sequence": 2,
+      "source_section": "escalation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "emergency: All-hands response, possible service impact",
+      "sequence": 3,
+      "source_section": "escalation",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "text": "for high usage partitions: du analysis: du -sh *",
+      "sequence": 1,
+      "source_section": "detailed space analysis",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "for high usage partitions: identify largest directories: True",
+      "sequence": 2,
+      "source_section": "detailed space analysis",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "for high usage partitions: check large log files: True",
+      "sequence": 3,
+      "source_section": "detailed space analysis",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "for high usage partitions: identify temp files: True",
+      "sequence": 4,
+      "source_section": "detailed space analysis",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "for high usage partitions: identify old backups: True",
+      "sequence": 5,
+      "source_section": "detailed space analysis",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space usage alerts: warning: 80-90%",
+      "sequence": 6,
+      "source_section": "critical thresholds",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space usage alerts: critical: >90%",
+      "sequence": 7,
+      "source_section": "critical thresholds",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space usage alerts: emergency: >95%",
+      "sequence": 8,
+      "source_section": "critical thresholds",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "log age alerts: warning: Logs older than retention + 1 day",
+      "sequence": 9,
+      "source_section": "critical thresholds",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "log age alerts: critical: Logs older than retention + 3 days",
+      "sequence": 10,
+      "source_section": "critical thresholds",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "clear_temporary_files",
+      "sequence": 11,
+      "source_section": "corrective actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "compress_and_archive_old_logs",
+      "sequence": 12,
+      "source_section": "corrective actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "extend_storage_if_consistently_high_usage",
+      "sequence": 13,
+      "source_section": "corrective actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "adjust_log_retention_policies",
+      "sequence": 14,
+      "source_section": "corrective actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "optimize_backup_strategies",
+      "sequence": 15,
+      "source_section": "corrective actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space_utilization_reports",
+      "sequence": 16,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "log_health_status",
+      "sequence": 17,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "cleanup_actions_performed",
+      "sequence": 18,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup_verification_records",
+      "sequence": 19,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "performance_impact_analysis",
+      "sequence": 20,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Proactive space management prevents outages",
+      "sequence": 21,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Log rotation critical for performance and compliance",
+      "sequence": 22,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Backup verification essential before log cleanup",
+      "sequence": 23,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular monitoring identifies trends",
+      "sequence": 24,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with infrastructure team for persistent issues",
+      "sequence": 25,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "all-servers",
+    "disk-space-management",
+    "log-rotation",
+    "backup-systems"
+  ],
+  "owners": [
+    "Coordinate with infrastructure team for persistent issues"
+  ],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "ssh to target server: True",
+      "source_section": "space check procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "run space check: df -h",
+      "source_section": "space check procedure",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "for high usage partitions: du analysis: du -sh *",
+      "source_section": "detailed space analysis",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "emergency: All-hands response, possible service impact",
+      "source_section": "escalation",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:55.231064",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-SERVER-SPACE-007.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "3984025b3f529bc3b7c6ef705243ccc71f4abe35c21dfd78d75fa0564b00f791",
+    "wrapper_key": "SOP-E-SERVER-SPACE-007",
+    "ingested_at": "2026-05-15T07:25:55.231064",
+    "normalized_at": "2026-05-15T07:25:55.231064"
+  },
+  "source_sections": [
+    "automated cleanup verification",
+    "backup verification",
+    "corrective actions",
+    "critical thresholds",
+    "detailed space analysis",
+    "documentation",
+    "escalation",
+    "health status criteria",
+    "log health verification",
+    "notes",
+    "performance impact monitoring",
+    "scheduled check frequency",
+    "space check procedure"
+  ]
+}

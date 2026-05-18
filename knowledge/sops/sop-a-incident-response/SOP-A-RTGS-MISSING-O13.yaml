@@ -1,0 +1,54 @@
+id: SOP-A-013
+class: A
+title: RTGS Files Missing
+severity: medium
+
+services:
+  - rtgs-file-generation
+  - trustlink-interface
+  - idc-corebanking
+  - file-transfer-services
+
+environments:
+  - PROD
+
+aliases:
+  - rtgs payments not processing
+  - missing settlement files
+  - treasury reporting missing files
+  - stp link files absent
+
+symptoms:
+  - treasury department reporting missing RTGS files
+  - payments not appearing in Trustlink
+  - files not generated in expected folders
+  - reconciliation discrepancies
+
+checks:
+  - check RTGS backup folders on servers 1.112 and 1.113
+  - verify file generation in /rpool1/DCOF/ paths
+  - check Trustlink interface status
+  - verify IDC RTGS file generation jobs
+  - check mount points on server 0.249
+
+likely_causes:
+  - file generation jobs failed
+  - mount points unmounted
+  - Trustlink interface down
+  - IDC EOD issues affecting file generation
+  - space issues on servers
+
+recommended_actions:
+  - check backup folders for missing files
+  - remount RTGS folders if unmounted
+  - engage Database Administrators if files not generated
+  - verify IDC EOD completed successfully
+  - check Trustlink application status
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - daily check required before 7am
+  - files must be in PaymentsToSTPLink folder on server 0.45
+  - backup procedures must be followed before mounting

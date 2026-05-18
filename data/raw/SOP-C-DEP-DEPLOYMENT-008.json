@@ -1,0 +1,56 @@
+{
+  "id": "SOP-C-008",
+  "class": "C",
+  "title": "Digital Engagement Platform Deployment",
+  "severity": "high",
+  "services": [
+    "cbxc-frontoffice",
+    "cbxc-backoffice",
+    "jboss-application-server",
+    "olivefabric-runtime"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "DEP deployment procedure",
+    "CBXC web deployment",
+    "Corporate banking updates",
+    "DEP service deployment"
+  ],
+  "recommended_actions": [
+    "Backup existing Corp-online.war in: /rpool1/CBXR-FO/WAR",
+    "Move new build Corp-online.war to same path",
+    "Execute restart procedure after build movement",
+    "Backup existing admin-online.war in: /rpool1/CBXR-BO/WAR",
+    "Move new build admin-online.war to same path",
+    "Execute restart procedure after build movement",
+    "For accounts_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/accounts/deployment, Move new build to same path, Execute restart",
+    "For billpayments_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/billpayments/deployment, Move new build to same path, Execute restart",
+    "For bulkpayments_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/bulkpayments/deployment, Move new build to same path, Execute restart",
+    "For workflow_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/businessprocess/deployment, Move new build to same path, Execute restart",
+    "For common_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/common/deployment, Move new build to same path, Execute restart",
+    "For customers_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/customers/deployment, Move new build to same path, Execute restart",
+    "For iam_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/iam/deployment, Move new build to same path, Execute restart",
+    "For transfers_coar: Backup existing in /rpool1/CBXR-FO/OF/OliveFabricRuntime/OF_Deployments/transfers/deployment, Move new build to same path, Execute restart",
+    "For admin_coar: Backup existing in /rpool1/CBXR-BO/OF/OliveFabricRuntime/OF_Deployments/deployment, Move new build to same path, Execute restart",
+    "Verify all deployments completed successfully",
+    "Test application functionality",
+    "Check service health",
+    "Validate DR environment synchronization"
+  ],
+  "rollback": [
+    "Restore backup WAR/COAR files",
+    "Restart services",
+    "Verify rollback success",
+    "Document deployment failure and rollback"
+  ],
+  "notes": [
+    "Multiple deployment types: WAR files and COAR files",
+    "Backup essential before any deployment",
+    "Restart order critical: BO first, then FO",
+    "DR environment must be updated within 72 hours",
+    "Coordinate with change management using flexidocs for scheduling"
+  ]
+}

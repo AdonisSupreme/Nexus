@@ -1,0 +1,49 @@
+id: SOP-B-001
+class: B
+title: Restart IDC Service on Servers 108 and 109
+severity: medium
+
+services:
+  - idc-jboss-service
+  - jboss-eap-7.4
+  - core-banking-application
+
+environments:
+  - PROD
+
+aliases:
+  - restart IDC JBoss
+  - restart core banking service
+  - stop/start IDC on 108/109
+
+pre_checks:
+  - verify no critical banking transactions in progress
+  - check IDC transaction monitor for active sessions
+  - confirm with operations team before restart during business hours
+  - ensure DR environment is synchronized
+
+procedure:
+  - SSH to server 192.168.1.108 or 192.168.1.109
+  - "Navigate to directory: cd /rpool1/core/jboss-eap-7.4/bin"
+  - "Stop the service: ./stopIDC.sh"
+  - "Verify process is stopped: ps -ef | grep Server"
+  - "If process still running, kill it: kill -9 <PID> (PID is first number)"
+  - "Start the service: ./startIDC.sh"
+  - "Monitor logs: tail -f /rpool1/core/jboss-eap-7.4/standalone/log"
+  - Repeat on second server
+
+post_verification:
+  - verify IDC login is accessible
+  - check basic transactions can be processed
+  - monitor logs for startup errors
+
+rollback:
+  - if service fails to start, check logs for specific errors
+  - restore from backup configuration if configuration corrupted
+  - escalate to IDC support team immediately
+
+notes:
+  - perform during low transaction periods if possible
+  - coordinate with branches if during business hours
+  - service restart may take 5-10 minutes
+  - always restart on both servers for load balancing

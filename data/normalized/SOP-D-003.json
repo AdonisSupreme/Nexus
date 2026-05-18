@@ -1,0 +1,772 @@
+{
+  "id": "SOP-D-003",
+  "class_code": "D",
+  "title": "DR Application Server Activation Sequence",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "jboss-application-servers",
+    "microservices",
+    "authentication-services",
+    "interface-services"
+  ],
+  "environments": [
+    "DR"
+  ],
+  "aliases": [
+    "DR server startup sequence",
+    "Application service activation",
+    "JBoss server startup in DR",
+    "Service dependency management"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify database server 192.168.240.2 is running first (MUST be running first)",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Check authentication services availability at 192.168.254.94 (Required for all logins)",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Validate core banking services at 192.168.254.93 (Business critical)",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Confirm interface services at 192.168.254.95 (External connectivity)",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Verify all supporting services",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Server 192.168.254.94 activation: SSH to server: ssh root@192.168.254.94",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.94: Start ARX Authentication service: cd /rpool1/arx/jboss-eap-7.4/bin/ && ./startARX.sh",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.94: Start Lending Services: cd /rpool1/lending/jboss-eap-7.4/bin && ./startLend.sh",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.94: Start Collection Services: cd /rpool1/Collect/jboss-eap-7.4/bin && ./startCollect.sh && ./startCOLBatch.sh",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.94: Start Treasury Interfaces: cd /rpool1/TRY/jboss-eap-7.4/standalone/log && nohup ./standalone.sh &",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.94: Start ALM & RLO Services (specific procedures TBD)",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93 activation: SSH to server: ssh root@192.168.254.93",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93: Start IDC Core Banking: cd /rpool1/core/jboss-eap-7.4/bin && ./startIDC.sh",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93: Start COB Service: cd /rpool1/ACOB/jboss-eap-7.4/bin && ./startCOB.sh",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93: Start Microservices: cd /rpool1/MICRO && ./startup.sh",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93: Start DEP Back Office: cd /rpool1/CBXR-BO/jboss-eap-7.4/bin && ./startCBXRBO.sh",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.93: Start DEP Front Office: cd /rpool1/CBXR-FO/jboss-eap-7.4/bin && ./startFO.sh",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.95 activation: SSH to server: ssh root@192.168.254.95",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.95: Start CAE Service: cd /rpool1/CAE/jboss-eap-7.4/bin && ./startCAE.sh",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Server 192.168.254.95: Start DCOF Services: cd /rpool1/DCOF/jboss-eap-7.4/bin && ./DConlyStart.sh && ./OFonlyStart.sh",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Verify database connectivity from each server",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Check inter-service communication",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Validate authentication service availability",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Test service-to-service API calls",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Monitor startup logs for dependency errors",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Monitor log files during startup for 'started' messages",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Check dependency injection failures in logs",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Verify port bindings for all services",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Monitor memory allocation during startup",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Critical startup timeouts: Authentication services: 5 minutes, Core banking: 10 minutes, Interface services: 7 minutes",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "If timeout occurs: Investigate immediately",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "If failure: Check service-specific logs",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "If failure: Verify configuration files",
+      "sequence": 28,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "If failure: Check database connectivity",
+      "sequence": 29,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "If failure: Verify port availability",
+      "sequence": 30,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "If failure: Restart service with debug logging",
+      "sequence": 31,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "If unresolved after 15 minutes: Escalate",
+      "sequence": 32,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Health verification: Basic connectivity via ping and SSH",
+      "sequence": 33,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Health verification: Check required processes are running",
+      "sequence": 34,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Health verification: Verify ports are listening",
+      "sequence": 35,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Health verification: Check logs for critical errors",
+      "sequence": 36,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Health verification: Verify dependent services are available",
+      "sequence": 37,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Document exact startup times",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Record startup errors or warnings",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Note resource utilization during startup",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Record any configuration adjustments made",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Update activation checklist with actual times",
+      "sequence": 5,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Stop all services in reverse activation order",
+      "sequence": 6,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Document any issues encountered during shutdown",
+      "sequence": 7,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Prepare for potential fallback to previous state",
+      "sequence": 8,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Activation sequence critical for dependency management",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Database must be operational before application startup",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Authentication services required before user services",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor resource utilization (memory, CPU) during activation",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document deviations from standard procedure",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Activation sequence: Database → Authentication → Core banking → Interface → Supporting",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "jboss-application-servers",
+    "microservices",
+    "authentication-services",
+    "interface-services"
+  ],
+  "owners": [
+    "Activation sequence: Database → Authentication → Core banking → Interface → Supporting"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "checks",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "checks",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "checks",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "Server 192.168.254.94 activation: SSH to server: ssh root@192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 6
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "command",
+      "value": "Server 192.168.254.93 activation: SSH to server: ssh root@192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 9
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 11
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 12
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "command",
+      "value": "Server 192.168.254.95 activation: SSH to server: ssh root@192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 14
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "command",
+      "value": "Check inter-service communication",
+      "source_section": "recommended actions",
+      "sequence": 17
+    },
+    {
+      "type": "command",
+      "value": "Validate authentication service availability",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "command",
+      "value": "Test service-to-service API calls",
+      "source_section": "recommended actions",
+      "sequence": 19
+    },
+    {
+      "type": "threshold",
+      "value": "5 minutes",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "threshold",
+      "value": "10 minutes",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "threshold",
+      "value": "7 minutes",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "command",
+      "value": "If failure: Restart service with debug logging",
+      "source_section": "recommended actions",
+      "sequence": 31
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "recommended actions",
+      "sequence": 32
+    },
+    {
+      "type": "sql",
+      "value": "Update activation checklist with actual times",
+      "source_section": "rollback",
+      "sequence": 5
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.252069",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery\\SOP-D-DR-APP-ACTI-003.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery",
+    "source_format": "yaml",
+    "source_hash": "08c4df01fbecb1a7b9e6de8b75baf1efcf322959d498b552ffa81cc206698e83",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.252069",
+    "normalized_at": "2026-05-15T07:25:54.252069"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

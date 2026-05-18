@@ -1,0 +1,299 @@
+{
+  "id": "SOP-A-012",
+  "class_code": "A",
+  "title": "Mobile Banking Services Down",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "ats-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "mobile app not working",
+    "ussd services down",
+    "mobile transactions failing",
+    "*276# not responding"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "mobile app showing connection errors",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "USSD codes not responding",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction timeouts",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "notification services offline",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "run ATE script on server 192.168.0.249 (main.sh option 2)",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "check all service statuses",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify mount points for RTGS and Ewallet are active",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check PostgreSQL service status",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "review notification and vendor service logs",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "restart ATE services using main.sh (option 5 to stop, option 3 to start).",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "remount RTGS/Ewallet folders if missing.",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "clear space if server >90% usage.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart PostgreSQL if needed.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "check DR environment if PROD issues persist.",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "ATE services stopped",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mount points unmounted",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PostgreSQL service down",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "server space exhaustion",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "network connectivity issues",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical service - 24/7 availability expected",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check both PROD (0.249) and Billers (0.62) servers",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mounts must be checked daily: PaymentsToSTPLink, PaymentsFromSTPLink, EwalletProd",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "ats-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "check all service statuses",
+      "source_section": "checks",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "check PostgreSQL service status",
+      "source_section": "checks",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "review notification and vendor service logs",
+      "source_section": "checks",
+      "sequence": 5
+    },
+    {
+      "type": "command",
+      "value": "PostgreSQL service down",
+      "source_section": "likely causes",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "critical service - 24/7 availability expected",
+      "source_section": "notes",
+      "sequence": 6
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.055153",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-MB-DOWN-O12.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "7dce6e43eaf2695ab104e4eca0efa5197e50629436c9571bd664040c17ff403c",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.055153",
+    "normalized_at": "2026-05-15T07:25:53.055153"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

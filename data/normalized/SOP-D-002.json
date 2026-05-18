@@ -1,0 +1,617 @@
+{
+  "id": "SOP-D-002",
+  "class_code": "D",
+  "title": "DR Database Configuration and Verification",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "oracle-database",
+    "database-replication",
+    "configuration-management",
+    "backup-restoration"
+  ],
+  "environments": [
+    "DR"
+  ],
+  "aliases": [
+    "DR database setup",
+    "Database failover configuration",
+    "Oracle DR configuration",
+    "Database synchronization check"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify replication is current",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check backup integrity",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate storage availability",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm Oracle service status",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Test network connectivity to app servers",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Database server specifications: hostname: 192.168.240.2, port: 1521, sid: idcdblive, environment: DR",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "ARX Database Verification Query: SELECT * FROM tb_arm_web_app WHERE URL LIKE '%cbxtre-applive01-dr%' OR URL LIKE '%idcapplive01-dr%' OR URL LIKE '%interfacelive01-dr%';",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "ARX Database Verification Query: SELECT * FROM tb_arm_branch_env WHERE attrib_value IN ('192.168.240.2', 'idcdblive');",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_ip1 = '192.168.254.95' OR dcprop_ip2 = '192.168.254.95';",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_console1 = '8398';",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "IDC Database Verification Query: SELECT * FROM eftendptm WHERE eftep_endpt_url LIKE '%interfacelive01-dr%' OR eftep_endpt_url LIKE '%192.168.254.94%';",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "IDC Database Verification Query: SELECT * FROM eodsysconfig WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.254.94%';",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "IDC Database Verification Query: SELECT * FROM extsyspgms WHERE extsyspgms_url LIKE '%cbxtre-applive01-dr%' OR extsyspgms_url LIKE '%interfacelive01-dr%';",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "IDC Database Verification Query: SELECT * FROM procctlopenapi WHERE openapi_url LIKE '%192.168.254.93%';",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Database startup procedure: SSH to server: ssh root@192.168.240.2",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Database startup procedure: Start listener: lsnrctl start",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Database startup procedure: Start database: sqlplus / as sysdba -> startup",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Database startup procedure: Verify status: SELECT status FROM v$instance;",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Database startup procedure: Check open mode: SELECT open_mode FROM v$database;",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Connectivity testing from: 192.168.254.93",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Connectivity testing from: 192.168.254.94",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Connectivity testing from: 192.168.254.95",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Verify connection strings in app configs",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Run sample queries from each app tier",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Validate transaction processing capability",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Check Data Guard status",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Verify archive log application",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Detect replication gaps",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Validate data currency with production",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Capture baseline metrics",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Monitor resource utilization: CPU, memory, I/O",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Identify performance bottlenecks",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Document performance characteristics",
+      "sequence": 28,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "During DR activation: Suspend replication from production",
+      "sequence": 29,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "During DR activation: Enable write operations on DR",
+      "sequence": 30,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "During DR activation: Monitor data divergence",
+      "sequence": 31,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "During DR activation: Plan for eventual resynchronization",
+      "sequence": 32,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Ensure production backup exists",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Document current DR configuration state",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Prepare rollback scripts",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Verify backup restoration procedures",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Database is critical DR component",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Configuration updates must be verified before application activation",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance may differ from production",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular connection testing from all app tiers required",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document all verification steps and results",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with database administration team",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "oracle-database",
+    "database-replication",
+    "configuration-management",
+    "backup-restoration"
+  ],
+  "owners": [
+    "Coordinate with database administration team"
+  ],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "Confirm Oracle service status",
+      "source_section": "checks",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "ARX Database Verification Query: SELECT * FROM tb_arm_web_app WHERE URL LIKE '%cbxtre-applive01-dr%' OR URL LIKE '%idcapplive01-dr%' OR URL LIKE '%interfacelive01-dr%';",
+      "source_section": "recommended actions",
+      "sequence": 2
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "sql",
+      "value": "ARX Database Verification Query: SELECT * FROM tb_arm_branch_env WHERE attrib_value IN ('192.168.240.2', 'idcdblive');",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "sql",
+      "value": "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_ip1 = '192.168.254.95' OR dcprop_ip2 = '192.168.254.95';",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "sql",
+      "value": "DCOF Database Verification Query: SELECT * FROM dcprop WHERE dcprop_console1 = '8398';",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 6
+    },
+    {
+      "type": "sql",
+      "value": "IDC Database Verification Query: SELECT * FROM eftendptm WHERE eftep_endpt_url LIKE '%interfacelive01-dr%' OR eftep_endpt_url LIKE '%192.168.254.94%';",
+      "source_section": "recommended actions",
+      "sequence": 6
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "sql",
+      "value": "IDC Database Verification Query: SELECT * FROM eodsysconfig WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.254.94%';",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "sql",
+      "value": "IDC Database Verification Query: SELECT * FROM extsyspgms WHERE extsyspgms_url LIKE '%cbxtre-applive01-dr%' OR extsyspgms_url LIKE '%interfacelive01-dr%';",
+      "source_section": "recommended actions",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 9
+    },
+    {
+      "type": "sql",
+      "value": "IDC Database Verification Query: SELECT * FROM procctlopenapi WHERE openapi_url LIKE '%192.168.254.93%';",
+      "source_section": "recommended actions",
+      "sequence": 9
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "command",
+      "value": "Database startup procedure: SSH to server: ssh root@192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "sql",
+      "value": "Database startup procedure: Verify status: SELECT status FROM v$instance;",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "sql",
+      "value": "Database startup procedure: Check open mode: SELECT open_mode FROM v$database;",
+      "source_section": "recommended actions",
+      "sequence": 14
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 16
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 17
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.218565",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery\\SOP-D-DB-CONFIG-VERIFY-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery",
+    "source_format": "yaml",
+    "source_hash": "de7801491b60511b7c30cf0b835d0a29393af55d2a23808db521ee67aba5ace9",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.218565",
+    "normalized_at": "2026-05-15T07:25:54.218565"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "id": "SOP-B-002",
+  "class_code": "B",
+  "title": "Restart IDC COB Service on Servers 108 and 109",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "idc-cob-service",
+    "jboss-eap-7.4",
+    "cob-application"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart COB service",
+    "stop/start COB on 108/109",
+    "restart IDC batch service"
+  ],
+  "preconditions": [
+    {
+      "text": "verify COB batch jobs are not running",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check batch schedule for pending jobs",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with operations team",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify COB services are running",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check batch job scheduler status",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "SSH to server 192.168.1.108 or 192.168.1.109",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Navigate to directory: cd /rpool1/ACOB/jboss-eap-7.4/bin",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Stop the service: ./stopCOB.sh",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start the service: ./startCOB.sh",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor startup logs",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Repeat on second server",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check logs",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "restore configuration from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "COB handles batch processing",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restart may affect scheduled batch jobs",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with batch schedule",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "idc-cob-service",
+    "jboss-eap-7.4",
+    "cob-application"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.108",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.109",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SSH to server 192.168.1.108 or 192.168.1.109",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check logs",
+      "source_section": "rollback",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.549320",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-IDC-COB-RESTART-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "7a7892b11c6dc1e3ac4ad766d883caa49b970ad7b728bee57499bb2750557cd7",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.549320",
+    "normalized_at": "2026-05-15T07:25:53.549320"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

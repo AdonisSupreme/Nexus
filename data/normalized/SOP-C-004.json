@@ -1,0 +1,409 @@
+{
+  "id": "SOP-C-004",
+  "class_code": "C",
+  "title": "Veeam Restore Procedures",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "veeam-backup",
+    "vmware-virtualization",
+    "server-recovery",
+    "backup-restoration"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Server restoration",
+    "Veeam recovery",
+    "Virtual machine restore",
+    "Disaster recovery restoration"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify Veeam server access",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm restore point availability",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ensure VMware environment has sufficient resources",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Notify relevant teams of restoration activity",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Connect to backup server",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Launch Veeam application",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Navigate through Veeam interface",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Home tab → Restore → VMware",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Select Instant VM Recovery → Next",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Expand Server 120 Working → Select NewAgriLiveCore → Next",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Select restore point (latest increment) → Next",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Recovery Mode: Restore to new location or different settings → Next",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Destination: Change restored VM name → Next",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Tick Redirect Virtual Disk Updates",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Choose datastore (SATA_Datastore_02) → Next",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Enter reason for restore → Next",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Click Restore to start process",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Locate restored server in VMware",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Right-click → Edit Settings",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Configure CPU: 32, Cores Per Socket: 8, CPU Hot Plug: enabled",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Configure Memory: 200000",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Configure Network Adapter 2: VM Network TESTVLAN, Connect On Power On: enabled",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Save settings",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Power on server",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Open console",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Sign on as root (password same as LIVE)",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Change root password",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Add Notification Area to taskbar",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Edit network connections for IP and gateway",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Disable/Enable network to apply changes",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Add menu bar to taskbar",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Power off restored server",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Delete from VMware inventory",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Clean up Veeam recovery session",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document restoration attempt",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Critical for disaster recovery scenarios",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Requires VMware and Veeam expertise",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Network configuration must match environment requirements",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular restoration testing recommended",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "veeam-backup",
+    "vmware-virtualization",
+    "server-recovery",
+    "backup-restoration"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "Select Instant VM Recovery → Next",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "sql",
+      "value": "Expand Server 120 Working → Select NewAgriLiveCore → Next",
+      "source_section": "recommended actions",
+      "sequence": 6
+    },
+    {
+      "type": "sql",
+      "value": "Select restore point (latest increment) → Next",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "sql",
+      "value": "Delete from VMware inventory",
+      "source_section": "rollback",
+      "sequence": 2
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.161961",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-VEEAM-RESTORE-004.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "f467037ff20756916ef1973bda682920d135ed10397a01e0905c2910bc00fe3c",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.161961",
+    "normalized_at": "2026-05-15T07:25:54.161961"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

@@ -1,0 +1,50 @@
+id: SOP-C-005
+class: C
+title: Adding New Accounts to Axway STP
+severity: medium
+services:
+  - oracle-database
+  - axway-stp
+  - trustlink-interface
+  - ewallet-system
+environments:
+  - PROD
+aliases:
+  - STP account addition
+  - Trustlink account updates
+  - Ewallet account synchronization
+  - Account file generation
+checks:
+  - Verify Oracle database connectivity
+  - Confirm access to ewallet system
+  - Ensure input files for processing are available
+  - Notify relevant team of file upload schedule
+recommended_actions:
+  - Run query on Oracle database
+  - Export output to Excel format as Trustlink.xlsx
+  - Save file to local machine
+  - "Move input file to: C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\input"
+  - "Open command prompt and navigate to processing folder: cd C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\code"
+  - 'Run processing script: python trustlink_file_cleaning.py'
+  - Wait ~1 minute 30 seconds for processing
+  - "Find output at: C:\\Users\\[username]\\Documents\\trustlink_file_cleaning\\output"
+  - Login to ewallet
+  - Go to Reports > Product Wise Account details
+  - "For USD Report: Scheme: 2001001 DIGIPAY, Account Status: Active, From Date: 1 Jan 2022; To Date: Current date, Inputter and Authoriser: All, Download report"
+  - "For ZWG Report: Scheme: 2002002 DIGIPAY, Account Status: Active, From Date: 1 Jan 2022; To Date: Current date, Inputter and Authoriser: All, Download report"
+  - "Modify downloaded reports with columns: Column 1: Branch (enter 1000), Column 2: Digipay account number, Column 3: Product code (USD: 150, ZWG: 151), Column 4: Account number, Column 5: Currency (USD or ZWG)"
+  - Save both files as CSV
+  - Open in Notepad, copy data, and paste into Trustlink file (comma separated)
+  - "Upload formatted file to server 192.168.0.45 at path: C:\\TRUSTLINK\\PROD\\RTGS\\AccListSTPLink"
+  - Verify file placement
+  - Must be completed daily before 07:00 by 11pm to 7am shift resource
+  - Verify file format correctness
+  - Check file upload success
+  - Validate account synchronization
+  - Monitor for processing errors
+  - "If processing fails: Check Python script execution, Verify Oracle database connectivity, Check file permissions, Validate ewallet report generation"
+notes:
+  - Daily procedure required
+  - File format must be exact for STP processing
+  - Both USD and ZWG accounts must be included
+  - Timing critical for daily operations

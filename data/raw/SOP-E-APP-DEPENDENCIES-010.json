@@ -1,0 +1,209 @@
+{
+  "id": "SOP-E-APP-DEPENDENCIES-010",
+  "class": "SOP-E",
+  "title": "Verify Application Service Dependencies",
+  "severity": "Medium",
+  "services": [
+    "service-dependency-mapping",
+    "inter-service-communication",
+    "api-connectivity",
+    "integration-health"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check service dependencies",
+    "Verify inter-service connectivity",
+    "API health monitoring",
+    "Integration point verification"
+  ],
+  "dependency_mapping_verification": {
+    "idc_core_banking": {
+      "depends_on": [
+        "arx-authentication-service",
+        "database-connectivity",
+        "dcof-interface-services",
+        "treasury-module",
+        "loan-management-system"
+      ]
+    },
+    "arx_authentication": {
+      "depends_on": [
+        "database-connectivity",
+        "ldap-active-directory",
+        "certificate-services"
+      ]
+    },
+    "mobile_banking_ate": {
+      "depends_on": [
+        "postgresql-database",
+        "notification-services",
+        "vendor-services",
+        "rtgs-mount-points",
+        "ewallet-integration"
+      ]
+    },
+    "internet_banking": {
+      "depends_on": [
+        "nginx-load-balancer",
+        "laravel-application-servers",
+        "sql-server-database",
+        "queue-processing-services",
+        "xampp-services"
+      ]
+    },
+    "postilion": {
+      "depends_on": [
+        "sql-server-database",
+        "zimswitch-connectivity",
+        "afcintellect-node",
+        "transaction-manager",
+        "certificate-manager"
+      ]
+    }
+  },
+  "connectivity_testing_procedures": {
+    "database_connectivity_tests": {
+      "steps": [
+        "Test database connection from each application server",
+        "Verify connection strings in configuration files",
+        "Execute sample read/write queries",
+        "Monitor database connection pool usage"
+      ]
+    },
+    "api_connectivity_tests": {
+      "steps": [
+        "Test REST API endpoints",
+        "Verify SOAP web service connectivity (if applicable)",
+        "Measure API response times",
+        "Monitor API error rates"
+      ]
+    },
+    "service_to_service_tests": {
+      "steps": [
+        "Verify inter-service communication paths",
+        "Check service discovery mechanisms",
+        "Validate load balancing across instances",
+        "Monitor circuit breaker behavior"
+      ]
+    }
+  },
+  "dependency_health_indicators": {
+    "HEALTHY": [
+      "Connection success rate >99%",
+      "Response times within SLA",
+      "Error rates <0.5%",
+      "Resource utilization within normal limits"
+    ],
+    "WARNING": [
+      "Intermittent connection failures",
+      "Increasing response times",
+      "Error rates between 0.5% and 2%",
+      "High resource utilization"
+    ],
+    "CRITICAL": [
+      "Connection failure rate >5%",
+      "Response times exceed SLA by >200%",
+      "Error rates >2%",
+      "Resource exhaustion detected"
+    ]
+  },
+  "circuit_breaker_monitoring": {
+    "steps": [
+      "Monitor circuit breaker activations",
+      "Verify fallback mechanism usage",
+      "Confirm automatic recovery attempts",
+      "Document circuit breaker events and triggers"
+    ]
+  },
+  "dependency_documentation_verification": {
+    "checks": [
+      "Dependency documentation exists and is current",
+      "Dependency diagrams updated",
+      "Runbooks include dependency details",
+      "Escalation paths defined for dependency failures"
+    ]
+  },
+  "scheduled_verification_frequency": [
+    "Real-time monitoring for critical dependencies",
+    "Every 5 minutes for high-priority dependencies",
+    "Every 15 minutes for medium-priority dependencies",
+    "Hourly for low-priority dependencies",
+    "Daily comprehensive dependency review"
+  ],
+  "testing_methodology": [
+    "Synthetic transactions exercising dependency chains",
+    "Ping and port connectivity checks",
+    "Application-level health checks",
+    "End-to-end transaction testing",
+    "Dependency chain validation"
+  ],
+  "health_status_criteria": {
+    "HEALTHY": [
+      "All critical dependencies available",
+      "Performance within SLA",
+      "No circuit breaker activations",
+      "Error rates within acceptable thresholds"
+    ],
+    "DEGRADED": [
+      "Non-critical dependencies unavailable",
+      "Partial performance degradation",
+      "Intermittent circuit breaker activations",
+      "Elevated error rates"
+    ],
+    "UNHEALTHY": [
+      "Critical dependencies unavailable",
+      "Severe performance degradation",
+      "Multiple circuit breaker activations",
+      "High error rates impacting functionality"
+    ]
+  },
+  "impact_assessment": {
+    "steps": [
+      "Identify affected business processes",
+      "Determine customer and user impact",
+      "Assess financial exposure",
+      "Evaluate compliance implications",
+      "Determine reputational risk"
+    ]
+  },
+  "mitigation_strategies": [
+    "Implement retry logic with exponential backoff",
+    "Use circuit breakers to prevent cascading failures",
+    "Enable fallback mechanisms",
+    "Implement caching to reduce dependency load",
+    "Design applications for graceful degradation"
+  ],
+  "escalation_procedure": {
+    "Immediate": [
+      "Investigate failed dependency"
+    ],
+    "Multiple_dependencies": [
+      "Escalate to architecture team"
+    ],
+    "Critical_business_impact": [
+      "Notify Head ICT and business stakeholders"
+    ],
+    "Recurring_issues": [
+      "Schedule architectural review"
+    ]
+  },
+  "documentation_requirements": [
+    "Dependency mapping documentation",
+    "Health check results",
+    "Performance metrics",
+    "Error logs and patterns",
+    "Mitigation actions taken",
+    "Architecture improvement recommendations"
+  ],
+  "notes": [
+    "Understanding dependencies is critical for troubleshooting",
+    "Dependency maps must be reviewed after every change",
+    "Performance baselines aid early degradation detection",
+    "Accurate documentation accelerates incident resolution",
+    "Consider service mesh adoption for advanced dependency management"
+  ]
+}

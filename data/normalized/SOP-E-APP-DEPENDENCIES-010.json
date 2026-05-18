@@ -1,0 +1,953 @@
+{
+  "id": "SOP-E-APP-DEPENDENCIES-010",
+  "class_code": "E",
+  "title": "Verify Application Service Dependencies",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "service-dependency-mapping",
+    "inter-service-communication",
+    "api-connectivity",
+    "integration-health"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Check service dependencies",
+    "Verify inter-service connectivity",
+    "API health monitoring",
+    "Integration point verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "idc core banking: depends on: arx-authentication-service",
+      "sequence": 1,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "idc core banking: depends on: database-connectivity",
+      "sequence": 2,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "idc core banking: depends on: dcof-interface-services",
+      "sequence": 3,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "idc core banking: depends on: treasury-module",
+      "sequence": 4,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "idc core banking: depends on: loan-management-system",
+      "sequence": 5,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "arx authentication: depends on: database-connectivity",
+      "sequence": 6,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "arx authentication: depends on: ldap-active-directory",
+      "sequence": 7,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "arx authentication: depends on: certificate-services",
+      "sequence": 8,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking ate: depends on: postgresql-database",
+      "sequence": 9,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking ate: depends on: notification-services",
+      "sequence": 10,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking ate: depends on: vendor-services",
+      "sequence": 11,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking ate: depends on: rtgs-mount-points",
+      "sequence": 12,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile banking ate: depends on: ewallet-integration",
+      "sequence": 13,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking: depends on: nginx-load-balancer",
+      "sequence": 14,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking: depends on: laravel-application-servers",
+      "sequence": 15,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking: depends on: sql-server-database",
+      "sequence": 16,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking: depends on: queue-processing-services",
+      "sequence": 17,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "internet banking: depends on: xampp-services",
+      "sequence": 18,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion: depends on: sql-server-database",
+      "sequence": 19,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion: depends on: zimswitch-connectivity",
+      "sequence": 20,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion: depends on: afcintellect-node",
+      "sequence": 21,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion: depends on: transaction-manager",
+      "sequence": 22,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "postilion: depends on: certificate-manager",
+      "sequence": 23,
+      "source_section": "dependency mapping verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity tests: Test database connection from each application server",
+      "sequence": 24,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity tests: Verify connection strings in configuration files",
+      "sequence": 25,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity tests: Execute sample read/write queries",
+      "sequence": 26,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database connectivity tests: Monitor database connection pool usage",
+      "sequence": 27,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "api connectivity tests: Test REST API endpoints",
+      "sequence": 28,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "api connectivity tests: Verify SOAP web service connectivity (if applicable)",
+      "sequence": 29,
+      "source_section": "connectivity testing procedures",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "api connectivity tests: Measure API response times",
+      "sequence": 30,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "api connectivity tests: Monitor API error rates",
+      "sequence": 31,
+      "source_section": "connectivity testing procedures",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service to service tests: Verify inter-service communication paths",
+      "sequence": 32,
+      "source_section": "connectivity testing procedures",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "service to service tests: Check service discovery mechanisms",
+      "sequence": 33,
+      "source_section": "connectivity testing procedures",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "service to service tests: Validate load balancing across instances",
+      "sequence": 34,
+      "source_section": "connectivity testing procedures",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "service to service tests: Monitor circuit breaker behavior",
+      "sequence": 35,
+      "source_section": "connectivity testing procedures",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "HEALTHY: Connection success rate >99%",
+      "sequence": 36,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: Response times within SLA",
+      "sequence": 37,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: Error rates <0.5%",
+      "sequence": 38,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: Resource utilization within normal limits",
+      "sequence": 39,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "WARNING: Intermittent connection failures",
+      "sequence": 40,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "WARNING: Increasing response times",
+      "sequence": 41,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "WARNING: Error rates between 0.5% and 2%",
+      "sequence": 42,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "WARNING: High resource utilization",
+      "sequence": 43,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "CRITICAL: Connection failure rate >5%",
+      "sequence": 44,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "CRITICAL: Response times exceed SLA by >200%",
+      "sequence": 45,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "CRITICAL: Error rates >2%",
+      "sequence": 46,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "CRITICAL: Resource exhaustion detected",
+      "sequence": 47,
+      "source_section": "dependency health indicators",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor circuit breaker activations",
+      "sequence": 48,
+      "source_section": "circuit breaker monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify fallback mechanism usage",
+      "sequence": 49,
+      "source_section": "circuit breaker monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm automatic recovery attempts",
+      "sequence": 50,
+      "source_section": "circuit breaker monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document circuit breaker events and triggers",
+      "sequence": 51,
+      "source_section": "circuit breaker monitoring",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependency documentation exists and is current",
+      "sequence": 52,
+      "source_section": "dependency documentation verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependency diagrams updated",
+      "sequence": 53,
+      "source_section": "dependency documentation verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Runbooks include dependency details",
+      "sequence": 54,
+      "source_section": "dependency documentation verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation paths defined for dependency failures",
+      "sequence": 55,
+      "source_section": "dependency documentation verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Real-time monitoring for critical dependencies",
+      "sequence": 56,
+      "source_section": "scheduled verification frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Every 5 minutes for high-priority dependencies",
+      "sequence": 57,
+      "source_section": "scheduled verification frequency",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Every 15 minutes for medium-priority dependencies",
+      "sequence": 58,
+      "source_section": "scheduled verification frequency",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Hourly for low-priority dependencies",
+      "sequence": 59,
+      "source_section": "scheduled verification frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Daily comprehensive dependency review",
+      "sequence": 60,
+      "source_section": "scheduled verification frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Synthetic transactions exercising dependency chains",
+      "sequence": 61,
+      "source_section": "testing methodology",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ping and port connectivity checks",
+      "sequence": 62,
+      "source_section": "testing methodology",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Application-level health checks",
+      "sequence": 63,
+      "source_section": "testing methodology",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "End-to-end transaction testing",
+      "sequence": 64,
+      "source_section": "testing methodology",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependency chain validation",
+      "sequence": 65,
+      "source_section": "testing methodology",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: All critical dependencies available",
+      "sequence": 66,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: Performance within SLA",
+      "sequence": 67,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: No circuit breaker activations",
+      "sequence": 68,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: Error rates within acceptable thresholds",
+      "sequence": 69,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: Non-critical dependencies unavailable",
+      "sequence": 70,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: Partial performance degradation",
+      "sequence": 71,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: Intermittent circuit breaker activations",
+      "sequence": 72,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: Elevated error rates",
+      "sequence": 73,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: Critical dependencies unavailable",
+      "sequence": 74,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: Severe performance degradation",
+      "sequence": 75,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: Multiple circuit breaker activations",
+      "sequence": 76,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "UNHEALTHY: High error rates impacting functionality",
+      "sequence": 77,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "Implement retry logic with exponential backoff",
+      "sequence": 1,
+      "source_section": "mitigation strategies",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Use circuit breakers to prevent cascading failures",
+      "sequence": 2,
+      "source_section": "mitigation strategies",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Enable fallback mechanisms",
+      "sequence": 3,
+      "source_section": "mitigation strategies",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Implement caching to reduce dependency load",
+      "sequence": 4,
+      "source_section": "mitigation strategies",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Design applications for graceful degradation",
+      "sequence": 5,
+      "source_section": "mitigation strategies",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Immediate: Investigate failed dependency",
+      "sequence": 6,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Multiple dependencies: Escalate to architecture team",
+      "sequence": 7,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical business impact: Notify Head ICT and business stakeholders",
+      "sequence": 8,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Recurring issues: Schedule architectural review",
+      "sequence": 9,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Identify affected business processes",
+      "sequence": 1,
+      "source_section": "impact assessment",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Determine customer and user impact",
+      "sequence": 2,
+      "source_section": "impact assessment",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Assess financial exposure",
+      "sequence": 3,
+      "source_section": "impact assessment",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Evaluate compliance implications",
+      "sequence": 4,
+      "source_section": "impact assessment",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Determine reputational risk",
+      "sequence": 5,
+      "source_section": "impact assessment",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependency mapping documentation",
+      "sequence": 6,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Health check results",
+      "sequence": 7,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance metrics",
+      "sequence": 8,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Error logs and patterns",
+      "sequence": 9,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mitigation actions taken",
+      "sequence": 10,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Architecture improvement recommendations",
+      "sequence": 11,
+      "source_section": "documentation requirements",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Understanding dependencies is critical for troubleshooting",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependency maps must be reviewed after every change",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance baselines aid early degradation detection",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Accurate documentation accelerates incident resolution",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Consider service mesh adoption for advanced dependency management",
+      "sequence": 16,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    }
+  ],
+  "systems": [
+    "service-dependency-mapping",
+    "inter-service-communication",
+    "api-connectivity",
+    "integration-health"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "api connectivity tests: Verify SOAP web service connectivity (if applicable)",
+      "source_section": "connectivity testing procedures",
+      "sequence": 29
+    },
+    {
+      "type": "command",
+      "value": "service to service tests: Verify inter-service communication paths",
+      "source_section": "connectivity testing procedures",
+      "sequence": 32
+    },
+    {
+      "type": "command",
+      "value": "service to service tests: Check service discovery mechanisms",
+      "source_section": "connectivity testing procedures",
+      "sequence": 33
+    },
+    {
+      "type": "command",
+      "value": "service to service tests: Validate load balancing across instances",
+      "source_section": "connectivity testing procedures",
+      "sequence": 34
+    },
+    {
+      "type": "command",
+      "value": "service to service tests: Monitor circuit breaker behavior",
+      "source_section": "connectivity testing procedures",
+      "sequence": 35
+    },
+    {
+      "type": "threshold",
+      "value": " 5 minutes",
+      "source_section": "scheduled verification frequency",
+      "sequence": 57
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "scheduled verification frequency",
+      "sequence": 58
+    },
+    {
+      "type": "command",
+      "value": "Consider service mesh adoption for advanced dependency management",
+      "source_section": "notes",
+      "sequence": 16
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.739388",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-APP-DEPENDENCIES-010.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "2193882763620c2ee2ab1b2870b725da192e060c25e44e4f2fca66fa2f324f73",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.739388",
+    "normalized_at": "2026-05-15T07:25:54.739388"
+  },
+  "source_sections": [
+    "circuit breaker monitoring",
+    "connectivity testing procedures",
+    "dependency documentation verification",
+    "dependency health indicators",
+    "dependency mapping verification",
+    "documentation requirements",
+    "escalation procedure",
+    "health status criteria",
+    "impact assessment",
+    "mitigation strategies",
+    "notes",
+    "scheduled verification frequency",
+    "testing methodology"
+  ]
+}

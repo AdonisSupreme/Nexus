@@ -1,0 +1,57 @@
+{
+  "id": "SOP-A-012",
+  "class": "A",
+  "title": "Mobile Banking Services Down",
+  "severity": "critical",
+  "services": [
+    "ats-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "mobile app not working",
+    "ussd services down",
+    "mobile transactions failing",
+    "*276# not responding"
+  ],
+  "symptoms": [
+    "mobile app showing connection errors",
+    "USSD codes not responding",
+    "transaction timeouts",
+    "notification services offline"
+  ],
+  "checks": [
+    "run ATE script on server 192.168.0.249 (main.sh option 2)",
+    "check all service statuses",
+    "verify mount points for RTGS and Ewallet are active",
+    "check PostgreSQL service status",
+    "review notification and vendor service logs"
+  ],
+  "likely_causes": [
+    "ATE services stopped",
+    "mount points unmounted",
+    "PostgreSQL service down",
+    "server space exhaustion",
+    "network connectivity issues"
+  ],
+  "recommended_actions": [
+    "restart ATE services using main.sh (option 5 to stop, option 3 to start).",
+    "remount RTGS/Ewallet folders if missing.",
+    "clear space if server >90% usage.",
+    "restart PostgreSQL if needed.",
+    "check DR environment if PROD issues persist."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "critical service - 24/7 availability expected",
+    "check both PROD (0.249) and Billers (0.62) servers",
+    "mounts must be checked daily: PaymentsToSTPLink, PaymentsFromSTPLink, EwalletProd"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "SOP-B-015",
+  "class": "B",
+  "title": "Reset User Password in IDC/ARX",
+  "severity": "medium",
+  "services": [
+    "arx-authentication",
+    "idc-user-management",
+    "password-reset-service"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "password reset for IDC users",
+    "ARX password reset",
+    "unlock user account"
+  ],
+  "pre_checks": [
+    "verify user access form is approved",
+    "confirm user identity",
+    "check if account is locked or password expired"
+  ],
+  "procedure": [
+    "login to ARX with inputter profile",
+    "navigate to: Intellect ARX Administration",
+    "search for user account (Filter > User ID > Contains)",
+    "right-click user ID and select \"Reset Password\"",
+    "confirm reset password action",
+    "approver clicks \"Pending Approvals\"",
+    "highlight password reset request and approve",
+    "default password format assigned: - first 4 chars of username + DOB (DDMMYYYY) - example: NC040885 with DOB 08/11/1997 = NC0408111997 - if fails, try MMDDYYYY: NC0411081997"
+  ],
+  "post_verification": [
+    "user can login with default password",
+    "user prompted to set new password",
+    "verify password policy compliance"
+  ],
+  "rollback": [
+    "if reset fails, verify user details",
+    "check ARX authorization logs",
+    "escalate to IDC support"
+  ],
+  "notes": [
+    "default password sometimes fails with DDMMYYYY format",
+    "try MMDDYYYY if first attempt fails",
+    "user must comply with password policy on first login",
+    "always request up-to-date password reset form",
+    "reset form expires in 48 to 72 hours",
+    "coordinate with HR for user identity confirmation"
+  ]
+}

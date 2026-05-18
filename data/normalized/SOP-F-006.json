@@ -1,0 +1,569 @@
+{
+  "id": "SOP-F-006",
+  "class_code": "F",
+  "title": "CSD RTGS User Administration",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "csd-rtgs-system",
+    "reserve-bank-interfaces",
+    "national-payment-system",
+    "financial-settlement"
+  ],
+  "environments": [
+    "PROD",
+    "TEST"
+  ],
+  "aliases": [
+    "CSD RTGS user management",
+    "RTGS user administration",
+    "Reserve Bank user controls",
+    "NPSD user administration"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify administrator scope is internal ICT only",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm administrator permissions limited to password reset only",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate administrator restrictions: cannot create users, modify roles, change permissions",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check external authority is Reserve Bank of Zimbabwe (RBZ) NPSD team",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm business owner is Treasury Department",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify auditors are Internal Audit and RBZ",
+      "sequence": 6,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "System access VPN URL: https://172.31.254.2/+CSCOE+/logon.html",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "url"
+      ]
+    },
+    {
+      "text": "Login credentials: Username: AGRIBANKzetss, Password: Cr0s$0v3R@RbZ",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Select environment: LIVE or TEST",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Administrator allowed actions: Reset user password only",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Administrator prohibited actions: Create user, delete user, modify roles, change permissions",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Escalation required for: Access changes, role updates, new user requests",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset procedure: Login to system",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Navigate to 'Access Control → Define Users'",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Search user by username",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Select user",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "If user blocked: Unblock user and enter reason",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "If profile blocked: Unblock profile and enter reason",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Password reset: Enter new password",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Communicate password securely to user",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User communication: Share password securely",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User communication: Instruct user to change password on first login",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User communication: Confirm successful login",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User communication: Record confirmation",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Downtime escalation immediate: Verify VPN connectivity",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Downtime escalation at 15 minutes: Verify credentials",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Downtime escalation at 30 minutes: Contact RBZ NPSD at npsd@rbz.co.zw",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Downtime escalation at 60 minutes: Escalate to Treasury management",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "Verification: Check user can login",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Confirm system access restored",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Verify no unauthorized changes",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verification: Generate audit log",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Operational context: Critical national infrastructure",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Operational context: Limited internal control",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Operational context: High risk system",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Dependencies: RBZ NPSD team control",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Governance: Regular coordination with RBZ required",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path: Level 1: System Administrator (password reset only)",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path: Level 2: RBZ NPSD Team (all access and role changes)",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path: Level 3: Treasury Management (business impact)",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Escalation path: Level 4: Head ICT (system or security issues)",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Least privilege administration",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: RBZ controlled access management",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Secure password distribution",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: Mandatory audit trails",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Security controls: External authority dependency",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation artifacts: Password reset logs",
+      "sequence": 15,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation artifacts: RBZ communication records",
+      "sequence": 16,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation artifacts: User confirmation records",
+      "sequence": 17,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation artifacts: Downtime incident reports",
+      "sequence": 18,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documentation artifacts: Audit compliance evidence",
+      "sequence": 19,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance standards: RBZ regulatory requirements",
+      "sequence": 20,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance standards: National payment system standards",
+      "sequence": 21,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance standards: Access control policies",
+      "sequence": 22,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Compliance standards: Security audit compliance",
+      "sequence": 23,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "csd-rtgs-system",
+    "reserve-bank-interfaces",
+    "national-payment-system",
+    "financial-settlement"
+  ],
+  "owners": [
+    "Dependencies: RBZ NPSD team control",
+    "Escalation path: Level 2: RBZ NPSD Team (all access and role changes)",
+    "Escalation path: Level 4: Head ICT (system or security issues)"
+  ],
+  "artifacts": [
+    {
+      "type": "url",
+      "value": "https://172.31.254.2/+CSCOE+/logon.html",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "172.31.254.2",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "Select environment: LIVE or TEST",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "sql",
+      "value": "Administrator prohibited actions: Create user, delete user, modify roles, change permissions",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "sql",
+      "value": "Password reset: Select user",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "threshold",
+      "value": " 15 minutes",
+      "source_section": "recommended actions",
+      "sequence": 20
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "recommended actions",
+      "sequence": 21
+    },
+    {
+      "type": "threshold",
+      "value": " 60 minutes",
+      "source_section": "recommended actions",
+      "sequence": 22
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.398499",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative\\SOP-F-CSD-USER-006.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-f-administrative",
+    "source_format": "yaml",
+    "source_hash": "37fa934d8ab90caee697ba9896ef8db52cc81899bcd918ff902376fa6818e1b2",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.398499",
+    "normalized_at": "2026-05-15T07:25:54.398499"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions"
+  ]
+}

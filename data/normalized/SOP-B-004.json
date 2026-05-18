@@ -1,0 +1,247 @@
+{
+  "id": "SOP-B-004",
+  "class_code": "B",
+  "title": "Restart ARX Service on Servers 110 and 111",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "arx-service",
+    "jboss-eap-7.4",
+    "authentication-service"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart ARX authentication",
+    "stop/start ARX on 110/111",
+    "restart user authentication service"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Restart ARX Service: verify no user password resets in progress",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: check if any users are currently logging in",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: confirm with help desk if during business hours",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: SSH to server 192.168.1.110 or 192.168.1.111",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Restart ARX Service: Navigate to directory: cd /rpool1/arx/jboss-eap-7.4/bin/",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: Stop the service: ./stopARX.sh",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: Start the service: ./startARX.sh",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: Monitor startup logs",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: Repeat on second server",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: verify ARX login is accessible",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: test user authentication",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Restart ARX Service: check password reset functionality",
+      "sequence": 12,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "if service fails to start, check configuration files",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "restore from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support team",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "ARX handles user authentication for IDC",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for user login during business hours",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service restart affects all user authentication",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "always restart on both servers for redundancy",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "arx-service",
+    "jboss-eap-7.4",
+    "authentication-service"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "Restart ARX Service: SSH to server 192.168.1.110 or 192.168.1.111",
+      "source_section": "procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "if service fails to start, check configuration files",
+      "source_section": "rollback",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "service restart affects all user authentication",
+      "source_section": "notes",
+      "sequence": 3
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.395096",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-ARX-RESTART-OO4.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "4097385eec6c1b46d25d4549fb27fe75620dbb4b127975234fcfbffe175d5a47",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.395096",
+    "normalized_at": "2026-05-15T07:25:53.395096"
+  },
+  "source_sections": [
+    "notes",
+    "procedure",
+    "rollback"
+  ]
+}

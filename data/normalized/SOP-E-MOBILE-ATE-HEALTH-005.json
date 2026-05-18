@@ -1,0 +1,677 @@
+{
+  "id": "SOP-E-MOBILE-ATE-HEALTH-005",
+  "class_code": "E",
+  "title": "Verify Mobile Banking ATE Services Health",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "ate-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services",
+    "postgresql-database"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "Check USSD services status",
+    "Verify mobile banking health",
+    "ATE service monitoring",
+    "Mobile transaction verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "ssh to server: SSH to 192.168.0.249",
+      "sequence": 1,
+      "source_section": "service status check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "navigate directory: cd /srv",
+      "sequence": 2,
+      "source_section": "service status check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "run ate script: sudo ./main.sh",
+      "sequence": 3,
+      "source_section": "service status check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "select option: 2 (Check service status)",
+      "sequence": 4,
+      "source_section": "service status check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command",
+        "sql"
+      ]
+    },
+    {
+      "text": "verify services running: All ATE services must show 'RUNNING' status and have valid PIDs",
+      "sequence": 5,
+      "source_section": "service status check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify service status: True",
+      "sequence": 6,
+      "source_section": "postgresql health check",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "check connectivity: True",
+      "sequence": 7,
+      "source_section": "postgresql health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor connection pool usage: True",
+      "sequence": 8,
+      "source_section": "postgresql health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "monitor query performance: True",
+      "sequence": 9,
+      "source_section": "postgresql health check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify usage percent max: 90",
+      "sequence": 10,
+      "source_section": "space utilization check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check large log files: True",
+      "sequence": 11,
+      "source_section": "space utilization check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check nohup out files: True",
+      "sequence": 12,
+      "source_section": "space utilization check",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "every_30_min_business_hours",
+      "sequence": 13,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "hourly_off_peak",
+      "sequence": 14,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "after_service_restarts",
+      "sequence": 15,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "following_system_changes",
+      "sequence": 16,
+      "source_section": "scheduled check frequency",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [
+    {
+      "text": "criteria: all services running: True",
+      "sequence": 1,
+      "source_section": "expected output verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "criteria: no services stopped or failed: True",
+      "sequence": 2,
+      "source_section": "expected output verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "criteria: recent startup times: True",
+      "sequence": 3,
+      "source_section": "expected output verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical mounts: PaymentsToSTPLink",
+      "sequence": 4,
+      "source_section": "mount point verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical mounts: PaymentsFromSTPLink",
+      "sequence": 5,
+      "source_section": "mount point verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical mounts: EwalletProd",
+      "sequence": 6,
+      "source_section": "mount point verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "accessibility: True",
+      "sequence": 7,
+      "source_section": "mount point verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "free space percent minimum: 20",
+      "sequence": 8,
+      "source_section": "mount point verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "notification service logs: path: /srv/log/ate/txn-messenger/txn-notification-service",
+      "sequence": 9,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "notification service logs: retention max history days: 3",
+      "sequence": 10,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "notification service logs: critical errors absent: True",
+      "sequence": 11,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "notification service logs: otp delivery success rate min: 99",
+      "sequence": 12,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "vendor service logs: path: /srv/log/ate/txn-vendor/txn-vendor-service",
+      "sequence": 13,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "vendor service logs: log rotation functioning: True",
+      "sequence": 14,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "vendor service logs: transaction errors absent: True",
+      "sequence": 15,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "vendor service logs: response times within expected: True",
+      "sequence": 16,
+      "source_section": "log health monitoring",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "ussd transaction simulation: True",
+      "sequence": 17,
+      "source_section": "transaction flow verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify otp delivery: True",
+      "sequence": 18,
+      "source_section": "transaction flow verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mobile app connectivity check: True",
+      "sequence": 19,
+      "source_section": "transaction flow verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "bill payment test: True",
+      "sequence": 20,
+      "source_section": "transaction flow verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "HEALTHY: description: All ATE services running, mount points active, PostgreSQL healthy, transaction success rate >99%, space utilization <80%",
+      "sequence": 21,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "DEGRADED: description: One non-critical service down, intermittent failures, space utilization 80-90%, slower performance",
+      "sequence": 22,
+      "source_section": "health status criteria",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "UNHEALTHY: description: Critical services stopped, mount points unavailable, transaction failure rate >5%, space utilization >90%",
+      "sequence": 23,
+      "source_section": "health status criteria",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "immediate: Restart failed services (SOP-B-012)",
+      "sequence": 1,
+      "source_section": "escalation procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "within 10 minutes: Remount failed mount points",
+      "sequence": 2,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 20 minutes: Clear space if >90% utilization",
+      "sequence": 3,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    },
+    {
+      "text": "within 30 minutes: Escalate to mobile banking support",
+      "sequence": 4,
+      "source_section": "escalation procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "threshold"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "ussd response time max seconds: 3",
+      "sequence": 1,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "otp delivery success rate min percent: 99",
+      "sequence": 2,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service availability expected: 24/7",
+      "sequence": 3,
+      "source_section": "performance metrics",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "concurrent user handling: True",
+      "sequence": 4,
+      "source_section": "performance metrics",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "service_status_results",
+      "sequence": 5,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "mount_point_verification",
+      "sequence": 6,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "space_utilization_metrics",
+      "sequence": 7,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "transaction_success_rates",
+      "sequence": 8,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "issues_identified_resolved",
+      "sequence": 9,
+      "source_section": "documentation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "24/7 service expected",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Mount points critical for RTGS and Ewallet integration",
+      "sequence": 11,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular space management prevents outages",
+      "sequence": 12,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Log retention set to 3 days max",
+      "sequence": 13,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with digital systems support for escalations",
+      "sequence": 14,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "ate-transaction-engine",
+    "ussd-services",
+    "notification-services",
+    "vendor-services",
+    "postgresql-database"
+  ],
+  "owners": [
+    "Coordinate with digital systems support for escalations"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "service status check",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "ssh to server: SSH to 192.168.0.249",
+      "source_section": "service status check",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "select option: 2 (Check service status)",
+      "source_section": "service status check",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "verify service status: True",
+      "source_section": "postgresql health check",
+      "sequence": 6
+    },
+    {
+      "type": "command",
+      "value": "notification service logs: path: /srv/log/ate/txn-messenger/txn-notification-service",
+      "source_section": "log health monitoring",
+      "sequence": 9
+    },
+    {
+      "type": "command",
+      "value": "notification service logs: retention max history days: 3",
+      "source_section": "log health monitoring",
+      "sequence": 10
+    },
+    {
+      "type": "command",
+      "value": "notification service logs: critical errors absent: True",
+      "source_section": "log health monitoring",
+      "sequence": 11
+    },
+    {
+      "type": "command",
+      "value": "notification service logs: otp delivery success rate min: 99",
+      "source_section": "log health monitoring",
+      "sequence": 12
+    },
+    {
+      "type": "command",
+      "value": "vendor service logs: path: /srv/log/ate/txn-vendor/txn-vendor-service",
+      "source_section": "log health monitoring",
+      "sequence": 13
+    },
+    {
+      "type": "command",
+      "value": "vendor service logs: log rotation functioning: True",
+      "source_section": "log health monitoring",
+      "sequence": 14
+    },
+    {
+      "type": "command",
+      "value": "vendor service logs: transaction errors absent: True",
+      "source_section": "log health monitoring",
+      "sequence": 15
+    },
+    {
+      "type": "command",
+      "value": "vendor service logs: response times within expected: True",
+      "source_section": "log health monitoring",
+      "sequence": 16
+    },
+    {
+      "type": "command",
+      "value": "service availability expected: 24/7",
+      "source_section": "performance metrics",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "DEGRADED: description: One non-critical service down, intermittent failures, space utilization 80-90%, slower performance",
+      "source_section": "health status criteria",
+      "sequence": 22
+    },
+    {
+      "type": "threshold",
+      "value": " 10 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 2
+    },
+    {
+      "type": "threshold",
+      "value": " 20 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 3
+    },
+    {
+      "type": "threshold",
+      "value": " 30 minutes",
+      "source_section": "escalation procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "24/7 service expected",
+      "source_section": "notes",
+      "sequence": 10
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:55.091658",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health\\SOP-E-MOBILE-ATE-HEALTH-005.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\Under_dev_sop-e-verification-health",
+    "source_format": "yaml",
+    "source_hash": "6acb8954352e776f1f42df09816210aba958b186069ab6cc4121eacfc17ab1bd",
+    "wrapper_key": "SOP-E-MOBILE-ATE-HEALTH-005",
+    "ingested_at": "2026-05-15T07:25:55.091658",
+    "normalized_at": "2026-05-15T07:25:55.091658"
+  },
+  "source_sections": [
+    "documentation",
+    "escalation procedure",
+    "expected output verification",
+    "health status criteria",
+    "log health monitoring",
+    "mount point verification",
+    "notes",
+    "performance metrics",
+    "postgresql health check",
+    "scheduled check frequency",
+    "service status check",
+    "space utilization check",
+    "transaction flow verification"
+  ]
+}

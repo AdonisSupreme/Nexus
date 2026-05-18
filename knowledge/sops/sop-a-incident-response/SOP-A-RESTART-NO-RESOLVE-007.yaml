@@ -1,0 +1,45 @@
+id: SOP-A-007
+class: A
+title: Service restart did not resolve issue
+severity: medium
+
+services:
+  - generic
+
+environments:
+  - PROD
+  - DR
+
+aliases:
+  - restart didn’t help
+  - service still down after restart
+  - issue persists after restart
+
+symptoms:
+  - service remains unavailable after restart
+  - same errors observed post-restart
+  - no improvement in system behavior
+
+checks:
+  - confirm restart was successful
+  - review logs before and after restart
+  - verify dependent services are healthy
+  - confirm correct environment was targeted
+
+likely_causes:
+  - underlying dependency failure
+  - configuration issue
+  - data inconsistency
+  - environmental mismatch
+
+recommended_actions:
+  - stop repeated restarts
+  - identify and troubleshoot dependencies
+  - escalate with evidence collected
+
+rollback:
+  - none
+
+notes:
+  - repeated restarts can worsen impact
+  - this SOP exists to slow humans down

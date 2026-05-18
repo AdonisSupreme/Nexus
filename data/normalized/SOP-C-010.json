@@ -1,0 +1,411 @@
+{
+  "id": "SOP-C-010",
+  "class_code": "C",
+  "title": "FlexiDocs Handover",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "flexidocs-application",
+    "mysql-database",
+    "apache-web-server",
+    "agency-banking-api"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "Document management system",
+    "Account opening platform",
+    "KYC updates system",
+    "Overdraft applications"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "Log onto Server 192.168.0.42 via Remote Desktop",
+      "sequence": 1,
+      "source_section": "management procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Go to Xampp Control Panel",
+      "sequence": 2,
+      "source_section": "management procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Start Apache and MySQL services",
+      "sequence": 3,
+      "source_section": "management procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check application running on: 192.168.0.42:9292",
+      "sequence": 4,
+      "source_section": "management procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Account Opening",
+      "sequence": 1,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "KYC Updates",
+      "sequence": 2,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Agency Banking",
+      "sequence": 3,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Overdraft Applications",
+      "sequence": 4,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ICT Change Request",
+      "sequence": 5,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Documents Approvals",
+      "sequence": 6,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "API (Agency Banking, Branch APP and Mobile App)",
+      "sequence": 7,
+      "source_section": "system modules",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "server: 192.168.0.42",
+      "sequence": 8,
+      "source_section": "server configuration",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "port: 9292",
+      "sequence": 9,
+      "source_section": "server configuration",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "database: MySQL (migration to MSSQL in progress)",
+      "sequence": 10,
+      "source_section": "server configuration",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Overdrafts Robots depend on Xampp-MySQL service",
+      "sequence": 11,
+      "source_section": "dependency management",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Service failure affects multiple business processes",
+      "sequence": 12,
+      "source_section": "dependency management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Immediate restart required for service outages",
+      "sequence": 13,
+      "source_section": "dependency management",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Regular service health checks",
+      "sequence": 14,
+      "source_section": "maintenance tasks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Database backup and optimization",
+      "sequence": 15,
+      "source_section": "maintenance tasks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Application patch management",
+      "sequence": 16,
+      "source_section": "maintenance tasks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Performance monitoring",
+      "sequence": 17,
+      "source_section": "maintenance tasks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "User access management",
+      "sequence": 18,
+      "source_section": "maintenance tasks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "System in process of migrating to MSSQL",
+      "sequence": 19,
+      "source_section": "migration notice",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Current MySQL configuration temporary",
+      "sequence": 20,
+      "source_section": "migration notice",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Migration schedule to be communicated separately",
+      "sequence": 21,
+      "source_section": "migration notice",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Backup procedures critical during migration",
+      "sequence": 22,
+      "source_section": "migration notice",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "If portal inaccessible, check Xampp services",
+      "sequence": 23,
+      "source_section": "troubleshooting",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify MySQL service connectivity",
+      "sequence": 24,
+      "source_section": "troubleshooting",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Check application logs for errors",
+      "sequence": 25,
+      "source_section": "troubleshooting",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate network connectivity",
+      "sequence": 26,
+      "source_section": "troubleshooting",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm server resource availability",
+      "sequence": 27,
+      "source_section": "troubleshooting",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical for account opening and KYC processes",
+      "sequence": 28,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Multiple API dependencies",
+      "sequence": 29,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Migration to MSSQL in progress",
+      "sequence": 30,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular monitoring prevents business process interruptions",
+      "sequence": 31,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with database team during migration",
+      "sequence": 32,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "flexidocs-application",
+    "mysql-database",
+    "apache-web-server",
+    "agency-banking-api"
+  ],
+  "owners": [
+    "Coordinate with database team during migration"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.42",
+      "source_section": "server configuration",
+      "sequence": 8
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.42",
+      "source_section": "management procedure",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.42",
+      "source_section": "management procedure",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "Service failure affects multiple business processes",
+      "source_section": "dependency management",
+      "sequence": 12
+    },
+    {
+      "type": "command",
+      "value": "Immediate restart required for service outages",
+      "source_section": "dependency management",
+      "sequence": 13
+    },
+    {
+      "type": "command",
+      "value": "Regular service health checks",
+      "source_section": "maintenance tasks",
+      "sequence": 14
+    },
+    {
+      "type": "command",
+      "value": "Verify MySQL service connectivity",
+      "source_section": "troubleshooting",
+      "sequence": 24
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.005124",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-FLEXIDOCS-HANDOVER-010.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "f2fac76ef68d02b62f8f65be6747b16aea7acdeaaa005a261008b08a14aa2d81",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.005124",
+    "normalized_at": "2026-05-15T07:25:54.005124"
+  },
+  "source_sections": [
+    "dependency management",
+    "maintenance tasks",
+    "management procedure",
+    "migration notice",
+    "notes",
+    "server configuration",
+    "system modules",
+    "troubleshooting"
+  ]
+}

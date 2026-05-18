@@ -1,0 +1,54 @@
+id: SOP-B-017
+class: B
+title: Change User Branch in IDC
+severity: medium
+
+services:
+  - idc-user-management
+  - branch-configuration
+  - profile-management
+
+environments:
+  - PROD
+
+aliases:
+  - transfer user to new branch
+  - update user office code
+  - branch transfer in IDC
+
+pre_checks:
+  - verify transfer authorization
+  - check current branch
+  - verify new branch exists
+
+procedure:
+  - login to IDC
+  - type "Configure Home Branch For User" in search
+  - enter username
+  - under transfer type, select "permanent"
+  - enter new branch code
+  - click submit
+
+error_resolution (admin unit error):
+  - 'check branch admin unit code: "Configure Our Branch Codes"'
+  - 'check user role admin unit code: "Configure User Role"'
+  - change role admin unit code to match branch admin unit code
+  - authorize the change
+  - retry branch change
+
+post_verification:
+  - verify user profile shows new branch
+  - test branch-specific functions
+  - confirm with user and branch manager
+
+rollback:
+  - revert to previous branch
+  - check admin unit codes
+  - escalate to IDC support
+
+notes:
+  - never change admin role code for branches
+  - only change admin unit codes for user roles
+  - "common error: admin unit code mismatch between role and branch"
+  - always request up-to-date transfer authorization
+  - coordinate with branch manager and RISK management for confirmation

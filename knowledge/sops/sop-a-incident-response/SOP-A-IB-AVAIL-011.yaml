@@ -1,0 +1,55 @@
+id: SOP-A-011
+class: A
+title: Internet Banking Slow or Unavailable
+severity: high
+
+services:
+  - nginx-load-balancer
+  - laravel-application
+  - sql-server-database
+  - queue-processing
+
+environments:
+  - PROD
+
+aliases:
+  - online banking down
+  - internet banking slow
+  - banking portal unavailable
+  - customer login issues
+
+symptoms:
+  - customers reporting slow login/transactions
+  - nginx 502 Bad Gateway errors
+  - nginx 403 Access Denied errors
+  - nginx 500 Internal Server errors
+  - queue backlog in application
+
+checks:
+  - check nginx access/error logs on 192.168.0.25
+  - verify XAMPP running on both app servers (0.176 & 0.181)
+  - check SQL Server services on 192.168.0.184
+  - verify queue processing active (php artisan queue:work)
+  - check database transaction log space
+
+likely_causes:
+  - XAMPP services down on app servers
+  - SQL Server transaction log full
+  - nginx configuration issues
+  - queue processing stopped
+  - network connectivity issues
+
+recommended_actions:
+  - restart XAMPP (Apache & MySQL) on both app servers.
+  - restart SQL Server services if transaction log full.
+  - restart nginx services.
+  - restart queue processing on both servers.
+  - escalate to Networks and Cyber Security if persists.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - 'check both app servers: 192.168.0.176 and 192.168.0.181'
+  - 'laravel logs at: C:\Users\ibadmin\Documents\ib\internet-banking-laravel-backend\storage\logs'
+  - "common error: 'transaction log for database 'internet-banking' is full'"

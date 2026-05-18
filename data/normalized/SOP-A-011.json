@@ -1,0 +1,288 @@
+{
+  "id": "SOP-A-011",
+  "class_code": "A",
+  "title": "Internet Banking Slow or Unavailable",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "nginx-load-balancer",
+    "laravel-application",
+    "sql-server-database",
+    "queue-processing"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "online banking down",
+    "internet banking slow",
+    "banking portal unavailable",
+    "customer login issues"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "customers reporting slow login/transactions",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "nginx 502 Bad Gateway errors",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "nginx 403 Access Denied errors",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "nginx 500 Internal Server errors",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "queue backlog in application",
+      "sequence": 5,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "check nginx access/error logs on 192.168.0.25",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "verify XAMPP running on both app servers (0.176 & 0.181)",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check SQL Server services on 192.168.0.184",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "verify queue processing active (php artisan queue:work)",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check database transaction log space",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "restart XAMPP (Apache & MySQL) on both app servers.",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart SQL Server services if transaction log full.",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart nginx services.",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "restart queue processing on both servers.",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "escalate to Networks and Cyber Security if persists.",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "XAMPP services down on app servers",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "SQL Server transaction log full",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "nginx configuration issues",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "queue processing stopped",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "network connectivity issues",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check both app servers: 192.168.0.176 and 192.168.0.181",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "laravel logs at: C:\\Users\\ibadmin\\Documents\\ib\\internet-banking-laravel-backend\\storage\\logs",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common error: 'transaction log for database 'internet-banking' is full'",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "nginx-load-balancer",
+    "laravel-application",
+    "sql-server-database",
+    "queue-processing"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.25",
+      "source_section": "checks",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.184",
+      "source_section": "checks",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.176",
+      "source_section": "notes",
+      "sequence": 6
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.181",
+      "source_section": "notes",
+      "sequence": 6
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:52.982898",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-IB-AVAIL-011.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "d8deeafb13b99485bf0be1e67587090ddd80a4e7fd11e1db04fa0220ee2e7e2d",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:52.982898",
+    "normalized_at": "2026-05-15T07:25:52.982898"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "SOP-B-004",
+  "class": "B",
+  "title": "Restart ARX Service on Servers 110 and 111",
+  "severity": "high",
+  "services": [
+    "arx-service",
+    "jboss-eap-7.4",
+    "authentication-service"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "restart ARX authentication",
+    "stop/start ARX on 110/111",
+    "restart user authentication service"
+  ],
+  "procedure": {
+    "Restart ARX Service": [
+      "verify no user password resets in progress",
+      "check if any users are currently logging in",
+      "confirm with help desk if during business hours",
+      "SSH to server 192.168.1.110 or 192.168.1.111",
+      "Navigate to directory: cd /rpool1/arx/jboss-eap-7.4/bin/",
+      "Stop the service: ./stopARX.sh",
+      "Start the service: ./startARX.sh",
+      "Monitor startup logs",
+      "Repeat on second server",
+      "verify ARX login is accessible",
+      "test user authentication",
+      "check password reset functionality"
+    ]
+  },
+  "rollback": [
+    "if service fails to start, check configuration files",
+    "restore from backup",
+    "escalate to IDC support team"
+  ],
+  "notes": [
+    "ARX handles user authentication for IDC",
+    "critical for user login during business hours",
+    "service restart affects all user authentication",
+    "always restart on both servers for redundancy"
+  ]
+}

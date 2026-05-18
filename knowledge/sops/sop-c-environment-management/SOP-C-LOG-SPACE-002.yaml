@@ -1,0 +1,67 @@
+id: SOP-C-002
+class: C
+title: Server Log and Space Management
+severity: medium
+
+services:
+  - all-servers
+  - log-management
+  - disk-space-management
+  - backup-systems
+
+environments:
+  - PROD
+  - DR
+  - TEST
+
+aliases:
+  - Log rotation management
+  - Disk space cleanup
+  - Server maintenance
+  - Log file management
+
+pre_checks:
+  - Verify backup systems are operational
+  - Confirm logs on tape are up-to-date before deletion
+  - Ensure server space metrics are available for monitoring
+
+procedure:
+  - IDC Servers:
+      - Check server space: df -h
+      - Locate logs in /rpool1
+      - Compress old logs and write to tape drive before deletion
+      - Monitor log growth patterns
+      - Schedule regular log rotation
+  - Mobile Banking Servers (0.249, 0.62):
+      - Check space: du -sh * and df -h
+      - Stop PostgreSQL service
+      - Delete nohup.out files in /srv and /root
+      - Set log retention periods:
+          - Notification service: /srv/afc/txn-messenger/txn-notification-service/etc/logback.xml (maxHistory 3 days)
+          - Vendor service: /srv/afc/txn-vendor/txn-vendor-service/etc/logback.xml (maxHistory 3 days)
+      - Restart services
+      - Verify automatic log maintenance
+  - Internet Banking Servers:
+      - Check audit log paths
+      - Move logs to tape drive (DBA responsibility)
+      - Ensure logs are written to tape before clearing
+      - Verify space restoration
+
+post_verification:
+  - Verify server space is below 90%
+  - Confirm log rotation is working automatically
+  - Check backup systems have captured logs
+  - Validate application functionality post-cleanup
+
+risk_mitigation:
+  - Never delete logs without backup verification
+  - Maintain minimum 3 days of logs for troubleshooting
+  - Coordinate with DBA for tape backup verification
+  - Monitor space trends for proactive management
+
+notes:
+  - Log compression to tape drive must precede deletion
+  - "Mobile banking servers: check both 0.249 (ATE) and 0.62 (Billers)"
+  - Internet banking logs require DBA coordination for tape backup
+  - Regular monitoring prevents emergency space crises
+  - Always follow organizational data retention policies

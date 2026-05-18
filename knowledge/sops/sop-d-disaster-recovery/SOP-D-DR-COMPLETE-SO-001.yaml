@@ -1,0 +1,92 @@
+id: SOP-D-001
+class: D
+title: Complete DR Environment Switchover
+severity: critical
+
+services:
+  - all-application-servers
+  - oracle-database
+  - authentication-services
+  - core-banking-system
+
+environments:
+  - PROD → DR
+
+aliases:
+  - Full DR activation
+  - Disaster recovery failover
+  - Complete environment switch
+  - Business continuity activation
+
+checks:
+  - "Confirm PROD services backup and synchronization"
+  - "Validate DR servers are powered on and accessible"
+  - "Check database replication status between PROD and DR"
+  - "Verify network connectivity between DR components"
+  - "Ensure pre-switchover configuration backups exist"
+
+recommended_actions:
+  - "LIVE DR environment mapping: Application servers: 192.168.254.93 (ACOB, CBXR-BO, CBXR-FO, core, MICRO), 192.168.254.94 (ALM, arx, Collect, lending, LENDMICRO, RLO, TRY), 192.168.254.95 (CAE, DCOF)"
+  - "LIVE DR environment mapping: Database server: hostname: 192.168.240.2, port: 1521, sid: idcdblive"
+  - "LIVE DR environment mapping: DR access URL: https://cbxtre-applive01-dr.afcholdings.co.zw:8085/ARXSSO/"
+  - "UAT DR environment mapping: Application servers: 192.168.254.193, 192.168.254.194, 192.168.254.195"
+  - "UAT DR environment mapping: Database server: hostname: 192.168.240.102, port: 1521, sid: idcdbuat"
+  - "UAT DR environment mapping: DR access URL: https://cbxtre-uatdr.example.com:8085/ARXSSO/"
+  - "Phase 1: Update ARX URLs and branch environment for DR in ARX Database"
+  - "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE ID IN(22,42,62,142,144,146,225,227,229,231,233,307,267); COMMIT;"
+  - "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'idcapplive01-dr') WHERE ID IN(82,102,122,162,287); COMMIT;"
+  - "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'interfacelive01-dr') WHERE ID = 182; COMMIT;"
+  - "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = '192.168.240.2' WHERE ID IN(108,280); COMMIT;"
+  - "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = 'idcdblive' WHERE ID IN(1004,1009,1022); COMMIT;"
+  - "Phase 2: Update DCOF system properties for DR in DCOF Database"
+  - "Phase 2 SQL: UPDATE dcprop SET dcprop_console1 = '8398', dcprop_console2 = '8398'; COMMIT;"
+  - "Phase 2 SQL: UPDATE dcprop SET dcprop_ip1 = '192.168.254.95', dcprop_ip2 = '192.168.254.95' WHERE dcprop_ip1 = '192.168.1.112' AND dcprop_ip2 = '192.168.1.113'; COMMIT;"
+  - "Phase 3: Update IDC endpoints, EOD, external programs, and OpenAPI URLs in IDC Database"
+  - "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE eftep_endpt_url LIKE '%intellectinterfacelv01%'; COMMIT;"
+  - "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, '192.168.1.110', '192.168.254.94') WHERE eftep_endpt_url LIKE '%192.168.1.110%'; COMMIT;"
+  - "Phase 3 SQL: UPDATE eodsysconfig SET eodsyscnf_eod_trig_end_url = REPLACE(eodsyscnf_eod_trig_end_url, '192.168.1.110', '192.168.254.94') WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.1.110%'; COMMIT;"
+  - "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE extsyspgms_url LIKE '%afcconnect-lbm%'; COMMIT;"
+  - "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE extsyspgms_url LIKE '%intellectinterfacelv01%'; COMMIT;"
+  - "Phase 3 SQL: UPDATE procctlopenapi SET openapi_url = REPLACE(openapi_url, '192.168.1.108', '192.168.254.93') WHERE openapi_url LIKE '%192.168.1.108%'; COMMIT;"
+  - "Phase 4: Start DR services in dependency order"
+  - "Phase 4: Start database services on target server 192.168.240.2"
+  - "Phase 4: Start application servers in sequence: 192.168.254.94 (Authentication & core first), then 192.168.254.93 (IDC core banking), then 192.168.254.95 (CAE & DCOF)"
+  - "Phase 4 verification: Check service startup logs"
+  - "Phase 4 verification: Test connectivity between components"
+  - "Phase 5: End-to-end testing of DR environment"
+  - "Phase 5: Test ARX login functionality"
+  - "Phase 5: Validate IDC core banking operations"
+  - "Phase 5: Test Treasury operations"
+  - "Phase 5: Verify lending and collection services"
+  - "Phase 5: Check DCOF and CAE services"
+  - "Phase 5: Validate interfaces: ZIMRA, RTGS, other integrations"
+  - "Phase 5: Test end-to-end transactions"
+  - "Phase 6: Update DNS and communicate DR access"
+  - "Phase 6: Update DNS records to point to DR"
+  - "Phase 6: Communicate new access URLs to users"
+  - "Phase 6: Update branch configurations if required"
+  - "Phase 6: Monitor connectivity issues"
+  - "Documentation: Record all executed SQL commands and results"
+  - "Documentation: Document service startup times and issues"
+  - "Documentation: Record validation test results"
+  - "Documentation: Update DR runbook with lessons learned"
+  - "Documentation: Maintain communication log with stakeholders"
+
+rollback:
+  - "Restore database from backup"
+  - "Revert configuration changes made during switchover"
+  - "Restart PROD services"
+  - "Update DNS back to PROD endpoints"
+  - "Validate PROD functionality after rollback"
+  - "Document rollback process and results"
+  - "Conduct post-rollback review"
+
+notes:
+  - "Complete environment switchover, not incremental"
+  - "Requires multi-team coordination across departments"
+  - "Database updates are critical and must be verified"
+  - "Thorough validation required before declaring DR operational"
+  - "Regular DR drills recommended to maintain readiness"
+  - "Critical timing requirements: Database updates must be atomic"
+  - "Service activation must follow dependency order"
+  - "Validation must be comprehensive before user access"

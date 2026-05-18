@@ -1,0 +1,1000 @@
+MB_and _other _services/integrations_startup
+
+ashumba@ussd-ate-test:/srv$ ./main.sh
+
+
+      ===================================!!!!!-WARNING-!!!!!!==================================================
+      ##                                                                                                     ##
+      ##                                 Dear DIGITAL SUPPORT TRAVELLER                                      ##
+      ##           You are venturing into sensitive lands, make sure you know what you are doing!            ##
+      ##                                                                                                     ##
+      ##                                FOREWARNED IS FOREARMED                                              ##
+      ##                                                                                                     ##
+      ===================================!!!!!-WARNING-!!!!!!==================================================
+          
+Select your option
+
+      1. Tail logs
+      2. See service status
+      3. To Start services
+      4. To Restart services
+      5. To Stop services
+
+2
+--------------------------------------------------------------------------
+         Services status
+         
+[Running] : txn-mobile-ussd service ... [1499978][]
+
+[Stopped] : txn-ussd-adapter service ...
+
+[Running] : txn-transaction-service service ... [602340][]
+
+[Running] : txn-integration-idc service ... [1473085][]
+
+[Running] : txn-integration-postilion service ... [275683][]
+
+[Running] : txn-profile-service service ... [89457][]
+
+[Running] : txn-oauth-server service ... [2555519][]
+
+[Running] : txn-notification-service service ... [1495142][]
+
+[Stopped] : txn-portal-service service ...
+
+[Running] : txn-mobile-smartphone service ... [177299][]
+
+[Running] : txn-vendor-service service ... [3182156][]
+
+[Running] : txn-ewallet-integration service ... [293977][]
+
+[Running] : txn-agency-banking service ... [3019640][]
+
+[Stopped] : txn-equals service ...
+
+[Running] : txn-internet-banking service ... [2535283][]
+
+[Running] : txn-zimswitch-integration service ... [1774715][]
+
+[Stopped] : txn-batch-service service ...
+
+[Stopped] : txn-forwarder service ...
+
+[Stopped] : txn-digital-express service ...
+
+[Stopped] : txn-mobile-whatsapp service ...
+
+[Running] : api-gateway service ... [1142860][]
+
+[Running] : txn-zimswitch-integration service ... [1774715][]
+
+[Stopped] : txn-integration-visa service ...
+
+[Stopped] : txn-cottco-validation service ...
+
+[Stopped] : txn-integration-craft-silicon service ...
+
+ashumba@ussd-ate-test:/srv$ cat main.sh
+#!/bin/bash
+
+JAR_HOME=/srv/afc
+LOG_HOME=/srv/log/ate
+
+AUTH_SERVICE_NAME=txn-oauth-server
+AUTH_JAR=$JAR_HOME/txn-gateway/txn-oauth-server/lib/txn-oauth-server-0.0.1-SNAPSHOT.jar
+AUTH_JAR_PROP=$JAR_HOME/txn-gateway/txn-oauth-server/etc/application.yml
+AUTH_LOG=$LOG_HOME/txn-gateway/txn-oauth-server/txn-oauth-server-human.log
+
+PROFILE_SERVICE_NAME=txn-profile-service
+PROFILE_JAR=$JAR_HOME/txn-gateway/txn-profile-service/lib/txn-profile-service-0.0.1-SNAPSHOT.jar
+PROFILE_JAR_PROP=$JAR_HOME/txn-gateway/txn-profile-service/etc/application.yml
+PROFILE_LOG=$LOG_HOME/txn-gateway/txn-profile-service/txn-profile-service-human.log
+
+TXN_SERVICE_NAME=txn-transaction-service
+TXN_JAR=$JAR_HOME/txn-gateway/txn-transaction-service/lib/txn-transaction-service-0.0.1-SNAPSHOT.jar
+TXN_JAR_PROP=$JAR_HOME/txn-gateway/txn-transaction-service/etc/application.yaml
+TXN_LOG=$LOG_HOME/txn-gateway/txn-transaction-service/txn-transaction-service-human.log
+
+POSTILION_SERVICE_NAME=txn-integration-postilion
+POSTILION_JAR=$JAR_HOME/txn-integration/txn-integration-postilion/lib/txn-integration-postilion-0.0.1-SNAPSHOT.jar
+POSTILION_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-postilion/etc/application.yml
+POSTILION_LOG=$LOG_HOME/txn-integration/txn-integration-postilion/txn-integration-postilion-human.log
+
+T24_SERVICE_NAME=txn-t24-integration
+T24_JAR=$JAR_HOME/txn-integration/txn-t24-integration/lib/txn-t24-integration-0.0.1-SNAPSHOT.jar
+T24_JAR_PROP=$JAR_HOME/txn-integration/txn-t24-integration/etc/application.yml
+T24_LOG=$LOG_HOME/txn-integration/txn-t24-integration/txn-t24-integration-human.log
+
+E_WALLET_NAME=txn-ewallet-integration
+E_WALLET_JAR=$JAR_HOME/txn-integration/txn-ewallet-integration/lib/txn-ewallet-integration-0.0.1-SNAPSHOT.jar
+E_WALLET_JAR_PROP=$JAR_HOME/txn-integration/txn-ewallet-integration/etc/application.yml
+E_WALLET_LOG=$LOG_HOME/txn-integration/txn-ewallet-integration/txn-ewallet-integration-human.log
+
+AGENCY_NAME=txn-agency-banking
+AGENCY_JAR=$JAR_HOME/txn-banking/txn-agency-banking/lib/txn-agency-banking-0.0.1-SNAPSHOT.jar
+AGENCY_JAR_PROP=$JAR_HOME/txn-banking/txn-agency-banking/etc/application.yaml
+AGENCY_LOG=$LOG_HOME/txn-banking/txn-agency-banking/txn-agency-banking-human.log
+
+USSD_SERVICE_NAME=txn-mobile-ussd
+USSD_JAR=$JAR_HOME/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar
+USSD_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-ussd/etc/application.yml
+USSD_LOG=$LOG_HOME/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.log
+
+USSD_ADAPTER_SERVICE_NAME=txn-ussd-adapter
+USSD_ADAPTER_JAR=$JAR_HOME/txn-mobile/txn-ussd-adapter/lib/txn-ussd-adapter-0.0.1-SNAPSHOT.jar
+USSD_ADAPTER_JAR_PROP=$JAR_HOME/txn-mobile/txn-ussd-adapter/etc/application.yml
+USSD_ADAPTER_LOG=$LOG_HOME/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log
+
+NOTIFICATION_SERVICE_NAME=txn-notification-service
+NOTIFICATION_JAR=$JAR_HOME/txn-messenger/txn-notification-service/lib/txn-notification-service-0.0.1-SNAPSHOT.jar
+NOTIFICATION_JAR_PROP=$JAR_HOME/txn-messenger/txn-notification-service/etc/application.yaml
+NOTIFICATION_LOG=$LOG_HOME/txn-messenger/txn-notification-service/txn-notification-service-human.log
+
+PORTAL_SERVICE_NAME=txn-portal-service
+PORTAL_JAR=$JAR_HOME/txn-administration/txn-portal-service/lib/txn-portal-service-0.0.1-SNAPSHOT.jar
+PORTAL_LOG=$LOG_HOME/txn-administration/txn-portal-service/txn-portal-service-human.log
+PORTAL_JAR_PROP=$JAR_HOME/txn-administration/txn-portal-service/etc/application.yaml
+
+SMARTPHONE_SERVICE_NAME=txn-mobile-smartphone
+SMARTPHONE_JAR=$JAR_HOME/txn-mobile/txn-mobile-smartphone/lib/txn-mobile-smartphone-0.0.1-SNAPSHOT.jar
+SMARTPHONE_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-smartphone/etc/application.yaml
+SMARTPHONE_LOG=$LOG_HOME/txn-mobile/txn-mobile-smartphone/txn-mobile-smartphone-human.log
+
+VENDOR_SERVICE_NAME=txn-vendor-service
+VENDOR_JAR=$JAR_HOME/txn-vendor/txn-vendor-service/lib/txn-vendor-service-0.0.1-SNAPSHOT.jar
+VENDOR_JAR_PROP=$JAR_HOME/txn-vendor/txn-vendor-service/etc/application.yaml
+VENDOR_LOG=$LOG_HOME/txn-vendor/txn-vendor-service/txn-vendor-service-human.log
+
+EQUALS_SERVICE_NAME=txn-equals
+EQUALS_JAR=$JAR_HOME/txn-integration/txn-equals-integration/lib/txn-equals-0.0.1-SNAPSHOT.jar
+EQUALS_LOG=$LOG_HOME/txn-integration/txn-equals/txn-equals-human.log
+EQUALS_JAR_PROP=$JAR_HOME/txn-integration/txn-equals-integration/etc/application.yml
+
+INTERNET_NAME=txn-internet-banking
+INTERNET_JAR=$JAR_HOME/txn-banking/txn-internet-banking/lib/txn-internet-banking-0.0.1-SNAPSHOT.jar
+INTERNET_JAR_PROP=$JAR_HOME/txn-banking/txn-internet-banking/etc/application.yaml
+INTERNET_LOG=$LOG_HOME/txn-banking/txn-internet-banking/txn-internet-banking-human.log
+
+ZIMSWITCH_NAME=txn-zimswitch-integration
+ZIMSWITCH_JAR=$JAR_HOME/txn-integration/txn-zimswitch-integration/lib/txn-zimswitch-integration-0.0.1-SNAPSHOT.jar
+ZIMSWITCH_JAR_PROP=$JAR_HOME/txn-integration/txn-zimswitch-integration/etc/application.yml
+ZIMSWITCH_LOG=$LOG_HOME/txn-integration/txn-zimswitch-integration/txn-zimswitch-integration-human.log
+
+BATCH_SERVICE_NAME=txn-batch-service
+BATCH_SERVICE_JAR=$JAR_HOME/txn-gateway/txn-batch-service/lib/txn-batch-service-0.0.1-SNAPSHOT.jar
+BATCH_SERVICE_JAR_PROP=$JAR_HOME/txn-gateway/txn-batch-service/etc/application.yml
+BATCH_SERVICE_LOG=$LOG_HOME/txn-gateway/txn-batch-service/txn-batch-service-human.log
+
+FORWARDER_SERVICE_NAME=txn-forwarder
+FORWARDER_SERVICE_JAR=$JAR_HOME/txn-gateway/txn-forwarder-service/lib/txn-forwarder-0.0.1-SNAPSHOT.jar
+FORWARDER_SERVICE_JAR_PROP=$JAR_HOME/txn-gateway/txn-forwarder-service/etc/application.yml
+FORWARDER_SERVICE_LOG=$LOG_HOME/txn-gateway/txn-forwarder/txn-forwarder-human.log
+
+EXPRESS_SERVICE_NAME=txn-digital-express
+EXPRESS_SERVICE_JAR=$JAR_HOME/txn-integration/txn-digital-express/lib/txn-digital-express-0.0.1-SNAPSHOT.jar
+EXPRESS_SERVICE_JAR_PROP=$JAR_HOME/txn-integration/txn-digital-express/etc/application.yml
+EXPRESS_SERVICE_LOG=$LOG_HOME/txn-integration/txn-digital-express/txn-digital-express-human.log
+
+API_CLOUD_GATEWAY_NAME=api-gateway
+API_CLOUD_GATEWAY_JAR=$JAR_HOME/txn-gateway/txn-api-gateway/lib/txn-api-gateway-0.0.1-SNAPSHOT.jar
+API_CLOUD_GATEWAY_PROP=$JAR_HOME/txn-gateway/txn-api-gateway/etc/application.yml
+API_CLOUD_GATEWAY_LOG=$LOG_HOME/txn-gateway/txn-api-gateway/txn-api-gateway-human.log
+
+IDC_INTEGRATION_NAME=txn-integration-idc
+IDC_INTEGRATION_JAR=$JAR_HOME/txn-integration/txn-integration-idc/lib/txn-integration-idc-0.0.1-SNAPSHOT.jar
+IDC_INTEGRATION_PROP=$JAR_HOME/txn-integration/txn-integration-idc/etc/application.yml
+IDC_INTEGRATION_LOG=$LOG_HOME/txn-integration/txn-integration-idc/txn-integration-idc-human.log
+
+WHATSAPP_SERVICE_NAME=txn-mobile-whatsapp
+WHATSAPP_JAR=$JAR_HOME/txn-mobile/txn-mobile-whatsapp/lib/txn-mobile-whatsapp-0.0.1-SNAPSHOT.jar
+WHATSAPP_JAR_PROP=$JAR_HOME/txn-mobile/txn-mobile-whatsapp/etc/application.yml
+WHATSAPP_LOG=$LOG_HOME/txn-mobile/txn-mobile-whatsapp/txn-mobile-whatsapp-human.log
+
+ZIPIT_SMART=txn-zimswitch-integration
+ZIPIT_SMART_JAR=$JAR_HOME/txn-integration/txn-zimswitch-integration/lib/txn-zimswitch-integration-0.0.1-SNAPSHOT.jar
+ZIPIT_SMART_JAR_PROP=$JAR_HOME/txn-integration/txn-zimswitch-integration/etc/application.yml
+ZIPIT_SMART_LOG=$LOG_HOME/txn-integration/txn-zimswitch-integration/txn-zimswitch-integration-human.log
+
+VISA_SERVICE=txn-integration-visa
+VISA_SERVICE_JAR=$JAR_HOME/txn-integration/txn-integration-visa/lib/txn-integration-visa-0.0.1-SNAPSHOT.jar
+VISA_SERVICE_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-visa/etc/application.yaml
+VISA_SERVICE_LOG=$LOG_HOME/txn-integration/txn-integration-visa/txn-integration-visa-human.log
+
+COTTCO_SERVICE_NAME=txn-cottco-validation
+COTTCO_JAR=$JAR_HOME/cottco-grower/lib/txn-cottco-growers-0.0.1-SNAPSHOT.jar
+COTTCO_JAR_PROP=$JAR_HOME/cottco-grower/etc/application.yml
+COTTCO_LOG=$LOG_HOME/txn-cottco/txn-cottco-growers/txn-cottco-growers-human.log
+
+CRAFT_SILICON_SERVICE_NAME=txn-integration-craft-silicon
+CRAFT_SILICON_JAR=$JAR_HOME/txn-integration/txn-integration-craft-silicon/lib/txn-integration-craft-silicon-0.0.1-SNAPSHOT.jar
+CRAFT_SILICON_JAR_PROP=$JAR_HOME/txn-integration/txn-integration-craft-silicon/etc/application.yml
+CRAFT_SILICON_LOG=$LOG_HOME/txn-integration/txn-integration-craft-silicon/txn-integration-craft-silicon-human.log
+
+
+kill_running_process() {
+  arg1=$1
+  arg2=$2
+  arg3=$3
+  # shellcheck disable=SC2046
+  if [ "$arg1" -a "$arg2" -a "$arg3" ]; then
+    kill -9 "$arg3"
+  elif [[ ! -z "$arg1" ]]; then
+    kill -9 "$arg1"
+  else
+    echo "Nothing to kill"
+  fi
+
+}
+
+check_process_running() {
+  arg1=$1
+  arg2=$2
+  arg3=$3
+  # shellcheck disable=SC2107
+  # shellcheck disable=SC2202
+  # shellcheck disable=SC1026
+  if [ "$arg1" -a "$arg2" -a "$arg3" ]; then
+    returnVal=0
+  elif [[ ! -z "$arg1" ]]; then
+    returnVal=0
+  else
+    returnVal=1
+  fi
+  return $returnVal
+}
+
+start_service() {
+  SERVICE_NAME=$1
+  PATH_TO_JAR=$2
+  PATH_TO_PROP=$3
+
+  PID=$(pgrep -f -d ' ' $SERVICE_NAME-0.0.1-SNAPSHOT.jar)
+  #  PID=$(pgrep -f $SERVICE_NAME)
+
+  check_process_running $PID
+  running_status=$?
+
+  if [ "$running_status" == 0 ]; then
+    echo "$SERVICE_NAME is already running ..."
+  else
+    echo "Starting $SERVICE_NAME ..."
+    if [ ! -f "$PATH_TO_JAR" ]; then
+      echo "$SERVICE_NAME is not a valid jar..."
+    else
+      nohup java -jar "$PATH_TO_JAR" --spring.config.location="$PATH_TO_PROP" &
+      echo "$SERVICE_NAME started ..."
+    fi
+  fi
+}
+stop_service() {
+  SERVICE_NAME=$1
+
+  PID=$(pgrep -f -d ' ' $SERVICE_NAME-0.0.1-SNAPSHOT.jar)
+  #  PID=$(pgrep -f $SERVICE_NAME)
+
+  check_process_running $PID
+  running_status=$?
+
+  if [ "$running_status" == 0 ]; then
+    echo "$SERVICE_NAME is stopping ..."
+    kill_running_process $PID
+    killing_result=$?
+    if [ "$killing_result" == 0 ]; then
+      echo "$SERVICE_NAME stopped ..."
+    else
+      echo "$SERVICE_NAME refused to stop ..."
+    fi
+  else
+    echo "$SERVICE_NAME is not running ..."
+  fi
+  return
+}
+
+restart_service() {
+  SERVICE_NAME=$1
+  PATH_TO_JAR=$2
+  PATH_TO_PROP=$3
+
+  PID=$(pgrep -f -d ' ' $SERVICE_NAME-0.0.1-SNAPSHOT.jar)
+  #  PID=$(pgrep -f $SERVICE_NAME)
+
+  check_process_running $PID
+  running_status=$?
+
+  if [ "$running_status" == 0 ]; then
+    echo "$SERVICE_NAME stopping ..."
+    kill_running_process $PID
+    killing_result=$?
+    if [ "$killing_result" == 0 ]; then
+
+      echo "$SERVICE_NAME stopped ..."
+      echo "$SERVICE_NAME starting ..."
+      nohup java -jar "$PATH_TO_JAR" --spring.config.location="$PATH_TO_PROP" &
+      echo "$SERVICE_NAME started ..."
+    else
+      echo "$SERVICE_NAME refused to stop ..."
+    fi
+  else
+    echo "$SERVICE_NAME is not running ..."
+  fi
+}
+
+tail_service() {
+  echo "Select service to tail
+
+      1. $USSD_SERVICE_NAME  service
+      2. $USSD_ADAPTER_SERVICE_NAME service
+      3. $TXN_SERVICE_NAME service
+      4. $IDC_INTEGRATION_NAME service
+      5. $POSTILION_SERVICE_NAME service
+      6. $PROFILE_SERVICE_NAME service
+      7. $AUTH_SERVICE_NAME service
+      8. $NOTIFICATION_SERVICE_NAME service
+      9. $PORTAL_SERVICE_NAME service
+     10. $SMARTPHONE_SERVICE_NAME service
+     11. $VENDOR_SERVICE_NAME service
+     12. $E_WALLET_NAME service
+     13. $AGENCY_NAME service
+     14. $EQUALS_SERVICE_NAME service
+     15. $INTERNET_NAME service
+     16. $ZIMSWITCH_NAME service
+     17. $BATCH_SERVICE_NAME service
+     18. $FORWARDER_SERVICE_NAME service
+     19. $EXPRESS_SERVICE_NAME service
+     20. $WHATSAPP_SERVICE_NAME service
+     21. $API_CLOUD_GATEWAY_NAME service
+     22. $ZIPIT_SMART service
+     23. $VISA_SERVICE service
+     24. $COTTCO_SERVICE_NAME service
+     25. $CRAFT_SILICON_SERVICE_NAME service"
+
+
+  read tail_input
+
+  case $tail_input in
+  "1")
+    tail -fn10000 $USSD_LOG
+    ;;
+  "2")
+    tail -fn10000 $USSD_ADAPTER_LOG
+    ;;
+  "3")
+    tail -fn10000 $TXN_LOG
+    ;;
+  "4")
+    tail -fn10000 $IDC_INTEGRATION_LOG
+    ;;
+  "5")
+    tail -fn10000 $POSTILION_LOG
+    ;;
+  "6")
+    tail -fn10000 $PROFILE_LOG
+    ;;
+  "7")
+    tail -fn10000 $AUTH_LOG
+    ;;
+  "8")
+    tail -fn10000 $NOTIFICATION_LOG
+    ;;
+  "9")
+    tail -fn10000 $PORTAL_LOG
+    ;;
+  "10")
+    tail -fn10000 $SMARTPHONE_LOG
+    ;;
+  "11")
+    tail -fn10000 $VENDOR_LOG
+    ;;
+  "12")
+    tail -fn10000 $E_WALLET_LOG
+    ;;
+  "13")
+    tail -fn10000 $AGENCY_LOG
+    ;;
+  "14")
+    tail -fn10000 $EQUALS_LOG
+    ;;
+  "15")
+    tail -fn10000 $INTERNET_LOG
+    ;;
+  "16")
+    tail -fn10000 $ZIMSWITCH_LOG
+    ;;
+  "17")
+    tail -fn10000 $BATCH_SERVICE_LOG
+    ;;
+  "18")
+    tail -fn10000 $FORWARDER_SERVICE_LOG
+    ;;
+  "19")
+    tail -fn10000 $EXPRESS_SERVICE_LOG
+    ;;
+  "20")
+    tail -fn10000 $WHATSAPP_LOG
+    ;;
+  "21")
+    tail -fn10000 $API_CLOUD_GATEWAY_LOG
+    ;;
+  "22")
+    tail -fn10000 $ZIPIT_SMART_LOG
+    ;;
+  "23")
+    tail -fn10000 $VISA_SERVICE_LOG
+    ;;
+  "24")
+    tail -fn10000 $COTTCO_LOG
+    ;;
+  "25")
+    tail -fn10000 $CRAFT_SILICON_LOG
+    ;;
+  esac  
+
+}
+
+check_service_status() {
+
+  SERVICE_NAME=$1
+
+  PID=$(pgrep -f -d ' ' $SERVICE_NAME-0.0.1-SNAPSHOT.jar)
+  #  PID=$(pgrep -f $SERVICE_NAME)
+  check_process_running $PID
+  running_status=$?
+
+  if [ $running_status == 0 ]; then
+    MEM=$(pmap $PID | grep total)
+    echo "[Running] : $SERVICE_NAME service ... [$PID][$MEM]"
+  else
+    echo "[Stopped] : $SERVICE_NAME service ..." $PID
+  fi
+  echo ""
+}
+
+see_service_status() {
+  echo "--------------------------------------------------------------------------
+         Services status
+         "
+  check_service_status $USSD_SERVICE_NAME
+  check_service_status $USSD_ADAPTER_SERVICE_NAME
+  check_service_status $TXN_SERVICE_NAME
+  check_service_status $IDC_INTEGRATION_NAME
+  check_service_status $POSTILION_SERVICE_NAME
+  check_service_status $PROFILE_SERVICE_NAME
+  check_service_status $AUTH_SERVICE_NAME
+  check_service_status $NOTIFICATION_SERVICE_NAME
+  check_service_status $PORTAL_SERVICE_NAME
+  check_service_status $SMARTPHONE_SERVICE_NAME
+  check_service_status $VENDOR_SERVICE_NAME
+  check_service_status $E_WALLET_NAME
+  check_service_status $AGENCY_NAME
+  check_service_status $EQUALS_SERVICE_NAME
+  check_service_status $INTERNET_NAME
+  check_service_status $ZIMSWITCH_NAME
+  check_service_status $BATCH_SERVICE_NAME
+  check_service_status $FORWARDER_SERVICE_NAME
+  check_service_status $EXPRESS_SERVICE_NAME
+  check_service_status $WHATSAPP_SERVICE_NAME
+  check_service_status $API_CLOUD_GATEWAY_NAME
+  check_service_status $ZIPIT_SMART
+  check_service_status $VISA_SERVICE
+  check_service_status $COTTCO_SERVICE_NAME
+  check_service_status $CRAFT_SILICON_SERVICE_NAME
+}
+
+start_services() {
+
+  echo "Select service to start
+
+        *. All  services
+        1. $USSD_SERVICE_NAME  service
+        2. $USSD_ADAPTER_SERVICE_NAME service
+        3. $TXN_SERVICE_NAME service
+        4. $IDC_INTEGRATION_NAME service
+        5. $POSTILION_SERVICE_NAME service
+        6. $PROFILE_SERVICE_NAME service
+        7. $AUTH_SERVICE_NAME service
+        8. $NOTIFICATION_SERVICE_NAME service
+        9. $PORTAL_SERVICE_NAME service
+       10. $SMARTPHONE_SERVICE_NAME service
+       11. $VENDOR_SERVICE_NAME service
+       12. $E_WALLET_NAME service
+       13. $AGENCY_NAME service
+       14. $EQUALS_SERVICE_NAME service
+       15. $INTERNET_NAME service
+       16. $ZIMSWITCH_NAME service
+       17. $BATCH_SERVICE_NAME service
+       18. $FORWARDER_SERVICE_NAME service
+       19. $EXPRESS_SERVICE_NAME service
+       20. $WHATSAPP_SERVICE_NAME service
+       21. $API_CLOUD_GATEWAY_NAME service
+       22. $ZIPIT_SMART service
+       23. $VISA_SERVICE service
+       24. $COTTCO_SERVICE_NAME service
+       25. $CRAFT_SILICON_SERVICE_NAME service"
+
+
+
+  read start_input
+
+  case $start_input in
+  "1")
+    start_service $USSD_SERVICE_NAME $USSD_JAR $USSD_JAR_PROP
+    ;;
+  "2")
+    start_service $USSD_ADAPTER_SERVICE_NAME $USSD_ADAPTER_JAR $USSD_ADAPTER_JAR_PROP
+    ;;
+  "3")
+    start_service $TXN_SERVICE_NAME $TXN_JAR $TXN_JAR_PROP
+    ;;
+  "4")
+    start_service $IDC_INTEGRATION_NAME $IDC_INTEGRATION_JAR $IDC_INTEGRATION_PROP
+    ;;
+  "5")
+    start_service $POSTILION_SERVICE_NAME $POSTILION_JAR $POSTILION_JAR_PROP
+    ;;
+  "6")
+    start_service $PROFILE_SERVICE_NAME $PROFILE_JAR $PROFILE_JAR_PROP
+    ;;
+  "7")
+    start_service $AUTH_SERVICE_NAME $AUTH_JAR $AUTH_JAR_PROP
+    ;;
+  "8")
+    start_service $NOTIFICATION_SERVICE_NAME $NOTIFICATION_JAR $NOTIFICATION_JAR_PROP
+    ;;
+  "9")
+    start_service $PORTAL_SERVICE_NAME $PORTAL_JAR $PORTAL_JAR_PROP
+    ;;
+  "10")
+    start_service $SMARTPHONE_SERVICE_NAME $SMARTPHONE_JAR $SMARTPHONE_JAR_PROP
+    ;;
+  "11")
+    start_service $VENDOR_SERVICE_NAME $VENDOR_JAR $VENDOR_JAR_PROP
+    ;;
+  "12")
+    start_service $E_WALLET_NAME $E_WALLET_JAR $E_WALLET_JAR_PROP
+    ;;
+  "13")
+    start_service $AGENCY_NAME $AGENCY_JAR $AGENCY_JAR_PROP
+    ;;
+  "14")
+    start_service $EQUALS_SERVICE_NAME $EQUALS_JAR $EQUALS_JAR_PROP
+    ;;
+  "15")
+    start_service $INTERNET_NAME $INTERNET_JAR $INTERNET_JAR_PROP
+    ;;
+  "16")
+    start_service $ZIMSWITCH_NAME $ZIMSWITCH_JAR $ZIMSWITCH_JAR_PROP
+    ;;
+  "17")
+    start_service $BATCH_SERVICE_NAME $BATCH_SERVICE_JAR $BATCH_SERVICE_JAR_PROP
+    ;;
+  "18")
+    start_service $FORWARDER_SERVICE_NAME $FORWARDER_SERVICE_JAR $FORWARDER_SERVICE_JAR_PROP
+    ;;
+  "19")
+    start_service $EXPRESS_SERVICE_NAME $EXPRESS_SERVICE_JAR $EXPRESS_SERVICE_JAR_PROP
+    ;;
+  "20")
+    start_service $WHATSAPP_SERVICE_NAME $WHATSAPP_JAR $WHATSAPP_JAR_PROP
+    ;;
+  "21")
+    start_service $API_CLOUD_GATEWAY_NAME $API_CLOUD_GATEWAY_JAR $API_CLOUD_GATEWAY_PROP
+    ;;
+  "22")
+    start_service $ZIPIT_SMART $ZIPIT_SMART_JAR $ZIPIT_SMART_JAR_PROP
+    ;;
+  "23")
+    start_service $VISA_SERVICE $VISA_SERVICE_JAR $VISA_SERVICE_JAR_PROP
+    ;;
+  "24")
+    start_service $COTTCO_SERVICE_NAME $COTTCO_JAR $COTTCO_JAR_PROP
+    ;;
+  "25")
+    start_service $CRAFT_SILICON_SERVICE_NAME $CRAFT_SILICON_JAR $CRAFT_SILICON_JAR_PROP
+    ;;
+   "*")
+    start_service $AUTH_SERVICE_NAME $AUTH_JAR $AUTH_JAR_PROP
+
+    AUTH_PID=$(pgrep -f -d ' ' $AUTH_SERVICE_NAME-0.0.1-SNAPSHOT.jar)
+    check_process_running $AUTH_PID
+    running_status=$?
+    sleep 30
+    if [ $running_status == 0 ]; then
+      echo "$AUTH_SERVICE_NAME service STARTED RUNNING OTHER SERVICES ..."
+
+      start_service $PROFILE_SERVICE_NAME $PROFILE_JAR $PROFILE_JAR_PROP
+      sleep 10
+      start_service $USSD_SERVICE_NAME $USSD_JAR $USSD_JAR_PROP
+      start_service $TXN_SERVICE_NAME $TXN_JAR $TXN_JAR_PROP
+      start_service $IDC_INTEGRATION_NAME $IDC_INTEGRATION_JAR $IDC_INTEGRATION_PROP
+      start_service $E_WALLET_NAME $E_WALLET_JAR $E_WALLET_JAR_PROP
+      start_service $AGENCY_NAME $AGENCY_JAR $AGENCY_JAR_PROP
+      start_service $POSTILION_SERVICE_NAME $POSTILION_JAR $POSTILION_JAR_PROP
+      start_service $NOTIFICATION_SERVICE_NAME $NOTIFICATION_JAR $NOTIFICATION_JAR_PROP
+      start_service $PORTAL_SERVICE_NAME $PORTAL_JAR $PORTAL_JAR_PROP
+      start_service $EQUALS_SERVICE_NAME $EQUALS_JAR $EQUALS_JAR_PROP
+      start_service $INTERNET_NAME $INTERNET_JAR $INTERNET_JAR_PROP
+      start_service $ZIMSWITCH_NAME $ZIMSWITCH_JAR $ZIMSWITCH_JAR_PROP
+      start_service $BATCH_SERVICE_NAME $BATCH_SERVICE_JAR $BATCH_SERVICE_JAR_PROP
+      start_service $FORWARDER_SERVICE_NAME $FORWARDER_SERVICE_JAR $FORWARDER_SERVICE_JAR_PROP
+      start_service $EXPRESS_SERVICE_NAME $EXPRESS_SERVICE_JAR $EXPRESS_SERVICE_JAR_PROP
+      sleep 10
+      start_service $USSD_ADAPTER_SERVICE_NAME $USSD_ADAPTER_JAR $USSD_ADAPTER_JAR_PROP
+      start_service $SMARTPHONE_SERVICE_NAME $SMARTPHONE_JAR $SMARTPHONE_JAR_PROP
+      start_service $WHATSAPP_SERVICE_NAME $WHATSAPP_JAR $WHATSAPP_JAR_PROP
+      start_service $API_CLOUD_GATEWAY_NAME $API_CLOUD_GATEWAY_JAR $API_CLOUD_GATEWAY_PROP
+      start_service $ZIPIT_SMART $ZIPIT_SMART_JAR $ZIPIT_SMART_JAR_PROP
+      start_service $VISA_SERVICE $VISA_SERVICE_JAR $VISA_SERVICE_JAR_PROP
+      start_service $COTTCO_SERVICE_NAME $COTTCO_JAR $COTTCO_JAR_PROP
+      start_service CRAFT_SILICON_SERVICE_NAME $CRAFT_SILICON_JAR $CRAFT_SILICON_JAR_PROP
+
+    else
+      echo "$AUTH_SERVICE_NAME service NOT RUNNING .."
+    fi
+    ;;
+  esac
+
+}
+stop_services() {
+
+  echo "Select service to stop
+
+        *. All  services
+        1. $USSD_SERVICE_NAME  service
+        2. $USSD_ADAPTER_SERVICE_NAME service
+        3. $TXN_SERVICE_NAME service
+        4. $IDC_INTEGRATION_NAME service
+        5. $POSTILION_SERVICE_NAME service
+        6. $PROFILE_SERVICE_NAME service
+        7. $AUTH_SERVICE_NAME service
+        8. $NOTIFICATION_SERVICE_NAME service
+        9. $PORTAL_SERVICE_NAME service
+       10. $SMARTPHONE_SERVICE_NAME service
+       11. $VENDOR_SERVICE_NAME service
+       12. $E_WALLET_NAME service
+       13. $AGENCY_NAME service
+       14. $EQUALS_SERVICE_NAME service
+       15. $INTERNET_NAME service
+       16. $ZIMSWITCH_NAME service
+       17. $BATCH_SERVICE_NAME service
+       18. $FORWARDER_SERVICE_NAME service
+       19. $EXPRESS_SERVICE_NAME service
+       20. $WHATSAPP_SERVICE_NAME service
+       21. $API_CLOUD_GATEWAY_NAME service
+       22. $ZIPIT_SMART service
+       23. $VISA_SERVICE service
+       24. $COTTCO_SERVICE_NAME service
+       25. $CRAFT_SILICON_SERVICE_NAME service"
+
+  read stop_input
+
+  case $stop_input in
+  "1")
+    stop_service $USSD_SERVICE_NAME
+    ;;
+  "2")
+    stop_service $USSD_ADAPTER_SERVICE_NAME
+    ;;
+  "3")
+    stop_service $TXN_SERVICE_NAME
+    ;;
+  "4")
+    stop_service $IDC_INTEGRATION_NAME
+    ;;
+  "5")
+    stop_service $POSTILION_SERVICE_NAME
+    ;;
+  "6")
+    stop_service $PROFILE_SERVICE_NAME
+    ;;
+  "7")
+    stop_service $AUTH_SERVICE_NAME
+    ;;
+  "8")
+    stop_service $NOTIFICATION_SERVICE_NAME
+    ;;
+  "9")
+    stop_service $PORTAL_SERVICE_NAME
+    ;;
+  "10")
+    stop_service $SMARTPHONE_SERVICE_NAME
+    ;;
+  "11")
+    stop_service $VENDOR_SERVICE_NAME
+    ;;
+  "12")
+    stop_service $E_WALLET_NAME
+    ;;
+  "13")
+    stop_service $AGENCY_NAME
+    ;;
+  "14")
+    stop_service $EQUALS_SERVICE_NAME
+    ;;
+  "15")
+    stop_service $INTERNET_NAME
+    ;;
+  "16")
+    stop_service $ZIMSWITCH_NAME
+    ;;
+  "17")
+    stop_service $BATCH_SERVICE_NAME
+    ;;
+  "18")
+    stop_service $FORWARDER_SERVICE_NAME
+    ;;
+  "19")
+    stop_service $EXPRESS_SERVICE_NAME
+    ;;
+  "20")
+    stop_service $WHATSAPP_SERVICE_NAME
+    ;;
+  "21")
+    stop_service $API_CLOUD_GATEWAY_NAME
+    ;;
+  "22")
+    stop_service $ZIPIT_SMART
+    ;;
+  "23")
+    stop_service $VISA_SERVICE
+    ;;
+  "24")
+    stop_service $COTTCO_SERVICE_NAME
+    ;;
+  "25")
+    stop_service $CRAFT_SILICON_SERVICE_NAME
+    ;;
+  "*")
+    stop_service $USSD_SERVICE_NAME
+    stop_service $USSD_ADAPTER_SERVICE_NAME
+    stop_service $TXN_SERVICE_NAME
+    stop_service $T24_SERVICE_NAME
+    stop_service $POSTILION_SERVICE_NAME
+    stop_service $PROFILE_SERVICE_NAME
+    stop_service $AUTH_SERVICE_NAME
+    stop_service $NOTIFICATION_SERVICE_NAME
+    stop_service $PORTAL_SERVICE_NAME
+    stop_service $SMARTPHONE_SERVICE_NAME
+    stop_service $E_WALLET_NAME
+    stop_service $AGENCY_NAME
+    stop_service $EQUALS_SERVICE_NAME
+    stop_service $INTERNET_NAME
+    stop_service $ZIMSWITCH_NAME
+    stop_service $BATCH_SERVICE_NAME
+    stop_service $FORWARDER_SERVICE_NAME
+    stop_service $EXPRESS_SERVICE_NAME
+    stop_service $WHATSAPP_SERVICE_NAME
+    stop_service $API_CLOUD_GATEWAY_NAME
+    stop_service $ZIPIT_SMART
+    stop_service $VISA_SERVICE
+    stop_service $COTTCO_SERVICE_NAME
+    stop_service $CRAFT_SILICON_SERVICE_NAME
+    ;;
+  esac
+
+}
+restart_services() {
+
+  echo "Select service to restart
+
+        *. All  services
+        1. $USSD_SERVICE_NAME  service
+        2. $USSD_ADAPTER_SERVICE_NAME service
+        3. $TXN_SERVICE_NAME service
+        4. $IDC_INTEGRATION_NAME service
+        5. $POSTILION_SERVICE_NAME service
+        6. $PROFILE_SERVICE_NAME service
+        7. $AUTH_SERVICE_NAME service
+        8. $NOTIFICATION_SERVICE_NAME service
+        9. $PORTAL_SERVICE_NAME service
+       10. $SMARTPHONE_SERVICE_NAME service
+       11. $VENDOR_SERVICE_NAME service
+       12. $E_WALLET_NAME service
+       13. $AGENCY_NAME service
+       14. $EQUALS_SERVICE_NAME service
+       15. $INTERNET_NAME service
+       16. $ZIMSWITCH_NAME service
+       17. $BATCH_SERVICE_NAME service
+       18. $FORWARDER_SERVICE_NAME service
+       19. $EXPRESS_SERVICE_NAME service
+       20. $WHATSAPP_SERVICE_NAME service
+       21. $API_CLOUD_GATEWAY_NAME service
+       22. $ZIPIT_SMART service
+       23. $VISA_SERVICE service
+       24. $COTTCO_SERVICE_NAME service
+       25. $CRAFT_SILICON_SERVICE_NAME service"
+
+  read restart_input
+
+  case $restart_input in
+  "1")
+    restart_service $USSD_SERVICE_NAME $USSD_JAR $USSD_JAR_PROP
+    ;;
+  "2")
+    restart_service $USSD_ADAPTER_SERVICE_NAME $USSD_ADAPTER_JAR $USSD_ADAPTER_JAR_PROP
+    ;;
+  "3")
+    restart_service $TXN_SERVICE_NAME $TXN_JAR $TXN_JAR_PROP
+    ;;
+  "4")
+    restart_service $IDC_INTEGRATION_NAME $IDC_INTEGRATION_JAR $IDC_INTEGRATION_PROP
+    ;;
+  "5")
+    restart_service $POSTILION_SERVICE_NAME $POSTILION_JAR $POSTILION_JAR_PROP
+    ;;
+  "6")
+    restart_service $PROFILE_SERVICE_NAME $PROFILE_JAR $PROFILE_JAR_PROP
+    ;;
+  "7")
+    restart_service $AUTH_SERVICE_NAME $AUTH_JAR $AUTH_JAR_PROP
+    ;;
+  "8")
+    restart_service $NOTIFICATION_SERVICE_NAME $NOTIFICATION_JAR $NOTIFICATION_JAR_PROP
+    ;;
+  "9")
+    restart_service $PORTAL_SERVICE_NAME $PORTAL_JAR $PORTAL_JAR_PROP
+    ;;
+  "10")
+    restart_service $SMARTPHONE_SERVICE_NAME $SMARTPHONE_JAR $SMARTPHONE_JAR_PROP
+    ;;
+  "11")
+    restart_service $VENDOR_SERVICE_NAME $VENDOR_JAR $VENDOR_JAR_PROP
+    ;;
+  "12")
+    restart_service $E_WALLET_NAME $E_WALLET_JAR $E_WALLET_JAR_PROP
+    ;;
+  "13")
+    restart_service $AGENCY_NAME $AGENCY_JAR $AGENCY_JAR_PROP
+    ;;
+  "14")
+    restart_service $EQUALS_SERVICE_NAME $EQUALS_JAR $EQUALS_JAR_PROP
+    ;;
+  "15")
+    restart_service $INTERNET_NAME $INTERNET_JAR $INTERNET_JAR_PROP
+    ;;
+  "16")
+    restart_service $ZIMSWITCH_NAME $ZIMSWITCH_JAR $ZIMSWITCH_JAR_PROP
+    ;;
+  "17")
+    restart_service $BATCH_SERVICE_NAME $BATCH_SERVICE_JAR $BATCH_SERVICE_JAR_PROP
+    ;;
+  "18")
+    restart_service $FORWARDER_SERVICE_NAME $FORWARDER_SERVICE_JAR $FORWARDER_SERVICE_JAR_PROP
+    ;;
+  "19")
+    restart_service $EXPRESS_SERVICE_NAME $EXPRESS_SERVICE_JAR $EXPRESS_SERVICE_JAR_PROP
+    ;;
+  "20")
+    restart_service $WHATSAPP_SERVICE_NAME $WHATSAPP_JAR $WHATSAPP_JAR_PROP
+    ;;
+  "21")
+    restart_service $API_CLOUD_GATEWAY_NAME $API_CLOUD_GATEWAY_JAR $API_CLOUD_GATEWAY_PROP
+    ;;
+  "22")
+    restart_service $ZIPIT_SMART $ZIPIT_SMART_JAR $ZIPIT_SMART_JAR_PROP
+    ;;
+  "23")
+    restart_service $VISA_SERVICE $VISA_SERVICE_JAR $VISA_SERVICE_JAR_PROP
+    ;;
+  "24")
+    restart_service $COTTCO_SERVICE_NAME $COTTCO_JAR $COTTCO_JAR_PROP
+    ;;
+  "25")
+    restart_service $CRAFT_SILICON_SERVICE_NAME $CRAFT_SILICON_JAR $CRAFT_SILICON_JAR_PROP
+    ;;
+    #  "*")
+    #    restart_service $AUTH_SERVICE_NAME $AUTH_PID_PATH_NAME $AUTH_JAR
+    #    restart_service $USSD_SERVICE_NAME $USSD_PID_PATH_NAME $USSD_JAR
+    #    restart_service $USSD_ADAPTER_SERVICE_NAME $USSD_ADAPTER_PID_PATH_NAME $USSD_ADAPTER_JAR
+    #    restart_service $TXN_SERVICE_NAME $TXN_PID_PATH_NAME $TXN_JAR
+    #    restart_service $T24_SERVICE_NAME $T24_PID_PATH_NAME $T24_JAR
+    #    restart_service $POSTILION_SERVICE_NAME $POSTILION_PID_PATH_NAME $POSTILION_JAR
+    #    restart_service $PROFILE_SERVICE_NAME $PROFILE_PID_PATH_NAME $PROFILE_JAR
+    #    restart_service $NOTIFICATION_SERVICE_NAME $NOTIFICATION_PID_PATH_NAME $NOTIFICATION_JAR
+    #    ;;
+  esac
+
+}
+
+echo "
+
+      ===================================!!!!!-WARNING-!!!!!!==================================================
+      ##                                                                                                     ##
+      ##                                 Dear DIGITAL SUPPORT TRAVELLER                                      ##
+      ##           You are venturing into sensitive lands, make sure you know what you are doing!            ##
+      ##                                                                                                     ##
+      ##                                FOREWARNED IS FOREARMED                                              ##
+      ##                                                                                                     ##
+      ===================================!!!!!-WARNING-!!!!!!==================================================
+          "
+
+echo "Select your option
+
+      1. Tail logs
+      2. See service status
+      3. To Start services
+      4. To Restart services
+      5. To Stop services
+"
+
+read input
+
+case $input in
+"1")
+  tail_service
+  ;;
+"2")
+  see_service_status
+  ;;
+"3")
+  start_services
+  ;;
+"4")
+  restart_services
+  ;;
+"5")
+  stop_services
+  ;;
+esac
+ashumba@ussd-ate-test:/srv$ Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.19.0-45-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+36 updates can be applied immediately.
+9 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+New release '24.04.4 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+*** System restart required ***
+Last login: Tue May 12 11:09:14 2026 from 192.168.203.40
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ashumba@ussd-ate-test:~$ ^C
+ashumba@ussd-ate-test:~$ Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.19.0-45-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+36 updates can be applied immediately.
+9 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+New release '24.04.4 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+*** System restart required ***
+Last login: Tue May 12 17:20:39 2026 from 10.81.234.34
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ashumba@ussd-ate-test:~$ Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.19.0-45-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+36 updates can be applied immediately.
+9 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+New release '24.04.4 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+*** System restart required ***
+Last login: Tue May 12 17:25:38 2026 from 10.81.234.34
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.

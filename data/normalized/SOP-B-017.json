@@ -1,0 +1,273 @@
+{
+  "id": "SOP-B-017",
+  "class_code": "B",
+  "title": "Change User Branch in IDC",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "idc-user-management",
+    "branch-configuration",
+    "profile-management"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "transfer user to new branch",
+    "update user office code",
+    "branch transfer in IDC"
+  ],
+  "preconditions": [
+    {
+      "text": "verify transfer authorization",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check current branch",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify new branch exists",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "verify user profile shows new branch",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test branch-specific functions",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "confirm with user and branch manager",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "login to IDC",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "type \"Configure Home Branch For User\" in search",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "enter username",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "under transfer type, select \"permanent\"",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "enter new branch code",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "click submit",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "revert to previous branch",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check admin unit codes",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "escalate to IDC support",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "check branch admin unit code: \"Configure Our Branch Codes\"",
+      "sequence": 1,
+      "source_section": "error resolution (admin unit error)",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check user role admin unit code: \"Configure User Role\"",
+      "sequence": 2,
+      "source_section": "error resolution (admin unit error)",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "change role admin unit code to match branch admin unit code",
+      "sequence": 3,
+      "source_section": "error resolution (admin unit error)",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "authorize the change",
+      "sequence": 4,
+      "source_section": "error resolution (admin unit error)",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "retry branch change",
+      "sequence": 5,
+      "source_section": "error resolution (admin unit error)",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "never change admin role code for branches",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "only change admin unit codes for user roles",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "common error: admin unit code mismatch between role and branch",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "always request up-to-date transfer authorization",
+      "sequence": 9,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with branch manager and RISK management for confirmation",
+      "sequence": 10,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "idc-user-management",
+    "branch-configuration",
+    "profile-management"
+  ],
+  "owners": [
+    "coordinate with branch manager and RISK management for confirmation"
+  ],
+  "artifacts": [
+    {
+      "type": "sql",
+      "value": "under transfer type, select \"permanent\"",
+      "source_section": "procedure",
+      "sequence": 4
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.517914",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-IDC-BRANCH-CHANGE-017.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "a3118cbdfef702ecfeb7bf00bbf356432303304094ce801a4167075a8fa62a90",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.517914",
+    "normalized_at": "2026-05-15T07:25:53.517914"
+  },
+  "source_sections": [
+    "error resolution (admin unit error)",
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

@@ -1,0 +1,71 @@
+id: SOP-C-010
+class: C
+title: FlexiDocs Handover
+severity: medium
+
+services:
+  - flexidocs-application
+  - mysql-database
+  - apache-web-server
+  - agency-banking-api
+
+environments:
+  - PROD
+
+aliases:
+  - Document management system
+  - Account opening platform
+  - KYC updates system
+  - Overdraft applications
+
+system_modules:
+  - Account Opening
+  - KYC Updates
+  - Agency Banking
+  - Overdraft Applications
+  - ICT Change Request
+  - Documents Approvals
+  - API (Agency Banking, Branch APP and Mobile App)
+
+server_configuration:
+  server: 192.168.0.42
+  port: 9292
+  database: MySQL (migration to MSSQL in progress)
+
+management_procedure:
+  - Log onto Server 192.168.0.42 via Remote Desktop
+  - Go to Xampp Control Panel
+  - Start Apache and MySQL services
+  - Check application running on: 192.168.0.42:9292
+
+dependency_management:
+  - Overdrafts Robots depend on Xampp-MySQL service
+  - Service failure affects multiple business processes
+  - Immediate restart required for service outages
+
+maintenance_tasks:
+  - Regular service health checks
+  - Database backup and optimization
+  - Application patch management
+  - Performance monitoring
+  - User access management
+
+migration_notice:
+  - System in process of migrating to MSSQL
+  - Current MySQL configuration temporary
+  - Migration schedule to be communicated separately
+  - Backup procedures critical during migration
+
+troubleshooting:
+  - If portal inaccessible, check Xampp services
+  - Verify MySQL service connectivity
+  - Check application logs for errors
+  - Validate network connectivity
+  - Confirm server resource availability
+
+notes:
+  - Critical for account opening and KYC processes
+  - Multiple API dependencies
+  - Migration to MSSQL in progress
+  - Regular monitoring prevents business process interruptions
+  - Coordinate with database team during migration

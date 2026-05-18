@@ -1,0 +1,990 @@
+{
+  "services": [
+    {
+      "service_uuid": "0b403590-71a5-46a8-bf37-bb730148909e",
+      "service_id": "sigma-studio",
+      "service_name": "Sigma Studio",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "Intellect IDC Sigma Studio service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "sigma-studio",
+      "tags": ["intellect", "idc", "sigma", "studio", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "c5d4cee1-535f-446a-bf34-6857f9db5a8d",
+        "agent_id": "agent-sigma-studio-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"sigma-studio\", environment=\"production\"}",
+        "metrics_namespace": "sigma_studio",
+        "trace_service_name": "sigma-studio",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Sigma Studio",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "787d2b11-ffa8-44a7-9416-17daa8b210e8",
+      "service_id": "rlo",
+      "service_name": "RLO",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "high",
+      "description": "Intellect IDC RLO service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "rlo",
+      "tags": ["intellect", "idc", "loan", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "576818b8-a966-43e5-9cbf-84eccb4c1f4c",
+        "agent_id": "agent-rlo-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"rlo\", environment=\"production\"}",
+        "metrics_namespace": "rlo",
+        "trace_service_name": "rlo",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "RLO",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "e79c7e67-4e5d-4d87-82f3-9fef7702eec3",
+      "service_id": "lms",
+      "service_name": "LMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC LMS service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "lms",
+      "tags": ["intellect", "idc", "lending", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "945b107c-05da-43c4-8d17-1df5718e2b60",
+        "agent_id": "agent-lms-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"lms\", environment=\"production\"}",
+        "metrics_namespace": "lms",
+        "trace_service_name": "lms",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "LMS",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "1bbecff0-5644-4817-b1ee-e748b1105f5e",
+      "service_id": "idc-core",
+      "service_name": "IDC Core",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Primary Intellect IDC core service and seed entry service for dependency correlation.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-core",
+      "tags": ["intellect", "idc", "core", "entry-service", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "79de84f6-3315-4c40-9641-3bfdd8808166",
+        "agent_id": "agent-idc-core-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"idc-core\", environment=\"production\"}",
+        "metrics_namespace": "idc_core",
+        "trace_service_name": "idc-core",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Keep restart disabled until service owner confirms statelessness and restart safety."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "IDC Core",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "d7912759-5d94-4437-a01f-70f8e1642f88",
+      "service_id": "collect",
+      "service_name": "Collect Admin",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC Collect Admin service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collect-admin",
+      "tags": ["intellect", "idc", "collections", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "cff165c6-d621-4d61-977b-f42e7334befd",
+        "agent_id": "agent-collect-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"collect\", environment=\"production\"}",
+        "metrics_namespace": "collect",
+        "trace_service_name": "collect",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Collect Admin",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "e708d858-7fe8-4f3e-a903-c8a189b6894e",
+      "service_id": "collateral-clms",
+      "service_name": "Collateral CLMS",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC Collateral CLMS service, seeded from Network Sentinel mapping.",
+      "is_stateless": true,
+      "allow_diagnostics": true,
+      "runbook_slug": "collateral-clms",
+      "tags": ["intellect", "idc", "collateral", "clms", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "4d051581-f914-4045-ae0f-1db058199f94",
+        "agent_id": "agent-collateral-clms-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"collateral-clms\", environment=\"production\"}",
+        "metrics_namespace": "collateral_clms",
+        "trace_service_name": "collateral-clms",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Light agent endpoint, log path, systemd unit, and dependency direction still require service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "Collateral CLMS",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "31d816e6-23f5-4e3d-af74-8f091b86c415",
+      "service_id": "cob",
+      "service_name": "COB",
+      "service_type": "worker",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Intellect IDC close-of-business worker/service, seeded from Network Sentinel mapping.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-cob",
+      "tags": ["intellect", "idc", "cob", "batch", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "7a4549bd-fa4f-4296-83f2-5655ace8a69d",
+        "agent_id": "agent-cob-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"cob\", environment=\"production\"}",
+        "metrics_namespace": "cob",
+        "trace_service_name": "cob",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Treat as stateful/batch-sensitive until COB owner confirms safe restart windows."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "COB",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "132792e5-71ea-4e40-8e2e-32d63d8419ea",
+      "service_id": "arx",
+      "service_name": "ARX",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "ARX gateway/integration service in the Intellect IDC dependency fabric.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "arx",
+      "tags": ["intellect", "idc", "arx", "gateway", "critical-path", "network-sentinel"],
+      "cluster": "intellect-idc",
+      "cluster_ids": ["intellect-idc"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": "49aae386-7be1-464e-8be0-cf2ff4eaed0a",
+        "agent_id": "agent-arx-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"arx\", environment=\"production\"}",
+        "metrics_namespace": "arx",
+        "trace_service_name": "arx",
+        "preferred_signal_source": "network_sentinel"
+      },
+      "certification": {
+        "lifecycle_stage": "observe_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-04-24T00:00:00Z",
+        "notes": "Network Sentinel mapping is present. Gateway/shared-dependency restart is blocked until explicit service-owner approval."
+      },
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "network_sentinel_group": "Intellect IDC",
+        "network_sentinel_label": "ARX",
+        "lbm_hint": "afcconnect-lbm.afcholdings.co.zw:8xxx",
+        "setup_required": ["systemd_unit", "logs_url", "metrics_url", "diagnostics_url", "restart_url"]
+      }
+    },
+    {
+      "service_uuid": "08b11f5a-90e2-4dd4-9d31-5e7dceffda62",
+      "service_id": "idc-microservices",
+      "service_name": "IDC Microservices",
+      "service_type": "app",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Strong IDC transaction-processing support layer. This service should provide local runtime and log evidence before Nexus promotes transaction root cause confidence.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "idc-microservices",
+      "tags": ["intellect", "idc", "microservices", "transaction-processing", "critical-path"],
+      "cluster": "idc-core-processing",
+      "cluster_ids": ["intellect-idc", "idc-core-processing"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": null,
+        "agent_id": "agent-idc-microservices-01",
+        "host_group": "Intellect IDC",
+        "log_selector": "{service=\"idc-microservices\", environment=\"production\"}",
+        "metrics_namespace": "idc_microservices",
+        "trace_service_name": "idc-microservices",
+        "preferred_signal_source": "agent"
+      },
+      "certification": {
+        "lifecycle_stage": "catalog_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-05-02T00:00:00Z",
+        "notes": "Production placeholder. Map Network Sentinel and agent endpoint after service-owner validation."
+      },
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "dependency_role": "transaction_support",
+        "setup_required": ["network_service_id", "systemd_unit", "logs_url", "metrics_url", "diagnostics_url"]
+      }
+    },
+    {
+      "service_uuid": "dbd0b2c4-a49e-4d3b-8ee4-4d01da793e14",
+      "service_id": "direct-channel",
+      "service_name": "Direct Channel",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Channels",
+      "criticality": "critical",
+      "description": "Card transaction channel feeding Postilion before IDC core banking authorization.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "direct-channel",
+      "tags": ["card-transactions", "postilion", "channel", "critical-path"],
+      "cluster": "postilion-card-transactions",
+      "cluster_ids": ["postilion-card-transactions"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": null,
+        "agent_id": "agent-direct-channel-01",
+        "host_group": "Postilion Card Channels",
+        "log_selector": "{service=\"direct-channel\", environment=\"production\"}",
+        "metrics_namespace": "direct_channel",
+        "trace_service_name": "direct-channel",
+        "preferred_signal_source": "agent"
+      },
+      "certification": {
+        "lifecycle_stage": "catalog_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-05-02T00:00:00Z",
+        "notes": "Production placeholder for card transaction channel evidence."
+      },
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "dependency_role": "card_channel",
+        "setup_required": ["network_service_id", "systemd_unit", "logs_url", "metrics_url", "diagnostics_url"]
+      }
+    },
+    {
+      "service_uuid": "62296be1-bfb4-4a2e-8ae5-148871d8359d",
+      "service_id": "olivinefibre",
+      "service_name": "OlivineFibre",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Channels",
+      "criticality": "critical",
+      "description": "Card transaction fibre/channel path feeding Postilion before IDC core banking authorization.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "olivinefibre",
+      "tags": ["card-transactions", "postilion", "channel", "critical-path"],
+      "cluster": "postilion-card-transactions",
+      "cluster_ids": ["postilion-card-transactions"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": null,
+        "agent_id": "agent-olivinefibre-01",
+        "host_group": "Postilion Card Channels",
+        "log_selector": "{service=\"olivinefibre\", environment=\"production\"}",
+        "metrics_namespace": "olivinefibre",
+        "trace_service_name": "olivinefibre",
+        "preferred_signal_source": "agent"
+      },
+      "certification": {
+        "lifecycle_stage": "catalog_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-05-02T00:00:00Z",
+        "notes": "Production placeholder for card transaction channel evidence."
+      },
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "dependency_role": "card_channel",
+        "setup_required": ["network_service_id", "systemd_unit", "logs_url", "metrics_url", "diagnostics_url"]
+      }
+    },
+    {
+      "service_uuid": "9c38637e-bc1c-40e2-9baa-4612fbcd5042",
+      "service_id": "postilion",
+      "service_name": "Postilion",
+      "service_type": "gateway",
+      "environment": "production",
+      "owner_team": "Cards",
+      "criticality": "critical",
+      "description": "Card transaction switch/orchestration layer that depends on IDC Core for core-banking transaction authorization.",
+      "is_stateless": false,
+      "allow_diagnostics": true,
+      "runbook_slug": "postilion",
+      "tags": ["card-transactions", "postilion", "switch", "critical-path"],
+      "cluster": "postilion-card-transactions",
+      "cluster_ids": ["postilion-card-transactions"],
+      "restart_policy": {
+        "allow_restart": false,
+        "requires_human_approval": true,
+        "cooldown_minutes": 15,
+        "allowed_service_types": ["app", "worker"]
+      },
+      "observation_config": {
+        "network_service_id": null,
+        "agent_id": "agent-postilion-01",
+        "host_group": "Postilion Card Channels",
+        "log_selector": "{service=\"postilion\", environment=\"production\"}",
+        "metrics_namespace": "postilion",
+        "trace_service_name": "postilion",
+        "preferred_signal_source": "agent"
+      },
+      "certification": {
+        "lifecycle_stage": "catalog_only",
+        "certified_by": "Sentinel Nexus seed",
+        "certified_at": "2026-05-02T00:00:00Z",
+        "notes": "Production placeholder. Restart blocked because Postilion is a shared transaction dependency."
+      },
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "dependency_role": "card_switch",
+        "setup_required": ["network_service_id", "systemd_unit", "logs_url", "metrics_url", "diagnostics_url"]
+      }
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "intellect-idc",
+      "cluster_name": "Intellect IDC Service Fabric",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Seeded IDC dependency cluster for Intellect services currently mapped in Network Sentinel. Dependency directions are bootstrap assumptions and should be validated one service at a time.",
+      "service_ids": ["idc-core", "arx", "idc-microservices", "lms", "collect", "collateral-clms", "cob", "rlo", "sigma-studio", "direct-channel", "olivinefibre", "postilion"],
+      "entry_services": ["idc-core", "arx"],
+      "routing_config": {
+        "topology_doc_url": "",
+        "dashboard_url": "/network-sentinel",
+        "collector_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "http://127.0.0.1:8010/api/v1/nexus/agents/probe-report",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "query_url": "",
+        "notes_url": ""
+      },
+      "tags": ["intellect", "idc", "bootstrap", "network-sentinel"],
+      "metadata": {
+        "seed_version": "idc-core-bootstrap-2026-04-24",
+        "canonical_environment": "production",
+        "central_nexus_base_url": "http://127.0.0.1:8010",
+        "agent_endpoints": {
+          "heartbeat": "/api/v1/nexus/agents/heartbeat",
+          "probe_report": "/api/v1/nexus/agents/probe-report",
+          "diagnostic_results": "/api/v1/nexus/agents/{agent_id}/diagnostic-results"
+        },
+        "light_agent_contract": {
+          "required_fields": ["agent_id", "service_id", "service_name", "environment", "timestamp", "severity", "source"],
+          "recommended_fields": ["instance_id", "host_id", "cluster", "metrics", "log_records", "trace_summaries", "change_context"],
+          "auth_header": "X-Nexus-Agent-Token"
+        },
+        "setup_required": ["collector_url", "extraction_url", "formatting_url", "diagnostics_url", "service log selectors", "systemd units"]
+      }
+    },
+    {
+      "cluster_id": "idc-core-processing",
+      "cluster_name": "IDC Core Transaction Processing",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Business transaction fabric centered on IDC Core and IDC Microservices. ARX is intentionally excluded except for authentication/access flows.",
+      "service_ids": ["idc-core", "idc-microservices", "lms", "collect", "collateral-clms", "cob", "rlo", "sigma-studio"],
+      "entry_services": ["idc-core"],
+      "routing_config": {
+        "topology_doc_url": "",
+        "dashboard_url": "/nexus?tab=business-flows",
+        "collector_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "http://127.0.0.1:8010/api/v1/nexus/agents/probe-report",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "query_url": "",
+        "notes_url": ""
+      },
+      "tags": ["intellect", "idc", "transaction-processing", "production"],
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "fault_strategy": "Use IDC Core local runtime, IDC Microservices health, transaction error logs, and traces before blaming network reachability."
+      }
+    },
+    {
+      "cluster_id": "postilion-card-transactions",
+      "cluster_name": "Postilion Card Transaction Fabric",
+      "environment": "production",
+      "owner_team": "Cards",
+      "criticality": "critical",
+      "description": "Card channel fabric where Direct Channel and OlivineFibre feed Postilion, and Postilion depends on IDC Core for transaction authorization.",
+      "service_ids": ["direct-channel", "olivinefibre", "postilion", "idc-core"],
+      "entry_services": ["direct-channel", "olivinefibre"],
+      "routing_config": {
+        "topology_doc_url": "",
+        "dashboard_url": "/nexus?tab=business-flows",
+        "collector_url": "",
+        "extraction_url": "",
+        "formatting_url": "",
+        "shipping_url": "http://127.0.0.1:8010/api/v1/nexus/agents/probe-report",
+        "diagnostics_url": "",
+        "restart_url": "",
+        "query_url": "",
+        "notes_url": ""
+      },
+      "tags": ["cards", "postilion", "idc", "transaction-processing", "production"],
+      "metadata": {
+        "seed_version": "idc-production-flow-upgrade-2026-05-02",
+        "fault_strategy": "Separate channel outages, Postilion switch degradation, and IDC Core authorization failures using local agent probes and flow-scoped dependencies."
+      }
+    }
+  ],
+  "business_flows": [
+    {
+      "flow_id": "idc-user-access",
+      "flow_name": "IDC User Access",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Authentication/access flow where ARX availability can block IDC access. This flow must not be used to explain normal IDC transaction-processing failures.",
+      "entry_service_ids": ["arx"],
+      "steps": [
+        {
+          "step_id": "idc-user-access:1:arx",
+          "step_order": 1,
+          "service_id": "arx",
+          "service_role": "authentication_gateway",
+          "required": true,
+          "expected_signal_sources": ["network_sentinel", "agent", "loki"],
+          "failure_domains": ["authentication", "network_path", "service_runtime"],
+          "metadata": {
+            "reasoning_rule": "ARX is a root-cause candidate for IDC access/login failures only when the incident context is authentication/access."
+          }
+        },
+        {
+          "step_id": "idc-user-access:2:idc-core",
+          "step_order": 2,
+          "service_id": "idc-core",
+          "service_role": "access_target",
+          "required": true,
+          "expected_signal_sources": ["network_sentinel", "agent", "loki"],
+          "failure_domains": ["authentication", "network_path", "service_runtime"],
+          "metadata": {
+            "reasoning_rule": "IDC Core can still be independently degraded even when ARX is healthy."
+          }
+        }
+      ],
+      "success_indicators": ["ARX reachable", "IDC login page accessible", "IDC authenticated session created"],
+      "failure_indicators": ["IDC inaccessible through ARX", "ARX auth gateway down", "login/access timeout"],
+      "tags": ["idc", "arx", "authentication", "access"],
+      "enabled": true,
+      "correlation_window_minutes": 10,
+      "metadata": {
+        "fault_strategy": "Do not infer IDC transaction root cause from ARX unless the evidence explicitly maps to this access flow."
+      }
+    },
+    {
+      "flow_id": "idc-transaction-processing",
+      "flow_name": "IDC Transaction Processing",
+      "environment": "production",
+      "owner_team": "Intellect",
+      "criticality": "critical",
+      "description": "Core IDC business transaction path. IDC Microservices is a strong dependency for processing evidence; ARX is intentionally out of scope.",
+      "entry_service_ids": ["idc-core"],
+      "steps": [
+        {
+          "step_id": "idc-transaction-processing:1:idc-core",
+          "step_order": 1,
+          "service_id": "idc-core",
+          "service_role": "core_banking_orchestrator",
+          "required": true,
+          "expected_signal_sources": ["agent", "loki", "otel", "network_sentinel"],
+          "failure_domains": ["service_runtime", "dependency", "database", "business_process"],
+          "metadata": {
+            "reasoning_rule": "IDC Core is central to transaction processing and needs local runtime plus log/trace confirmation."
+          }
+        },
+        {
+          "step_id": "idc-transaction-processing:2:idc-microservices",
+          "step_order": 2,
+          "service_id": "idc-microservices",
+          "service_role": "transaction_support",
+          "required": true,
+          "expected_signal_sources": ["agent", "loki", "otel"],
+          "failure_domains": ["service_runtime", "dependency", "business_process"],
+          "metadata": {
+            "reasoning_rule": "IDC Microservices should outrank downstream symptoms when its local runtime/log evidence aligns with IDC transaction failures."
+          }
+        }
+      ],
+      "success_indicators": ["IDC transactions complete", "IDC Microservices probes healthy", "transaction logs free of dependency failures"],
+      "failure_indicators": ["transaction timeout", "microservice dependency failure", "IDC processing error burst"],
+      "tags": ["idc", "transactions", "microservices", "core-banking"],
+      "enabled": true,
+      "correlation_window_minutes": 10,
+      "metadata": {
+        "fault_strategy": "Separate processing degradation from ARX access degradation and pure network reachability failures."
+      }
+    },
+    {
+      "flow_id": "postilion-card-transaction",
+      "flow_name": "Postilion Card Transaction",
+      "environment": "production",
+      "owner_team": "Cards",
+      "criticality": "critical",
+      "description": "Card transaction path through Direct Channel/OlivineFibre into Postilion and IDC Core authorization.",
+      "entry_service_ids": ["direct-channel", "olivinefibre"],
+      "steps": [
+        {
+          "step_id": "postilion-card-transaction:1:direct-channel",
+          "step_order": 1,
+          "service_id": "direct-channel",
+          "service_role": "card_channel",
+          "required": false,
+          "expected_signal_sources": ["agent", "loki", "network_sentinel"],
+          "failure_domains": ["network_path", "service_runtime", "business_process"],
+          "metadata": {
+            "reasoning_rule": "A Direct Channel fault explains only the channel path it owns, not OlivineFibre."
+          }
+        },
+        {
+          "step_id": "postilion-card-transaction:2:olivinefibre",
+          "step_order": 2,
+          "service_id": "olivinefibre",
+          "service_role": "card_channel",
+          "required": false,
+          "expected_signal_sources": ["agent", "loki", "network_sentinel"],
+          "failure_domains": ["network_path", "service_runtime", "business_process"],
+          "metadata": {
+            "reasoning_rule": "An OlivineFibre fault explains only the channel path it owns, not Direct Channel."
+          }
+        },
+        {
+          "step_id": "postilion-card-transaction:3:postilion",
+          "step_order": 3,
+          "service_id": "postilion",
+          "service_role": "card_switch",
+          "required": true,
+          "expected_signal_sources": ["agent", "loki", "otel", "network_sentinel"],
+          "failure_domains": ["service_runtime", "dependency", "business_process"],
+          "metadata": {
+            "reasoning_rule": "Postilion should outrank channel symptoms when both channels show failures and Postilion evidence is degraded."
+          }
+        },
+        {
+          "step_id": "postilion-card-transaction:4:idc-core",
+          "step_order": 4,
+          "service_id": "idc-core",
+          "service_role": "core_banking_authorizer",
+          "required": true,
+          "expected_signal_sources": ["agent", "loki", "otel", "network_sentinel"],
+          "failure_domains": ["service_runtime", "dependency", "database", "business_process"],
+          "metadata": {
+            "reasoning_rule": "IDC Core should outrank Postilion when Postilion evidence points to IDC authorization failure."
+          }
+        }
+      ],
+      "success_indicators": ["card auth approved/declined normally", "Postilion switch healthy", "IDC authorization responds within budget"],
+      "failure_indicators": ["card transaction timeout", "Postilion switch errors", "IDC authorization unavailable"],
+      "tags": ["cards", "postilion", "idc", "transactions"],
+      "enabled": true,
+      "correlation_window_minutes": 10,
+      "metadata": {
+        "fault_strategy": "Use channel-specific evidence, Postilion switch evidence, and IDC Core authorization evidence to avoid generic blame."
+      }
+    }
+  ],
+  "dependency_edges": [
+    {
+      "edge_id": "intellect-idc:idc-core->arx:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "arx",
+      "dependency_type": "sync_api",
+      "dependency_purpose": "authentication_access",
+      "dependency_scope": "flow_scoped",
+      "business_flow_ids": ["idc-user-access"],
+      "valid_failure_domains": ["authentication", "network_path", "service_runtime"],
+      "expected_evidence": ["network_sentinel", "agent", "loki"],
+      "criticality_weight": 1.0,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "high",
+        "validation_status": "operator_confirmed_scope",
+        "reasoning_rule": "ARX explains IDC access/authentication failures only. It must not be used as a generic IDC transaction-processing dependency."
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->lms:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "lms",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.92,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->collect:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "collect",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.9,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->collateral-clms:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "collateral-clms",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.9,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "medium",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->cob:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "cob",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.86,
+      "timeout_budget_ms": 5000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation",
+        "note": "COB may be scheduled/batch-driven rather than request-path synchronous. Validate before relying on this edge for incident ranking."
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->rlo:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "rlo",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.74,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "intellect-idc:idc-core->sigma-studio:sync_api",
+      "cluster_id": "intellect-idc",
+      "from_service_id": "idc-core",
+      "to_service_id": "sigma-studio",
+      "dependency_type": "sync_api",
+      "criticality_weight": 0.68,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": false,
+      "metadata": {
+        "source": "bootstrap_seed",
+        "confidence": "low",
+        "validation_status": "pending_operator_confirmation"
+      }
+    },
+    {
+      "edge_id": "idc-core-processing:idc-core->idc-microservices:sync_api",
+      "cluster_id": "idc-core-processing",
+      "from_service_id": "idc-core",
+      "to_service_id": "idc-microservices",
+      "dependency_type": "sync_api",
+      "dependency_purpose": "transaction_processing",
+      "dependency_scope": "flow_scoped",
+      "business_flow_ids": ["idc-transaction-processing"],
+      "valid_failure_domains": ["service_runtime", "dependency", "business_process"],
+      "expected_evidence": ["agent", "loki", "otel"],
+      "criticality_weight": 0.98,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "operator_strategy",
+        "confidence": "high",
+        "validation_status": "pending_service_owner_confirmation",
+        "reasoning_rule": "IDC Microservices is a strong IDC transaction-processing dependency and should not be conflated with ARX access failures."
+      }
+    },
+    {
+      "edge_id": "postilion-card-transactions:direct-channel->postilion:sync_api",
+      "cluster_id": "postilion-card-transactions",
+      "from_service_id": "direct-channel",
+      "to_service_id": "postilion",
+      "dependency_type": "sync_api",
+      "dependency_purpose": "card_transaction_routing",
+      "dependency_scope": "flow_scoped",
+      "business_flow_ids": ["postilion-card-transaction"],
+      "valid_failure_domains": ["service_runtime", "dependency", "business_process", "network_path"],
+      "expected_evidence": ["agent", "loki", "otel", "network_sentinel"],
+      "criticality_weight": 0.92,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "operator_strategy",
+        "confidence": "medium",
+        "validation_status": "pending_service_owner_confirmation"
+      }
+    },
+    {
+      "edge_id": "postilion-card-transactions:olivinefibre->postilion:sync_api",
+      "cluster_id": "postilion-card-transactions",
+      "from_service_id": "olivinefibre",
+      "to_service_id": "postilion",
+      "dependency_type": "sync_api",
+      "dependency_purpose": "card_transaction_routing",
+      "dependency_scope": "flow_scoped",
+      "business_flow_ids": ["postilion-card-transaction"],
+      "valid_failure_domains": ["service_runtime", "dependency", "business_process", "network_path"],
+      "expected_evidence": ["agent", "loki", "otel", "network_sentinel"],
+      "criticality_weight": 0.92,
+      "timeout_budget_ms": 3000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "operator_strategy",
+        "confidence": "medium",
+        "validation_status": "pending_service_owner_confirmation"
+      }
+    },
+    {
+      "edge_id": "postilion-card-transactions:postilion->idc-core:sync_api",
+      "cluster_id": "postilion-card-transactions",
+      "from_service_id": "postilion",
+      "to_service_id": "idc-core",
+      "dependency_type": "sync_api",
+      "dependency_purpose": "core_banking_authorization",
+      "dependency_scope": "flow_scoped",
+      "business_flow_ids": ["postilion-card-transaction"],
+      "valid_failure_domains": ["service_runtime", "dependency", "database", "business_process"],
+      "expected_evidence": ["agent", "loki", "otel"],
+      "criticality_weight": 1.0,
+      "timeout_budget_ms": 5000,
+      "is_hard_dependency": true,
+      "metadata": {
+        "source": "operator_strategy",
+        "confidence": "high",
+        "validation_status": "pending_service_owner_confirmation",
+        "reasoning_rule": "Every card transaction path ultimately requires IDC Core authorization; IDC Core can explain Postilion card failures when evidence points upstream."
+      }
+    }
+  ],
+  "signals": [],
+  "change_events": [],
+  "incidents": [],
+  "diagnostics": [],
+  "action_executions": [],
+  "operator_feedback": [],
+  "task_handoffs": [],
+  "agent_heartbeats": [],
+  "fabric_summary": {
+    "total_services": 12,
+    "total_clusters": 3,
+    "total_edges": 11,
+    "mapped_network_services": 8,
+    "diagnostics_ready_services": 0,
+    "restart_ready_services": 0,
+    "active_incidents": 0,
+    "last_sync_at": null,
+    "sync_health": "idle",
+    "sync_message": "Production flow-aware seed prepared. Import into Postgres, apply the 2026_05 business-flow migration, then map agent endpoints and Network Sentinel IDs service by service."
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "SOP-B-013",
+  "class": "B",
+  "title": "Mount RTGS and Ewallet Folders on Server 249",
+  "severity": "high",
+  "services": [
+    "file-mounts",
+    "rtgs-file-transfer",
+    "ewallet-integration"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "mount RTGS folders",
+    "mount Ewallet shares",
+    "restore file shares on 249"
+  ],
+  "pre_checks": [
+    "backup existing folders on server 0.45",
+    "check backup folder is empty on Linux server",
+    "verify network connectivity to server 0.45"
+  ],
+  "procedure": {
+    "PaymentsToSTPLink Mount": [
+      "backup PaymentsToSTPLink folder on server 0.45 (compress/rename)",
+      "SSH to server 192.168.0.249",
+      "Navigate: cd /home/administrator/batch-files/rtgs/outward",
+      "Check backup folder: ls -1 backup/ | wc -l",
+      "If count not 0, delete files: rm backup/*",
+      "Move files to backup: mv toTrustLink/*.txt backup/",
+      "Mount outward folder: sudo mount -t cifs //192.168.0.45/PaymentsToSTPLink /home/administrator/batch-files/rtgs/outward/toTrustLink -o username=RTGS,password=*******",
+      "If no files in toTrustLink, move from backup: mv backup/* toTrustLink/"
+    ],
+    "PaymentsFromSTPLink Mount": [
+      "backup PaymentsFromSTPLink folder on server 0.45",
+      "Mount inward folder: sudo mount -t cifs //192.168.0.45/PaymentsFromSTPLink /home/administrator/batch-files/rtgs/inward/idc -o username=RTGS,password=*******"
+    ],
+    "Ewallet Mount": [
+      "Mount Ewallet folder: sudo mount -t cifs //192.168.0.45/EwalletProd /home/administrator/batch-files/rtgs/inward/digipay/ -o username=RTGS,password=*******"
+    ]
+  },
+  "post_verification": [
+    "check mount points: df -h",
+    "verify files are accessible",
+    "test file copy operations"
+  ],
+  "rollback": [
+    "unmount problematic mounts",
+    "restore from backup",
+    "remount with correct credentials"
+  ],
+  "notes": [
+    "must be done daily before 7am",
+    "backup essential before mounting",
+    "duplicate files not an issue (Trustlink checks duplicates)",
+    "critical for RTGS and Ewallet operations",
+    "coordinate with Treasury and Ewallet teams"
+  ]
+}

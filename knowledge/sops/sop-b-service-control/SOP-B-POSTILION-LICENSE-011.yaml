@@ -1,0 +1,58 @@
+id: SOP-B-011
+class: B
+title: Apply Postilion License
+severity: high
+
+services:
+  - postilion-license
+  - realtime-server
+  - office-server
+  - portal-server
+
+environments:
+  - TEST
+  - PROD
+  - DR
+
+aliases:
+  - "load Postilion license"
+  - "update license keys"
+  - "license renewal"
+
+pre_checks:
+  - "verify license file is correct for environment"
+  - "check current license expiry date"
+  - "confirm license keys received via email"
+  - "backup existing license file"
+
+procedure:
+  "Step 1: Postilion Realtime Servers (TEST 192.168.0.197, LIVE 192.168.0.91, DR 192.168.254.91)":
+    - "Rename existing license: postilion.lic to postilion.lic--DD.MM.YYYY"
+    - "Copy new .lic file to: C:\\Postilion\\real-time\\license"
+    - "Apply interchange/sink node license keys in Postilion Console"
+    - "Resync applications: ZIMSWITCH, IDC Node (eftcAFCIntellect)"
+    - "Restart services in order: Top 3 Panel, Sink Nodes"
+
+  "Step 2: Postilion Office (0.34) and Portal (0.225)":
+    - "Copy same .lic file to: C:\\Postilion\\real-time\\license"
+    - "Reboot Office server first"
+    - "Start services: Certificate Manager, Scheduler, Transaction Manager, Office Sentinel"
+    - "Reboot Portal server after Office is up"
+    - "Start Apache Tomcat 9.0 on Portal"
+
+post_verification:
+  - "verify new license expiry dates"
+  - "check transaction flow"
+  - "verify portal accessibility"
+
+rollback:
+  - "restore backup license file"
+  - "reboot servers"
+  - "contact Postilion support if issues"
+
+notes:
+  - "always load on TEST first and verify"
+  - "never include spaces when pasting license keys"
+  - "verify hostname matches license file"
+  - "Office server must reboot before Portal server"
+  - "coordinate with Zimswitch for interchange licenses"

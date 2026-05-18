@@ -1,0 +1,320 @@
+{
+  "id": "SOP-B-013",
+  "class_code": "B",
+  "title": "Mount RTGS and Ewallet Folders on Server 249",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "file-mounts",
+    "rtgs-file-transfer",
+    "ewallet-integration"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "mount RTGS folders",
+    "mount Ewallet shares",
+    "restore file shares on 249"
+  ],
+  "preconditions": [
+    {
+      "text": "backup existing folders on server 0.45",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check backup folder is empty on Linux server",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify network connectivity to server 0.45",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "check mount points: df -h",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify files are accessible",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "test file copy operations",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "PaymentsToSTPLink Mount: backup PaymentsToSTPLink folder on server 0.45 (compress/rename)",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: SSH to server 192.168.0.249",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: Navigate: cd /home/administrator/batch-files/rtgs/outward",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: Check backup folder: ls -1 backup/ | wc -l",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: If count not 0, delete files: rm backup/*",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: Move files to backup: mv toTrustLink/*.txt backup/",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: Mount outward folder: sudo mount -t cifs //192.168.0.45/PaymentsToSTPLink /home/administrator/batch-files/rtgs/outward/toTrustLink -o username=RTGS,password=*******",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "PaymentsToSTPLink Mount: If no files in toTrustLink, move from backup: mv backup/* toTrustLink/",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsFromSTPLink Mount: backup PaymentsFromSTPLink folder on server 0.45",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "PaymentsFromSTPLink Mount: Mount inward folder: sudo mount -t cifs //192.168.0.45/PaymentsFromSTPLink /home/administrator/batch-files/rtgs/inward/idc -o username=RTGS,password=*******",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Ewallet Mount: Mount Ewallet folder: sudo mount -t cifs //192.168.0.45/EwalletProd /home/administrator/batch-files/rtgs/inward/digipay/ -o username=RTGS,password=*******",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    }
+  ],
+  "rollback": [
+    {
+      "text": "unmount problematic mounts",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "restore from backup",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "remount with correct credentials",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "must be done daily before 7am",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "backup essential before mounting",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "duplicate files not an issue (Trustlink checks duplicates)",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "critical for RTGS and Ewallet operations",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "coordinate with Treasury and Ewallet teams",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "file-mounts",
+    "rtgs-file-transfer",
+    "ewallet-integration"
+  ],
+  "owners": [
+    "coordinate with Treasury and Ewallet teams",
+    "critical for RTGS and Ewallet operations"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "PaymentsToSTPLink Mount: SSH to server 192.168.0.249",
+      "source_section": "procedure",
+      "sequence": 2
+    },
+    {
+      "type": "sql",
+      "value": "PaymentsToSTPLink Mount: If count not 0, delete files: rm backup/*",
+      "source_section": "procedure",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.45",
+      "source_section": "procedure",
+      "sequence": 7
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.45",
+      "source_section": "procedure",
+      "sequence": 10
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.45",
+      "source_section": "procedure",
+      "sequence": 11
+    },
+    {
+      "type": "command",
+      "value": "check mount points: df -h",
+      "source_section": "post verification",
+      "sequence": 1
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.862143",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control\\SOP-B-RTGS-MOUNT-013.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-b-service-control",
+    "source_format": "yaml",
+    "source_hash": "bd6ffcb70098539a9f0301f2f9760b818b5d3bb2f479f70ec73343df03947db6",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.862143",
+    "normalized_at": "2026-05-15T07:25:53.862143"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "rollback"
+  ]
+}

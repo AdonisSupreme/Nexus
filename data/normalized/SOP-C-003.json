@@ -1,0 +1,362 @@
+{
+  "id": "SOP-C-003",
+  "class_code": "C",
+  "title": "Database Backup Procedures",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "oracle-database",
+    "sql-server",
+    "postgresql",
+    "backup-software"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Database backup management",
+    "Backup schedule execution",
+    "Database protection procedures",
+    "Backup verification"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Verify backup storage destinations have sufficient space",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm database connectivity",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ensure backup scripts are accessible and tested",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate schedule adherence for incremental and full backups",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "SSH to Oracle database server 192.168.81.2",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Enter Recovery Manager: rman target /",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Execute daily backup scripts",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Sunday (Level 0 - Full Weekly): run backup incremental level 0 cumulative database format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/db_%U.dbf'",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Sunday (Level 0 - Full Weekly): run backup archivelog all format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/arc_%U.arc' delete input",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "For Sunday (Level 0 - Full Weekly): run backup current controlfile for standby format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/standby.ctl'",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Monday-Saturday (Level 1 - Incremental): run CONFIGURE CHANNEL DEVICE TYPE DISK FORMAT '/LiveBackup/Backup/[DAY]_AFTEREOD_[DATE]/arc_%U.arc' delete input",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "For Monday-Saturday (Level 1 - Incremental): run BACKUP INCREMENTAL LEVEL 1 CUMULATIVE DATABASE",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check for \"Backup Complete\" message",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify folder structure: /LiveBackup/Backup/",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "List contents: ll or ls -ltr",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Exit RMAN",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Postilion SQL Backup: Automatic twice-daily backup for Realtime and Postcard databases",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Postilion SQL Backup: Store backups at G:\\BackUps",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Postilion SQL Backup: Compress .bak files to save space",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For Postilion SQL Backup: Move compressed files to removable media",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "For PostgreSQL Backup: Refer to AFC Backup Procedure Manual",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm backup file creation",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify backup integrity",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check backup destination space",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate restoration capability (periodic testing)",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "If backup fails: Investigate immediately, Check destination space availability, Verify database connectivity, Check RMAN script parameters, Escalate to DBA if unresolved",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Restore from previous backup if current backup fails",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Follow database restoration procedures",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Critical for business continuity",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Backup files must be compressed and moved to removable media",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular restoration testing required",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Document all backup activities and validations",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with DBA team for any issues",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "oracle-database",
+    "sql-server",
+    "postgresql",
+    "backup-software"
+  ],
+  "owners": [
+    "Coordinate with DBA team for any issues"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.81.2",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "SSH to Oracle database server 192.168.81.2",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "sql",
+      "value": "For Sunday (Level 0 - Full Weekly): run backup archivelog all format '/LiveBackup/Backup/AFTEREODFULLWEEKLY_260524/arc_%U.arc' delete input",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "sql",
+      "value": "For Monday-Saturday (Level 1 - Incremental): run CONFIGURE CHANNEL DEVICE TYPE DISK FORMAT '/LiveBackup/Backup/[DAY]_AFTEREOD_[DATE]/arc_%U.arc' delete input",
+      "source_section": "recommended actions",
+      "sequence": 7
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.946655",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-DB-BACKUP-003.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "719672582a1886a1c45b1fb683be2b7c394258553369cf6a7c0f050342ad2a6e",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.946655",
+    "normalized_at": "2026-05-15T07:25:53.946655"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

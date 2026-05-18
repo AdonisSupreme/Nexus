@@ -1,0 +1,356 @@
+{
+  "id": "SOP-C-002",
+  "class_code": "C",
+  "title": "Server Log and Space Management",
+  "severity": "medium",
+  "version": 1,
+  "services": [
+    "all-servers",
+    "log-management",
+    "disk-space-management",
+    "backup-systems"
+  ],
+  "environments": [
+    "PROD",
+    "DR",
+    "TEST"
+  ],
+  "aliases": [
+    "Log rotation management",
+    "Disk space cleanup",
+    "Server maintenance",
+    "Log file management"
+  ],
+  "preconditions": [
+    {
+      "text": "Verify backup systems are operational",
+      "sequence": 1,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm logs on tape are up-to-date before deletion",
+      "sequence": 2,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ensure server space metrics are available for monitoring",
+      "sequence": 3,
+      "source_section": "pre checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "symptoms": [],
+  "checks": [],
+  "verification_steps": [
+    {
+      "text": "Verify server space is below 90%",
+      "sequence": 1,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Confirm log rotation is working automatically",
+      "sequence": 2,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check backup systems have captured logs",
+      "sequence": 3,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate application functionality post-cleanup",
+      "sequence": 4,
+      "source_section": "post verification",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "actions": [
+    {
+      "text": "IDC Servers: Check server space: df -h",
+      "sequence": 1,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "IDC Servers: Locate logs in /rpool1",
+      "sequence": 2,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC Servers: Compress old logs and write to tape drive before deletion",
+      "sequence": 3,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC Servers: Monitor log growth patterns",
+      "sequence": 4,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "IDC Servers: Schedule regular log rotation",
+      "sequence": 5,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Check space: du -sh * and df -h",
+      "sequence": 6,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Stop PostgreSQL service",
+      "sequence": 7,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Delete nohup.out files in /srv and /root",
+      "sequence": 8,
+      "source_section": "procedure",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Set log retention periods: Notification service: /srv/afc/txn-messenger/txn-notification-service/etc/logback.xml (maxHistory 3 days)",
+      "sequence": 9,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Set log retention periods: Vendor service: /srv/afc/txn-vendor/txn-vendor-service/etc/logback.xml (maxHistory 3 days)",
+      "sequence": 10,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Restart services",
+      "sequence": 11,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile Banking Servers (0.249, 0.62): Verify automatic log maintenance",
+      "sequence": 12,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internet Banking Servers: Check audit log paths",
+      "sequence": 13,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internet Banking Servers: Move logs to tape drive (DBA responsibility)",
+      "sequence": 14,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internet Banking Servers: Ensure logs are written to tape before clearing",
+      "sequence": 15,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internet Banking Servers: Verify space restoration",
+      "sequence": 16,
+      "source_section": "procedure",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Never delete logs without backup verification",
+      "sequence": 17,
+      "source_section": "risk mitigation",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Maintain minimum 3 days of logs for troubleshooting",
+      "sequence": 18,
+      "source_section": "risk mitigation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Coordinate with DBA for tape backup verification",
+      "sequence": 19,
+      "source_section": "risk mitigation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Monitor space trends for proactive management",
+      "sequence": 20,
+      "source_section": "risk mitigation",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "rollback": [],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Log compression to tape drive must precede deletion",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Mobile banking servers: check both 0.249 (ATE) and 0.62 (Billers)",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Internet banking logs require DBA coordination for tape backup",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular monitoring prevents emergency space crises",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Always follow organizational data retention policies",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "all-servers",
+    "log-management",
+    "disk-space-management",
+    "backup-systems"
+  ],
+  "owners": [
+    "Internet banking logs require DBA coordination for tape backup"
+  ],
+  "artifacts": [
+    {
+      "type": "command",
+      "value": "IDC Servers: Check server space: df -h",
+      "source_section": "procedure",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "Mobile Banking Servers (0.249, 0.62): Check space: du -sh * and df -h",
+      "source_section": "procedure",
+      "sequence": 6
+    },
+    {
+      "type": "sql",
+      "value": "Mobile Banking Servers (0.249, 0.62): Delete nohup.out files in /srv and /root",
+      "source_section": "procedure",
+      "sequence": 8
+    },
+    {
+      "type": "sql",
+      "value": "Never delete logs without backup verification",
+      "source_section": "risk mitigation",
+      "sequence": 17
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.067960",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management\\SOP-C-LOG-SPACE-002.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-c-environment-management",
+    "source_format": "yaml",
+    "source_hash": "fa9b5e37e72b67fa662f151510b3646b4f159f57e74c74a513dda80d2fb3c22c",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.067960",
+    "normalized_at": "2026-05-15T07:25:54.067960"
+  },
+  "source_sections": [
+    "notes",
+    "post verification",
+    "pre checks",
+    "procedure",
+    "risk mitigation"
+  ]
+}

@@ -1,0 +1,91 @@
+SOP-E-TREASURY-EOD-003:
+  id: SOP-E-TREASURY-EOD-003
+  class: SOP-E
+  title: Verify Treasury EOD Completion Status
+  severity: High
+  services:
+    - treasury-application
+    - batch-processing
+    - eod-jobs
+    - financial-date-management
+  environments:
+    - PROD
+  aliases:
+    - Check Treasury end-of-day status
+    - Verify EOD job completion
+    - Treasury batch processing health
+    - Financial date advancement check
+
+  completion_verification:
+    steps:
+      - login_application: "Login to Treasury application"
+      - navigate_batch_eod: "Navigate to Batch EOD → Jobs tab"
+      - check_job_status:
+          description: "Verify each EOD job status and exit code"
+          expected: "Status = 'Completed', No FAILED jobs"
+
+  log_verification:
+    steps:
+      - access_job_logs: "Access job instance logs"
+      - select_job: "Click on Job Name (e.g., TREASURY_EOD)"
+      - review_execution_log: "Verify no error messages, check timestamps"
+
+  system_date_verification:
+    steps:
+      - relogin: "Logout and login again to Treasury"
+      - verify_business_date: "Check new business date is correct"
+      - confirm_calendar_consistency: "Confirm date consistency with financial calendar"
+
+  error_checking:
+    steps:
+      - check_failed_jobs: "If any job failed, review exception messages and parameters"
+      - verify_branch_parameter: "Confirm [BRANCH=1] parameter is set correctly"
+
+  dependency_verification:
+    steps:
+      - verify_interfaces: "All interface services running"
+      - check_db_connectivity: "Database connectivity verified"
+      - validate_file_system: "File system access confirmed"
+      - check_blocking_processes: "No blocking processes"
+
+  scheduled_verification_time:
+    - "Immediately after EOD initiation"
+    - "Every 30 minutes during EOD processing"
+    - "Final verification after expected completion time"
+    - "Morning following EOD execution"
+
+  completion_criteria:
+    SUCCESSFUL:
+      description: "All EOD jobs completed successfully, system date advanced, no errors, reports generated"
+    COMPLETED_WITH_WARNINGS:
+      description: "EOD completed with non-critical warnings, system date advanced, some job warnings"
+    FAILED:
+      description: "One or more critical jobs failed, system date not advanced, manual intervention required"
+
+  post_completion_checks:
+    steps:
+      - verify_reports: "Check Treasury reports availability"
+      - validate_interface_files: "Confirm interface file generation"
+      - confirm_data_consistency: "Validate data consistency"
+      - backup_verification: "Confirm backup completion"
+
+  escalation_procedure:
+    immediate: "Check job parameters and logs"
+    within_15_minutes: "Contact IDC support team"
+    within_30_minutes: "Escalate to Treasury department"
+    within_60_minutes: "Notify Head ICT"
+
+  documentation_requirements:
+    items:
+      - eod_start_time
+      - eod_completion_time
+      - job_status_summary
+      - errors_or_warnings
+      - system_date_before_after
+      - verification_personnel
+
+  notes:
+    - "Must run daily including weekends and holidays"
+    - "Must complete before IDC EOD"
+    - "Never skip Treasury EOD without IDC Support Team authorization"
+    - "Critical for financial date management"

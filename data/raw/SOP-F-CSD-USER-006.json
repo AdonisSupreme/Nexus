@@ -1,0 +1,83 @@
+{
+  "id": "SOP-F-006",
+  "class": "F",
+  "title": "CSD RTGS User Administration",
+  "severity": "high",
+  "services": [
+    "csd-rtgs-system",
+    "reserve-bank-interfaces",
+    "national-payment-system",
+    "financial-settlement"
+  ],
+  "environments": [
+    "PROD",
+    "TEST"
+  ],
+  "aliases": [
+    "CSD RTGS user management",
+    "RTGS user administration",
+    "Reserve Bank user controls",
+    "NPSD user administration"
+  ],
+  "checks": [
+    "Verify administrator scope is internal ICT only",
+    "Confirm administrator permissions limited to password reset only",
+    "Validate administrator restrictions: cannot create users, modify roles, change permissions",
+    "Check external authority is Reserve Bank of Zimbabwe (RBZ) NPSD team",
+    "Confirm business owner is Treasury Department",
+    "Verify auditors are Internal Audit and RBZ"
+  ],
+  "recommended_actions": [
+    "System access VPN URL: https://172.31.254.2/+CSCOE+/logon.html",
+    "Login credentials: Username: AGRIBANKzetss, Password: Cr0s$0v3R@RbZ",
+    "Select environment: LIVE or TEST",
+    "Administrator allowed actions: Reset user password only",
+    "Administrator prohibited actions: Create user, delete user, modify roles, change permissions",
+    "Escalation required for: Access changes, role updates, new user requests",
+    "Password reset procedure: Login to system",
+    "Password reset: Navigate to 'Access Control → Define Users'",
+    "Password reset: Search user by username",
+    "Password reset: Select user",
+    "If user blocked: Unblock user and enter reason",
+    "If profile blocked: Unblock profile and enter reason",
+    "Password reset: Enter new password",
+    "Communicate password securely to user",
+    "User communication: Share password securely",
+    "User communication: Instruct user to change password on first login",
+    "User communication: Confirm successful login",
+    "User communication: Record confirmation",
+    "Downtime escalation immediate: Verify VPN connectivity",
+    "Downtime escalation at 15 minutes: Verify credentials",
+    "Downtime escalation at 30 minutes: Contact RBZ NPSD at npsd@rbz.co.zw",
+    "Downtime escalation at 60 minutes: Escalate to Treasury management",
+    "Verification: Check user can login",
+    "Verification: Confirm system access restored",
+    "Verification: Verify no unauthorized changes",
+    "Verification: Generate audit log"
+  ],
+  "notes": [
+    "Operational context: Critical national infrastructure",
+    "Operational context: Limited internal control",
+    "Operational context: High risk system",
+    "Dependencies: RBZ NPSD team control",
+    "Governance: Regular coordination with RBZ required",
+    "Escalation path: Level 1: System Administrator (password reset only)",
+    "Escalation path: Level 2: RBZ NPSD Team (all access and role changes)",
+    "Escalation path: Level 3: Treasury Management (business impact)",
+    "Escalation path: Level 4: Head ICT (system or security issues)",
+    "Security controls: Least privilege administration",
+    "Security controls: RBZ controlled access management",
+    "Security controls: Secure password distribution",
+    "Security controls: Mandatory audit trails",
+    "Security controls: External authority dependency",
+    "Documentation artifacts: Password reset logs",
+    "Documentation artifacts: RBZ communication records",
+    "Documentation artifacts: User confirmation records",
+    "Documentation artifacts: Downtime incident reports",
+    "Documentation artifacts: Audit compliance evidence",
+    "Compliance standards: RBZ regulatory requirements",
+    "Compliance standards: National payment system standards",
+    "Compliance standards: Access control policies",
+    "Compliance standards: Security audit compliance"
+  ]
+}

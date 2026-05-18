@@ -1,0 +1,44 @@
+id: SOP-A-004
+class: A
+title: Notification queue backlog
+severity: medium
+
+services:
+  - notification-service
+  - message-queue
+
+environments:
+  - PROD
+  - DR
+
+aliases:
+  - notifications delayed
+  - sms backlog
+  - messages not sending
+
+symptoms:
+  - delayed sms or push notifications
+  - increasing message queue depth
+  - no immediate delivery failures reported
+
+checks:
+  - inspect message queue depth
+  - verify notification-service resource usage
+  - confirm downstream gateways are reachable
+
+likely_causes:
+  - temporary spike in message volume
+  - degraded downstream gateway performance
+  - notification-service resource exhaustion
+
+recommended_actions:
+  - monitor queue trend before taking action.
+  - follow SOP-B for controlled restart if backlog grows.
+  - coordinate with downstream providers if delays persist.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - avoid unnecessary restarts for transient spikes
+  - this SOP is often a precursor to OTP failures

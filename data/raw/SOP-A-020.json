@@ -1,0 +1,57 @@
+{
+  "id": "SOP-A-020",
+  "class": "A",
+  "title": "Branch POS Portal Down",
+  "severity": "medium",
+  "services": [
+    "branchpos-api",
+    "branchpos-portal",
+    "mysql-database",
+    "mssql-server",
+    "apache-web-server"
+  ],
+  "environments": [
+    "PROD"
+  ],
+  "aliases": [
+    "teller login failing",
+    "branch POS offline",
+    "PIN reset unavailable",
+    "teller management down"
+  ],
+  "symptoms": [
+    "branch POS API (0.9:1212) unavailable",
+    "branch POS Portal (0.68:9002) inaccessible",
+    "teller login failures",
+    "PIN reset functionality unavailable"
+  ],
+  "checks": [
+    "verify XAMPP services on server 0.9 (API) and 0.68 (Portal)",
+    "check MSSQL Server running",
+    "verify API on port 1212",
+    "verify Portal on port 9002",
+    "check service dependencies"
+  ],
+  "likely_causes": [
+    "XAMPP services stopped",
+    "MSSQL Server not running",
+    "API service down",
+    "Portal service down",
+    "service start order incorrect"
+  ],
+  "recommended_actions": [
+    "start XAMPP services on both servers.",
+    "start MSSQL Server (after XAMPP).",
+    "verify API and Portal accessibility.",
+    "check error logs for specific issues.",
+    "restart services in correct order."
+  ],
+  "rollback": [
+    "none (incident response guidance only)"
+  ],
+  "notes": [
+    "XAMPP must start before MSSQL Server",
+    "Portal depends on API service",
+    "critical for branch teller operations"
+  ]
+}

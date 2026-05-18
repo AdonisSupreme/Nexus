@@ -1,0 +1,331 @@
+{
+  "id": "SOP-A-001",
+  "class_code": "A",
+  "title": "USSD OTP Not Delivered",
+  "severity": "high",
+  "version": 1,
+  "services": [
+    "ussd-service",
+    "notification-service",
+    "sms-gateway",
+    "cnm-service"
+  ],
+  "environments": [
+    "PROD",
+    "DR"
+  ],
+  "aliases": [
+    "otp not coming",
+    "ussd otp failure",
+    "confirmation sms missing",
+    "customers not receiving otp",
+    "otp not delivered"
+  ],
+  "preconditions": [],
+  "symptoms": [
+    {
+      "text": "users do not receive otp during ussd transactions",
+      "sequence": 1,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "ussd sessions complete without confirmation",
+      "sequence": 2,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "delayed or missing sms notifications",
+      "sequence": 3,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "customer complaints related to otp delivery",
+      "sequence": 4,
+      "source_section": "symptoms",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "checks": [
+    {
+      "text": "verify sms gateway reachability",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "check notification-service queue depth on server 192.168.0.249",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command",
+        "ip_address"
+      ]
+    },
+    {
+      "text": "confirm ussd-service is reachable",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "inspect recent notification error logs at /srv/log/ate/txn-messenger/txn-notification-service",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "verify cnm (communication network manager) is processing otp requests",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "check message queue status on server 192.168.0.249 using the ate script (main.sh option 2)",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "if the queue is blocked or not processing, follow the relevant sop-b procedure for notification-service restart",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "verify cnm service status and confirm it is actively processing otp requests",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "escalate to the sms gateway provider if the gateway is unreachable or responding with errors",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "none (incident response guidance only)",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "sms gateway outage or increased latency",
+      "sequence": 1,
+      "source_section": "likely causes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "notification-service message queue backlog",
+      "sequence": 2,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "ussd-service connectivity degradation",
+      "sequence": 3,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "queue processing stopped or stalled on server 192.168.0.249",
+      "sequence": 4,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "cnm service not processing or forwarding otp messages",
+      "sequence": 5,
+      "source_section": "likely causes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "avoid service restarts during peak transaction windows unless explicit approval is granted",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "always confirm the target environment (prod or dr) before performing any checks or actions",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "if the issue appears replicated, verify otp delivery behavior in both prod and dr environments",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "ussd-service",
+    "notification-service",
+    "sms-gateway",
+    "cnm-service"
+  ],
+  "owners": [],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "checks",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "check notification-service queue depth on server 192.168.0.249",
+      "source_section": "checks",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "confirm ussd-service is reachable",
+      "source_section": "checks",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "notification-service message queue backlog",
+      "source_section": "likely causes",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "ussd-service connectivity degradation",
+      "source_section": "likely causes",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "likely causes",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "cnm service not processing or forwarding otp messages",
+      "source_section": "likely causes",
+      "sequence": 5
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.0.249",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "command",
+      "value": "if the queue is blocked or not processing, follow the relevant sop-b procedure for notification-service restart",
+      "source_section": "recommended actions",
+      "sequence": 2
+    },
+    {
+      "type": "command",
+      "value": "verify cnm service status and confirm it is actively processing otp requests",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "command",
+      "value": "avoid service restarts during peak transaction windows unless explicit approval is granted",
+      "source_section": "notes",
+      "sequence": 6
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:53.311185",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response\\SOP-A-USSD-OTP-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-a-incident-response",
+    "source_format": "yaml",
+    "source_hash": "dc048c82b62f298dbba3b77bae6c2a6770f851a6cf009bb8a22beefb68614d4c",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:53.311185",
+    "normalized_at": "2026-05-15T07:25:53.311185"
+  },
+  "source_sections": [
+    "checks",
+    "likely causes",
+    "notes",
+    "recommended actions",
+    "rollback",
+    "symptoms"
+  ]
+}

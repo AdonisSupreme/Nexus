@@ -1,0 +1,54 @@
+id: SOP-A-018
+class: A
+title: FlexiXpress Services Down
+severity: medium
+
+services:
+  - flexixpress-application
+  - mysql-database
+  - apache-web-server
+  - queue-processing
+
+environments:
+  - PROD
+
+aliases:
+  - send to cell service down
+  - cash in/cash out failing
+  - flexixpress portal unavailable
+  - transaction queue stuck
+
+symptoms:
+  - flexixpress portal (192.168.0.241:8090) unavailable
+  - Send to Cell transactions failing
+  - Cash In/Cash Out services offline
+  - queue processing stopped
+
+checks:
+  - verify XAMPP services on server 0.42 (Apache & MySQL)
+  - check application running on port 8090
+  - verify queue processing active (php artisan queue:work)
+  - check server date/time synchronization
+  - review Event Viewer for errors
+
+likely_causes:
+  - XAMPP services stopped
+  - queue processing stopped
+  - server date/time incorrect
+  - application errors
+  - space issues
+
+recommended_actions:
+  - start XAMPP services (Apache & MySQL).
+  - start queue processing (maximum 2 sessions).
+  - verify server date/time.
+  - check application logs.
+  - restart services if needed.
+
+rollback:
+  - none (incident response guidance only)
+
+notes:
+  - queue processing requires exactly 2 terminal sessions
+  - server date/time critical for transaction processing
+  - check Event Viewer for specific errors

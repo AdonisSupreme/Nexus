@@ -1,0 +1,966 @@
+{
+  "id": "SOP-D-001",
+  "class_code": "D",
+  "title": "Complete DR Environment Switchover",
+  "severity": "critical",
+  "version": 1,
+  "services": [
+    "all-application-servers",
+    "oracle-database",
+    "authentication-services",
+    "core-banking-system"
+  ],
+  "environments": [
+    "PROD → DR"
+  ],
+  "aliases": [
+    "Full DR activation",
+    "Disaster recovery failover",
+    "Complete environment switch",
+    "Business continuity activation"
+  ],
+  "preconditions": [],
+  "symptoms": [],
+  "checks": [
+    {
+      "text": "Confirm PROD services backup and synchronization",
+      "sequence": 1,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Validate DR servers are powered on and accessible",
+      "sequence": 2,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Check database replication status between PROD and DR",
+      "sequence": 3,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Verify network connectivity between DR components",
+      "sequence": 4,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Ensure pre-switchover configuration backups exist",
+      "sequence": 5,
+      "source_section": "checks",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "verification_steps": [],
+  "actions": [
+    {
+      "text": "LIVE DR environment mapping: Application servers: 192.168.254.93 (ACOB, CBXR-BO, CBXR-FO, core, MICRO), 192.168.254.94 (ALM, arx, Collect, lending, LENDMICRO, RLO, TRY), 192.168.254.95 (CAE, DCOF)",
+      "sequence": 1,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "LIVE DR environment mapping: Database server: hostname: 192.168.240.2, port: 1521, sid: idcdblive",
+      "sequence": 2,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "LIVE DR environment mapping: DR access URL: https://cbxtre-applive01-dr.afcholdings.co.zw:8085/ARXSSO/",
+      "sequence": 3,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "url"
+      ]
+    },
+    {
+      "text": "UAT DR environment mapping: Application servers: 192.168.254.193, 192.168.254.194, 192.168.254.195",
+      "sequence": 4,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "UAT DR environment mapping: Database server: hostname: 192.168.240.102, port: 1521, sid: idcdbuat",
+      "sequence": 5,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "UAT DR environment mapping: DR access URL: https://cbxtre-uatdr.example.com:8085/ARXSSO/",
+      "sequence": 6,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "url"
+      ]
+    },
+    {
+      "text": "Phase 1: Update ARX URLs and branch environment for DR in ARX Database",
+      "sequence": 7,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE ID IN(22,42,62,142,144,146,225,227,229,231,233,307,267); COMMIT;",
+      "sequence": 8,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'idcapplive01-dr') WHERE ID IN(82,102,122,162,287); COMMIT;",
+      "sequence": 9,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'interfacelive01-dr') WHERE ID = 182; COMMIT;",
+      "sequence": 10,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = '192.168.240.2' WHERE ID IN(108,280); COMMIT;",
+      "sequence": 11,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = 'idcdblive' WHERE ID IN(1004,1009,1022); COMMIT;",
+      "sequence": 12,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 2: Update DCOF system properties for DR in DCOF Database",
+      "sequence": 13,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 2 SQL: UPDATE dcprop SET dcprop_console1 = '8398', dcprop_console2 = '8398'; COMMIT;",
+      "sequence": 14,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 2 SQL: UPDATE dcprop SET dcprop_ip1 = '192.168.254.95', dcprop_ip2 = '192.168.254.95' WHERE dcprop_ip1 = '192.168.1.112' AND dcprop_ip2 = '192.168.1.113'; COMMIT;",
+      "sequence": 15,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3: Update IDC endpoints, EOD, external programs, and OpenAPI URLs in IDC Database",
+      "sequence": 16,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE eftep_endpt_url LIKE '%intellectinterfacelv01%'; COMMIT;",
+      "sequence": 17,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, '192.168.1.110', '192.168.254.94') WHERE eftep_endpt_url LIKE '%192.168.1.110%'; COMMIT;",
+      "sequence": 18,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE eodsysconfig SET eodsyscnf_eod_trig_end_url = REPLACE(eodsyscnf_eod_trig_end_url, '192.168.1.110', '192.168.254.94') WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.1.110%'; COMMIT;",
+      "sequence": 19,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE extsyspgms_url LIKE '%afcconnect-lbm%'; COMMIT;",
+      "sequence": 20,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE extsyspgms_url LIKE '%intellectinterfacelv01%'; COMMIT;",
+      "sequence": 21,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 3 SQL: UPDATE procctlopenapi SET openapi_url = REPLACE(openapi_url, '192.168.1.108', '192.168.254.93') WHERE openapi_url LIKE '%192.168.1.108%'; COMMIT;",
+      "sequence": 22,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address",
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 4: Start DR services in dependency order",
+      "sequence": 23,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 4: Start database services on target server 192.168.240.2",
+      "sequence": 24,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Phase 4: Start application servers in sequence: 192.168.254.94 (Authentication & core first), then 192.168.254.93 (IDC core banking), then 192.168.254.95 (CAE & DCOF)",
+      "sequence": 25,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "ip_address"
+      ]
+    },
+    {
+      "text": "Phase 4 verification: Check service startup logs",
+      "sequence": 26,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Phase 4 verification: Test connectivity between components",
+      "sequence": 27,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: End-to-end testing of DR environment",
+      "sequence": 28,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Test ARX login functionality",
+      "sequence": 29,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Validate IDC core banking operations",
+      "sequence": 30,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Test Treasury operations",
+      "sequence": 31,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Verify lending and collection services",
+      "sequence": 32,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Check DCOF and CAE services",
+      "sequence": 33,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Validate interfaces: ZIMRA, RTGS, other integrations",
+      "sequence": 34,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 5: Test end-to-end transactions",
+      "sequence": 35,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 6: Update DNS and communicate DR access",
+      "sequence": 36,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 6: Update DNS records to point to DR",
+      "sequence": 37,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 6: Communicate new access URLs to users",
+      "sequence": 38,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Phase 6: Update branch configurations if required",
+      "sequence": 39,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Phase 6: Monitor connectivity issues",
+      "sequence": 40,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Record all executed SQL commands and results",
+      "sequence": 41,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Document service startup times and issues",
+      "sequence": 42,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Documentation: Record validation test results",
+      "sequence": 43,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Documentation: Update DR runbook with lessons learned",
+      "sequence": 44,
+      "source_section": "recommended actions",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Documentation: Maintain communication log with stakeholders",
+      "sequence": 45,
+      "source_section": "recommended actions",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "rollback": [
+    {
+      "text": "Restore database from backup",
+      "sequence": 1,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Revert configuration changes made during switchover",
+      "sequence": 2,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Restart PROD services",
+      "sequence": 3,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Update DNS back to PROD endpoints",
+      "sequence": 4,
+      "source_section": "rollback",
+      "atomic": true,
+      "safety_critical": true,
+      "markers": [
+        "sql"
+      ]
+    },
+    {
+      "text": "Validate PROD functionality after rollback",
+      "sequence": 5,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Document rollback process and results",
+      "sequence": 6,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    },
+    {
+      "text": "Conduct post-rollback review",
+      "sequence": 7,
+      "source_section": "rollback",
+      "atomic": false,
+      "safety_critical": true,
+      "markers": []
+    }
+  ],
+  "escalation": [],
+  "notes": [
+    {
+      "text": "Complete environment switchover, not incremental",
+      "sequence": 1,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Requires multi-team coordination across departments",
+      "sequence": 2,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Database updates are critical and must be verified",
+      "sequence": 3,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Thorough validation required before declaring DR operational",
+      "sequence": 4,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Regular DR drills recommended to maintain readiness",
+      "sequence": 5,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Critical timing requirements: Database updates must be atomic",
+      "sequence": 6,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    },
+    {
+      "text": "Service activation must follow dependency order",
+      "sequence": 7,
+      "source_section": "notes",
+      "atomic": true,
+      "safety_critical": false,
+      "markers": [
+        "command"
+      ]
+    },
+    {
+      "text": "Validation must be comprehensive before user access",
+      "sequence": 8,
+      "source_section": "notes",
+      "atomic": false,
+      "safety_critical": false,
+      "markers": []
+    }
+  ],
+  "systems": [
+    "all-application-servers",
+    "oracle-database",
+    "authentication-services",
+    "core-banking-system"
+  ],
+  "owners": [
+    "Requires multi-team coordination across departments"
+  ],
+  "artifacts": [
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 1
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 2
+    },
+    {
+      "type": "url",
+      "value": "https://cbxtre-applive01-dr.afcholdings.co.zw:8085/ARXSSO/",
+      "source_section": "recommended actions",
+      "sequence": 3
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.193",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.194",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.195",
+      "source_section": "recommended actions",
+      "sequence": 4
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.102",
+      "source_section": "recommended actions",
+      "sequence": 5
+    },
+    {
+      "type": "url",
+      "value": "https://cbxtre-uatdr.example.com:8085/ARXSSO/",
+      "source_section": "recommended actions",
+      "sequence": 6
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1: Update ARX URLs and branch environment for DR in ARX Database",
+      "source_section": "recommended actions",
+      "sequence": 7
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE ID IN(22,42,62,142,144,146,225,227,229,231,233,307,267); COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 8
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'idcapplive01-dr') WHERE ID IN(82,102,122,162,287); COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 9
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1 SQL: UPDATE tb_arm_web_app SET URL = REPLACE(URL, 'afcconnect-lbm', 'interfacelive01-dr') WHERE ID = 182; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 10
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 11
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = '192.168.240.2' WHERE ID IN(108,280); COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 11
+    },
+    {
+      "type": "sql",
+      "value": "Phase 1 SQL: UPDATE tb_arm_branch_env SET attrib_value = 'idcdblive' WHERE ID IN(1004,1009,1022); COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 12
+    },
+    {
+      "type": "sql",
+      "value": "Phase 2: Update DCOF system properties for DR in DCOF Database",
+      "source_section": "recommended actions",
+      "sequence": 13
+    },
+    {
+      "type": "sql",
+      "value": "Phase 2 SQL: UPDATE dcprop SET dcprop_console1 = '8398', dcprop_console2 = '8398'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 14
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.112",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.113",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "sql",
+      "value": "Phase 2 SQL: UPDATE dcprop SET dcprop_ip1 = '192.168.254.95', dcprop_ip2 = '192.168.254.95' WHERE dcprop_ip1 = '192.168.1.112' AND dcprop_ip2 = '192.168.1.113'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 15
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3: Update IDC endpoints, EOD, external programs, and OpenAPI URLs in IDC Database",
+      "source_section": "recommended actions",
+      "sequence": 16
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE eftep_endpt_url LIKE '%intellectinterfacelv01%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 17
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE eftendptm SET eftep_endpt_url = REPLACE(eftep_endpt_url, '192.168.1.110', '192.168.254.94') WHERE eftep_endpt_url LIKE '%192.168.1.110%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 18
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "recommended actions",
+      "sequence": 19
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 19
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.110",
+      "source_section": "recommended actions",
+      "sequence": 19
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE eodsysconfig SET eodsyscnf_eod_trig_end_url = REPLACE(eodsyscnf_eod_trig_end_url, '192.168.1.110', '192.168.254.94') WHERE eodsyscnf_eod_trig_end_url LIKE '%192.168.1.110%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 19
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'afcconnect-lbm', 'cbxtre-applive01-dr') WHERE extsyspgms_url LIKE '%afcconnect-lbm%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 20
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE extsyspgms SET extsyspgms_url = REPLACE(extsyspgms_url, 'intellectinterfacelv01', 'interfacelive01-dr') WHERE extsyspgms_url LIKE '%intellectinterfacelv01%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 21
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.108",
+      "source_section": "recommended actions",
+      "sequence": 22
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 22
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.1.108",
+      "source_section": "recommended actions",
+      "sequence": 22
+    },
+    {
+      "type": "sql",
+      "value": "Phase 3 SQL: UPDATE procctlopenapi SET openapi_url = REPLACE(openapi_url, '192.168.1.108', '192.168.254.93') WHERE openapi_url LIKE '%192.168.1.108%'; COMMIT;",
+      "source_section": "recommended actions",
+      "sequence": 22
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.240.2",
+      "source_section": "recommended actions",
+      "sequence": 24
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.94",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.93",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "ip_address",
+      "value": "192.168.254.95",
+      "source_section": "recommended actions",
+      "sequence": 25
+    },
+    {
+      "type": "command",
+      "value": "Phase 4 verification: Check service startup logs",
+      "source_section": "recommended actions",
+      "sequence": 26
+    },
+    {
+      "type": "sql",
+      "value": "Phase 6: Update DNS and communicate DR access",
+      "source_section": "recommended actions",
+      "sequence": 36
+    },
+    {
+      "type": "sql",
+      "value": "Phase 6: Update DNS records to point to DR",
+      "source_section": "recommended actions",
+      "sequence": 37
+    },
+    {
+      "type": "sql",
+      "value": "Phase 6: Update branch configurations if required",
+      "source_section": "recommended actions",
+      "sequence": 39
+    },
+    {
+      "type": "command",
+      "value": "Documentation: Document service startup times and issues",
+      "source_section": "recommended actions",
+      "sequence": 42
+    },
+    {
+      "type": "sql",
+      "value": "Documentation: Update DR runbook with lessons learned",
+      "source_section": "recommended actions",
+      "sequence": 44
+    },
+    {
+      "type": "sql",
+      "value": "Update DNS back to PROD endpoints",
+      "source_section": "rollback",
+      "sequence": 4
+    },
+    {
+      "type": "command",
+      "value": "Service activation must follow dependency order",
+      "source_section": "notes",
+      "sequence": 7
+    }
+  ],
+  "alignment_status": [
+    "verified_from_corpus",
+    "pending_manual_reconciliation"
+  ],
+  "last_verified_at": "2026-05-15T07:25:54.290530",
+  "provenance": {
+    "source_path": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery\\SOP-D-DR-COMPLETE-SO-001.yaml",
+    "source_directory": "C:\\Users\\ashumba\\Documents\\Sentinel\\sentinelops-ai\\knowledge\\sops\\sop-d-disaster-recovery",
+    "source_format": "yaml",
+    "source_hash": "bb332989ef3dcb2338dfd42812a113ab549773d36fb1394a1f404f431a89cef8",
+    "wrapper_key": null,
+    "ingested_at": "2026-05-15T07:25:54.290530",
+    "normalized_at": "2026-05-15T07:25:54.290530"
+  },
+  "source_sections": [
+    "checks",
+    "notes",
+    "recommended actions",
+    "rollback"
+  ]
+}

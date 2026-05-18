@@ -1,0 +1,95 @@
+id: SOP-F-002
+class: F
+title: Postilion Portal User Account Management
+severity: medium
+
+services:
+  - postilion-portal
+  - card-management-system
+  - transaction-monitoring
+  - user-access-control
+
+environments:
+  - PROD
+  - TEST
+
+aliases:
+  - Postilion user administration
+  - Card management system user setup
+  - Portal user account management
+  - Transaction monitoring user access
+
+checks:
+  - "Verify ICT Operations Staff with Postilion admin rights available"
+  - "Confirm Line Management approver available via User Access Form"
+  - "Validate Card Operations Manager as business owner"
+  - "Check Internal Audit available for periodic access review"
+  - "Confirm completed User Access Form approved by Line Management"
+  - "Verify role requirements defined and validated"
+  - "Validate business owner approval obtained"
+
+recommended_actions:
+  - "Portal access URL: http://192.168.0.225:8080/portal/Login.faces (case-sensitive)"
+  - "Requirements: Admin credentials required"
+  - "User creation: Login to Postilion Portal as Administrator"
+  - "User creation: Navigate to: Employees → Add an Employee"
+  - "User creation: Capture personal details as per User Access Form"
+  - "User creation: Click Save"
+  - "User creation: Select Enrol Portal Access"
+  - "User creation: Create username using convention: <first_letter_of_first_name><surname> (e.g., MMoyo)"
+  - "User creation: Set temporary password"
+  - "User creation: Click Enroll"
+  - "User creation: Navigate to: Roles and Permissions → Manage Roles"
+  - "User creation: Assign approved role"
+  - "User creation: Click Save"
+  - "Role assignment rules: Contact Centre access level: Transaction viewing only"
+  - "Role assignment rules: Administrator access level: Full system access"
+  - "Role assignment rules: Supervisor access level: Approval and supervisory rights"
+  - "Role assignment rules: Reports Only access level: Read-only reporting access"
+  - "Password reset: Login to Postilion Portal as Administrator"
+  - "Password reset: Navigate to: Employees → Find an Employee"
+  - "Password reset: Search user by name"
+  - "Password reset: Select user → Access tab"
+  - "Password reset: Click Reset Portal Password"
+  - "Password reset: Set temporary password"
+  - "Password reset: Confirm user is forced to change password on first login"
+  - "Account unlocking: Navigate to: Employees → Find an Employee"
+  - "Account unlocking: Select user → Access tab"
+  - "Account unlocking: Click Portal Unlock"
+  - "Account unlocking: Confirm user can log in with existing password"
+  - "Account disable/block: Navigate to: Employees → Find an Employee"
+  - "Account disable/block: Select user"
+  - "Account disable/block: Click Disable User or Disable Portal Access"
+  - "Account deletion: Navigate to: Employees → Find an Employee"
+  - "Account deletion: Select checkbox next to user"
+  - "Account deletion: Click Delete"
+  - "Account deletion: Confirm deletion"
+  - "Verification: User can log in with temporary credentials"
+  - "Verification: Forced password change occurs on first login"
+  - "Verification: Assigned roles enforce correct permissions"
+  - "Verification: Audit trail entries recorded for access actions"
+
+notes:
+  - "Username format: First letter of first name + Surname"
+  - "Assigned roles must align strictly with job responsibilities"
+  - "Account disabling is preferred over deletion for auditability"
+  - "Regular review of active portal users is mandatory"
+  - "Temporary passwords should follow complexity requirements"
+  - "Security controls: Unique username convention enforced"
+  - "Security controls: Temporary passwords with mandatory change on first login"
+  - "Security controls: Role-based access control (RBAC)"
+  - "Security controls: Account lockout after repeated failed login attempts"
+  - "Security controls: Periodic access reviews conducted"
+  - "Escalation path Level 1: ICT Operations (routine user administration)"
+  - "Escalation path Level 2: Card Operations Team (role and access validation)"
+  - "Escalation path Level 3: Head ICT (policy or exception handling)"
+  - "Escalation path Level 4: Internal Audit (compliance and audit findings)"
+  - "Documentation: Approved User Access Form"
+  - "Documentation: Role assignment records"
+  - "Documentation: Password reset logs"
+  - "Documentation: Account enable/disable history"
+  - "Documentation: User deletion audit trail"
+  - "Compliance requirements: PCI-DSS compliance for card data access"
+  - "Compliance requirements: Segregation of duties enforced"
+  - "Compliance requirements: Regular user access reviews"
+  - "Compliance requirements: Complete and immutable audit trail maintained"
