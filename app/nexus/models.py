@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 Severity = Literal["INFO", "WARN", "CRITICAL"]
 SignalType = Literal["metric", "log", "trace", "alert", "change", "synthetic", "operator"]
-IncidentStatus = Literal["OPEN", "MONITORING", "RESOLVED"]
+IncidentStatus = Literal["OPEN", "MONITORING", "AWAITING_VERDICT", "RESOLVED"]
 RiskLevel = Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 RecommendationType = Literal["request_diagnostics", "create_response_task", "safe_restart"]
 RecommendationStatus = Literal["recommended", "requested", "approved", "rejected", "blocked", "completed"]
@@ -29,6 +29,57 @@ DiagnosticStatus = Literal["READY", "IN_PROGRESS", "COMPLETED"]
 FeedbackType = Literal["acknowledged", "verdict", "suppression", "root_cause_override"]
 CertificationStage = Literal["catalog_only", "observe_only", "correlate_ready", "diagnostics_ready", "restart_ready"]
 SyncHealth = Literal["idle", "success", "warning", "error"]
+ManagedSopStatus = Literal["draft", "needs_review", "approved", "deprecated"]
+
+
+class ManagedSopValidation(BaseModel):
+    valid: bool = False
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    checked_at: datetime | None = None
+    checked_by: str | None = None
+
+
+class ManagedSop(BaseModel):
+    sop_id: str
+    title: str
+    class_code: str = "A"
+    severity: str = "medium"
+    status: ManagedSopStatus = "draft"
+    version: int = 1
+    owner_team: str | None = None
+    services: list[str] = Field(default_factory=list)
+    environments: list[str] = Field(default_factory=list)
+    aliases: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    content: dict[str, list[str]] = Field(default_factory=dict)
+    validation: ManagedSopValidation = Field(default_factory=ManagedSopValidation)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_by: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ManagedSopUpsertRequest(BaseModel):
+    sop_id: str
+    title: str
+    class_code: str = "A"
+    severity: str = "medium"
+    status: ManagedSopStatus = "draft"
+    version: int = 1
+    owner_team: str | None = None
+    services: list[str] = Field(default_factory=list)
+    environments: list[str] = Field(default_factory=list)
+    aliases: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    content: dict[str, list[str]] = Field(default_factory=dict)
+    updated_by: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ManagedSopValidationRequest(BaseModel):
+    requested_by: str
+    approve_if_valid: bool = False
 
 
 class BusinessFlowStep(BaseModel):

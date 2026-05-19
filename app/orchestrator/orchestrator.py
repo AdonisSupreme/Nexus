@@ -44,7 +44,8 @@ class OperationalOrchestrator:
         confidence, warnings = self.confidence_gate.evaluate(evidence=evidence)
 
         answer: str | None = None
-        if evidence and self.mistral_client.available:
+        llm_attempted = bool(evidence and self.mistral_client.available)
+        if llm_attempted:
             messages = build_query_messages(
                 query=request.query,
                 intent=intent,
@@ -80,6 +81,12 @@ class OperationalOrchestrator:
             trace = {
                 "chunk_ids": [chunk.chunk_id for chunk in retrieved_chunks],
                 "provider": self.mistral_client.diagnostics(),
+                "inference": {
+                    "evidence_count": len(evidence),
+                    "llm_attempted": llm_attempted,
+                    "llm_answer_received": bool(answer and answer.strip()),
+                    "fallback_used": not bool(answer and answer.strip()),
+                },
                 "warnings": warnings,
             }
 

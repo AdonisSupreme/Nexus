@@ -41,6 +41,10 @@ from app.nexus.models import (
     GraphNode,
     IncidentVerdictRequest,
     LogSignature,
+    ManagedSop,
+    ManagedSopUpsertRequest,
+    ManagedSopValidation,
+    ManagedSopValidationRequest,
     NexusEvidence,
     NexusIncident,
     NexusState,
@@ -68,7 +72,7 @@ class NexusService:
     ACTIVE_WINDOW = timedelta(hours=6)
     INCIDENT_WINDOW = timedelta(minutes=10)
     MONITORING_WINDOW = timedelta(minutes=10)
-    NETWORK_SYNC_INTERVAL = timedelta(seconds=20)
+    NETWORK_SYNC_INTERVAL = timedelta(seconds=10)
     MAX_SIGNALS = 1500
     MAX_CHANGES = 500
 
@@ -119,6 +123,80 @@ class NexusService:
         return sorted(
             self.state.dependency_edges,
             key=lambda item: ((item.cluster_id or ""), item.from_service_id, item.to_service_id, item.dependency_type),
+        )
+
+    def list_managed_sops(self, *, include_deprecated: bool = True) -> list[ManagedSop]:
+        return self.repository.list_managed_sops(include_deprecated=include_deprecated)
+
+    def upsert_managed_sop(self, request: ManagedSopUpsertRequest) -> ManagedSop:
+        existing = self.repository.get_managed_sop(request.sop_id)
+        now = datetime.utcnow()
+        validation = self._validate_managed_sop_payload(request, requested_by=request.updated_by or "nexus")
+        status = request.status
+        if status == "approved" and not validation.valid:
+            status = "needs_review"
+        sop = ManagedSop(
+            sop_id=request.sop_id.strip(),
+            title=request.title.strip(),
+            class_code=request.class_code.strip().upper(),
+            severity=request.severity.strip().lower(),
+            status=status,
+            version=request.version,
+            owner_team=request.owner_team,
+            services=sorted({item.strip() for item in request.services if item.strip()}),
+            environments=sorted({item.strip() for item in request.environments if item.strip()}),
+            aliases=sorted({item.strip() for item in request.aliases if item.strip()}),
+            tags=sorted({item.strip() for item in request.tags if item.strip()}),
+            content={key: [str(line).strip() for line in value if str(line).strip()] for key, value in request.content.items()},
+            validation=validation,
+            created_at=existing.created_at if existing else now,
+            updated_at=now,
+            updated_by=request.updated_by,
+            metadata=request.metadata,
+        )
+        saved = self.repository.upsert_managed_sop(sop)
+        audit_logger.log(
+            event_type="nexus_sop_upserted",
+            user=request.updated_by or "nexus_sop_registry",
+            details={"sop_id": saved.sop_id, "status": saved.status, "valid": saved.validation.valid},
+        )
+        return saved
+
+    def validate_managed_sop(self, sop_id: str, request: ManagedSopValidationRequest) -> ManagedSop:
+        sop = self.repository.get_managed_sop(sop_id)
+        if sop is None:
+            raise KeyError(f"Unknown Nexus SOP {sop_id}")
+        validation = self._validate_managed_sop_payload(
+            ManagedSopUpsertRequest(**sop.model_dump(mode="json")),
+            requested_by=request.requested_by,
+        )
+        status = sop.status
+        if request.approve_if_valid and validation.valid:
+            status = "approved"
+        elif not validation.valid and status == "approved":
+            status = "needs_review"
+        updated = sop.model_copy(
+            update={
+                "status": status,
+                "validation": validation,
+                "updated_at": datetime.utcnow(),
+                "updated_by": request.requested_by,
+            }
+        )
+        saved = self.repository.upsert_managed_sop(updated)
+        audit_logger.log(
+            event_type="nexus_sop_validated",
+            user=request.requested_by,
+            details={"sop_id": sop_id, "status": saved.status, "valid": saved.validation.valid},
+        )
+        return saved
+
+    def delete_managed_sop(self, sop_id: str, deleted_by: str) -> None:
+        self.repository.delete_managed_sop(sop_id, deleted_by)
+        audit_logger.log(
+            event_type="nexus_sop_deleted",
+            user=deleted_by,
+            details={"sop_id": sop_id},
         )
 
     def get_agent_config(self, agent_id: str, service_id: str | None = None) -> dict[str, object]:
@@ -1014,9 +1092,14 @@ class NexusService:
         self.repository.persist_state(self.state)
 
     @staticmethod
-    def _to_naive_utc(value: datetime | None) -> datetime | None:
+    def _to_naive_utc(value: datetime | str | None) -> datetime | None:
         if value is None:
             return None
+        if isinstance(value, str):
+            try:
+                value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            except ValueError:
+                return None
         if value.tzinfo is None:
             return value
         return value.astimezone(timezone.utc).replace(tzinfo=None)
@@ -1120,40 +1203,47 @@ class NexusService:
             service = services[service_id]
             cluster = service.cluster or (service.cluster_ids[0] if service.cluster_ids else None)
             status = str(snapshot.get("overall_status") or "UNKNOWN").upper()
-            checked_at = snapshot.get("last_checked_at") or datetime.utcnow()
-            if status in {"DOWN", "DEGRADED"}:
-                severity = "CRITICAL" if status == "DOWN" else "WARN"
-                signals.append(
-                    SignalEvent(
-                        signal_id=f"ns-status-{snapshot['network_service_id']}-{status}-{checked_at.isoformat()}",
-                        signal_type="synthetic",
-                        service_id=service_id,
-                        service_name=service.service_name,
-                        severity=severity,
-                        timestamp=checked_at,
-                        source="network_sentinel",
-                        environment=service.environment,
-                        cluster=cluster,
-                        vantage_point="external_network",
-                        observation_layer="network",
-                        failure_domain_hint="network_path",
-                        message=snapshot.get("reason")
-                        or f"Network Sentinel reports {service.service_name} as {status}.",
-                        fingerprint=f"{service_id}:network_sentinel:status:{status}:{checked_at.isoformat()}",
-                        attributes={
-                            "network_service_id": snapshot.get("network_service_id"),
-                            "address": snapshot.get("address"),
-                            "port": snapshot.get("port"),
-                            "status": status,
-                            "icmp_latency_ms": snapshot.get("icmp_latency_ms"),
-                            "tcp_latency_ms": snapshot.get("tcp_latency_ms"),
-                            "consecutive_failures": snapshot.get("consecutive_failures"),
-                            "vantage_point": "external_network",
-                            "observation_layer": "network",
-                            "failure_domain_hint": "network_path",
-                        },
-                    )
+            checked_at = self._to_naive_utc(snapshot.get("last_checked_at")) or datetime.utcnow()
+            outage_started_at = self._to_naive_utc(snapshot.get("outage_started_at"))
+            outage_id = str(snapshot.get("outage_id") or "").strip() or None
+            severity = "CRITICAL" if status == "DOWN" else "WARN" if status == "DEGRADED" else "INFO"
+            status_attributes = {
+                "network_service_id": snapshot.get("network_service_id"),
+                "address": snapshot.get("address"),
+                "port": snapshot.get("port"),
+                "status": status,
+                "icmp_latency_ms": snapshot.get("icmp_latency_ms"),
+                "tcp_latency_ms": snapshot.get("tcp_latency_ms"),
+                "consecutive_failures": snapshot.get("consecutive_failures"),
+                "outage_id": outage_id,
+                "active_outage_id": outage_id,
+                "outage_started_at": outage_started_at.isoformat() if outage_started_at else None,
+                "outage_duration_seconds": snapshot.get("outage_duration_seconds"),
+                "outage_active": bool(outage_id),
+                "vantage_point": "external_network",
+                "observation_layer": "network",
+                "failure_domain_hint": "network_path",
+            }
+            signals.append(
+                SignalEvent(
+                    signal_id=f"ns-status-{snapshot['network_service_id']}-{status}-{checked_at.isoformat()}",
+                    signal_type="synthetic",
+                    service_id=service_id,
+                    service_name=service.service_name,
+                    severity=severity,
+                    timestamp=checked_at,
+                    source="network_sentinel",
+                    environment=service.environment,
+                    cluster=cluster,
+                    vantage_point="external_network",
+                    observation_layer="network",
+                    failure_domain_hint="network_path",
+                    message=snapshot.get("reason")
+                    or f"Network Sentinel reports {service.service_name} as {status}.",
+                    fingerprint=f"{service_id}:network_sentinel:status:{status}:{checked_at.isoformat()}",
+                    attributes=status_attributes,
                 )
+            )
             if snapshot.get("outage_id"):
                 signals.append(
                     SignalEvent(
@@ -1162,7 +1252,7 @@ class NexusService:
                         service_id=service_id,
                         service_name=service.service_name,
                         severity="CRITICAL",
-                        timestamp=snapshot.get("outage_started_at") or checked_at,
+                        timestamp=outage_started_at or checked_at,
                         source="network_sentinel",
                         environment=service.environment,
                         cluster=cluster,
@@ -1174,6 +1264,9 @@ class NexusService:
                         attributes={
                             "network_service_id": snapshot.get("network_service_id"),
                             "outage_id": snapshot.get("outage_id"),
+                            "active_outage_id": outage_id,
+                            "outage_started_at": outage_started_at.isoformat() if outage_started_at else None,
+                            "outage_active": True,
                             "outage_duration_seconds": snapshot.get("outage_duration_seconds"),
                             "cause": snapshot.get("outage_cause"),
                             "details": snapshot.get("outage_details"),
@@ -1300,7 +1393,7 @@ class NexusService:
             mapped_network_services=mapped_network,
             diagnostics_ready_services=diagnostics_ready,
             restart_ready_services=restart_ready,
-            active_incidents=len(self.state.incidents),
+            active_incidents=len([incident for incident in self.state.incidents if incident.status in {"OPEN", "MONITORING"}]),
             last_sync_at=last_sync_at or summary.last_sync_at,
             sync_health=sync_health or summary.sync_health,
             sync_message=sync_message if sync_message is not None else summary.sync_message,
@@ -1313,11 +1406,14 @@ class NexusService:
             self._update_fabric_summary()
             return
 
+        now = datetime.utcnow()
+        service_signals = [signal for signal in self.state.signals if signal.service_id in services]
+        healthy_cutoffs = self._latest_network_healthy_cutoffs(service_signals)
+        active_outage_starts = self._active_network_outage_starts(service_signals, now)
         recent_signals = [
             signal
-            for signal in self.state.signals
-            if signal.timestamp >= datetime.utcnow() - self.ACTIVE_WINDOW
-            and signal.service_id in services
+            for signal in service_signals
+            if self._signal_is_current_for_correlation(signal, now, healthy_cutoffs, active_outage_starts)
         ]
         grouped = defaultdict(list)
         for signal in recent_signals:
@@ -1341,9 +1437,11 @@ class NexusService:
         latest_feedback = {}
         for feedback in self.state.operator_feedback:
             latest_feedback.setdefault(feedback.incident_id, feedback)
+        previous_incidents = list(self.state.incidents)
         existing_by_key = {incident.incident_key: incident for incident in self.state.incidents}
 
         incidents: list[NexusIncident] = []
+        active_incident_ids: set[str] = set()
         for component in components:
             if not component:
                 continue
@@ -1355,10 +1453,13 @@ class NexusService:
             flow_ids = self._flow_ids_for_context(affected_services, incident_signals)
             primary_flow = self._primary_business_flow(flow_ids)
             failure_domain = self._failure_domain_for_signals(incident_signals)
+            incident_start = self._incident_start_for_signals(incident_signals)
+            incident_scope = self._incident_scope_for_signals(incident_signals, incident_start)
             incident_key = self._incident_key_for_services(
                 affected_services,
                 flow_ids=flow_ids,
                 failure_domain=failure_domain,
+                incident_scope=incident_scope,
             )
             previous = existing_by_key.get(incident_key)
             vantage_points = sorted(
@@ -1398,17 +1499,28 @@ class NexusService:
                 primary_flow,
                 failure_domain,
             )
-            start_time = incident_signals[0].timestamp
+            start_time = (
+                previous.start_time
+                if previous and previous.status in {"OPEN", "MONITORING"} and previous.end_time is None
+                else incident_start
+            )
             incident_id = previous.incident_id if previous else str(uuid4())
             cluster_ids = self._cluster_ids_for_services(affected_services)
             linked_actions = existing_actions.get(incident_id, [])
-            incident_status = "MONITORING" if any(action.status == "MONITORING" for action in linked_actions) else "OPEN"
+            verdict_feedback = latest_feedback.get(incident_id) or (previous.verdict if previous else None)
+            if verdict_feedback:
+                incident_status = "RESOLVED"
+            elif any(action.status == "MONITORING" for action in linked_actions):
+                incident_status = "MONITORING"
+            else:
+                incident_status = "OPEN"
             incident = NexusIncident(
                 incident_id=incident_id,
                 incident_key=incident_key,
                 title=title,
                 status=incident_status,
                 start_time=start_time,
+                end_time=(previous.end_time if previous and previous.end_time else now) if incident_status == "RESOLVED" else None,
                 summary=summary,
                 risk_level=risk_level,
                 risk_score=risk_score,
@@ -1433,16 +1545,186 @@ class NexusService:
                 linked_tasks=existing_tasks.get(incident_id, []),
                 diagnostics=existing_diagnostics.get(incident_id, []),
                 action_executions=linked_actions,
-                verdict=latest_feedback.get(incident_id),
+                verdict=verdict_feedback,
             )
             incidents.append(incident)
+            active_incident_ids.add(incident.incident_id)
+
+        active_service_sets = [
+            set(incident.affected_services)
+            for incident in incidents
+            if incident.status in {"OPEN", "MONITORING"}
+        ]
+        for previous in previous_incidents:
+            if previous.incident_id in active_incident_ids:
+                continue
+            verdict_feedback = latest_feedback.get(previous.incident_id) or previous.verdict
+            previous_services = set(previous.affected_services)
+            superseded_by_current_component = (
+                previous.status in {"OPEN", "MONITORING"}
+                and not verdict_feedback
+                and not previous.linked_tasks
+                and not previous.diagnostics
+                and not previous.action_executions
+                and any(
+                    previous_services < active_services
+                    for active_services in active_service_sets
+                )
+            )
+            if superseded_by_current_component:
+                continue
+            if verdict_feedback:
+                incidents.append(
+                    previous.model_copy(
+                        update={
+                            "status": "RESOLVED",
+                            "end_time": previous.end_time
+                            or self._latest_recovery_time_for_incident(previous, healthy_cutoffs)
+                            or now,
+                            "verdict": verdict_feedback,
+                        }
+                    )
+                )
+                continue
+            if previous.status == "RESOLVED":
+                incidents.append(previous)
+                continue
+            recovery_time = self._latest_recovery_time_for_incident(previous, healthy_cutoffs)
+            if recovery_time:
+                incidents.append(self._move_to_operator_verdict(previous, previous.end_time or recovery_time))
+            else:
+                latest_signal_time = self._latest_signal_time_for_incident(previous)
+                stale_cutoff = now - self.ACTIVE_WINDOW
+                if previous.status in {"OPEN", "MONITORING"} and previous.start_time < stale_cutoff and (
+                    not latest_signal_time or latest_signal_time < stale_cutoff
+                ):
+                    incidents.append(self._move_to_operator_verdict(previous, previous.end_time or latest_signal_time or now))
+                elif previous.status == "AWAITING_VERDICT" and previous.risk_level != "LOW":
+                    incidents.append(self._move_to_operator_verdict(previous, previous.end_time or latest_signal_time or now))
+                else:
+                    incidents.append(previous)
 
         self.state.incidents = sorted(
             incidents,
-            key=lambda item: (self._risk_rank(item.risk_level), item.start_time),
+            key=lambda item: (item.status != "RESOLVED", self._risk_rank(item.risk_level), item.start_time),
             reverse=True,
-        )
+        )[:250]
         self._update_fabric_summary()
+
+    def _latest_network_healthy_cutoffs(self, signals: list[SignalEvent]) -> dict[str, datetime]:
+        cutoffs: dict[str, datetime] = {}
+        for signal in signals:
+            if signal.source != "network_sentinel":
+                continue
+            status = str(signal.attributes.get("status") or "").upper()
+            if status not in {"UP", "HEALTHY", "OK"}:
+                continue
+            if signal.timestamp > cutoffs.get(signal.service_id, datetime.min):
+                cutoffs[signal.service_id] = signal.timestamp
+        return cutoffs
+
+    def _active_network_outage_starts(self, signals: list[SignalEvent], now: datetime) -> dict[str, datetime]:
+        starts: dict[str, datetime] = {}
+        for signal in signals:
+            if signal.source != "network_sentinel":
+                continue
+            if not (signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active")):
+                continue
+            if signal.timestamp < now - self.ACTIVE_WINDOW:
+                continue
+            outage_started_at = self._to_naive_utc(signal.attributes.get("outage_started_at")) or signal.timestamp
+            if outage_started_at > starts.get(signal.service_id, datetime.min):
+                starts[signal.service_id] = outage_started_at
+        return starts
+
+    def _signal_is_current_for_correlation(
+        self,
+        signal: SignalEvent,
+        now: datetime,
+        healthy_cutoffs: dict[str, datetime],
+        active_outage_starts: dict[str, datetime],
+    ) -> bool:
+        active_outage_start = active_outage_starts.get(signal.service_id)
+        if active_outage_start and signal.source == "network_sentinel" and signal.timestamp < active_outage_start:
+            return False
+        active_outage = bool(signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active"))
+        if signal.timestamp < now - self.ACTIVE_WINDOW and not active_outage:
+            return False
+        if signal.source == "network_sentinel" and active_outage and signal.timestamp < now - self.ACTIVE_WINDOW:
+            return False
+        healthy_cutoff = healthy_cutoffs.get(signal.service_id)
+        if (
+            healthy_cutoff
+            and signal.source == "network_sentinel"
+            and self._severity_value(signal.severity) >= 0.55
+            and signal.timestamp <= healthy_cutoff
+        ):
+            return False
+        return True
+
+    def _incident_start_for_signals(self, signals: list[SignalEvent]) -> datetime:
+        active_outage_candidates: list[datetime] = []
+        candidates: list[datetime] = []
+        for signal in signals:
+            outage_started_at = self._to_naive_utc(signal.attributes.get("outage_started_at"))
+            if outage_started_at and (signal.attributes.get("active_outage_id") or signal.attributes.get("outage_id")):
+                if signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active"):
+                    active_outage_candidates.append(outage_started_at)
+                candidates.append(outage_started_at)
+            else:
+                candidates.append(signal.timestamp)
+        if active_outage_candidates:
+            return min(active_outage_candidates)
+        return min(candidates) if candidates else datetime.utcnow()
+
+    def _incident_scope_for_signals(self, signals: list[SignalEvent], incident_start: datetime) -> str | None:
+        outage_ids = sorted(
+            {
+                str(signal.attributes.get("active_outage_id") or signal.attributes.get("outage_id")).strip()
+                for signal in signals
+                if str(signal.attributes.get("active_outage_id") or signal.attributes.get("outage_id") or "").strip()
+            }
+        )
+        if outage_ids:
+            return "network-outage:" + "|".join(outage_ids)
+        if any(signal.source == "network_sentinel" and self._severity_value(signal.severity) >= 0.55 for signal in signals):
+            return f"network-window:{incident_start.isoformat(timespec='seconds')}"
+        return None
+
+    def _latest_recovery_time_for_incident(
+        self,
+        incident: NexusIncident,
+        healthy_cutoffs: dict[str, datetime],
+    ) -> datetime | None:
+        recovery_times = [
+            healthy_cutoffs[service_id]
+            for service_id in incident.affected_services
+            if service_id in healthy_cutoffs and healthy_cutoffs[service_id] >= incident.start_time
+        ]
+        if not recovery_times:
+            return None
+        return max(recovery_times)
+
+    def _latest_signal_time_for_incident(self, incident: NexusIncident) -> datetime | None:
+        timestamps = [
+            self._to_naive_utc(evidence.timestamp) or evidence.timestamp
+            for evidence in incident.evidence_timeline
+            if evidence.timestamp
+        ]
+        if not timestamps:
+            return None
+        return max(timestamps)
+
+    def _move_to_operator_verdict(self, incident: NexusIncident, end_time: datetime) -> NexusIncident:
+        """Recovered incidents stay visible for closure, but no longer represent active operational risk."""
+        return incident.model_copy(
+            update={
+                "status": "AWAITING_VERDICT",
+                "end_time": end_time,
+                "risk_level": "LOW",
+                "risk_score": min(incident.risk_score, 0.2),
+            }
+        )
 
     def _build_components(self, candidate_services: set[str], grouped: dict[str, list[SignalEvent]]) -> list[set[str]]:
         if not candidate_services:
@@ -2478,13 +2760,61 @@ class NexusService:
         *,
         flow_ids: list[str] | None = None,
         failure_domain: str | None = None,
+        incident_scope: str | None = None,
     ) -> str:
         parts = ["incident-key", "services:" + "|".join(sorted(service_ids))]
         if flow_ids:
             parts.append("flows:" + "|".join(sorted(flow_ids)))
         if failure_domain:
             parts.append(f"domain:{failure_domain}")
+        if incident_scope:
+            parts.append(f"scope:{incident_scope}")
         return "::".join(parts)
+
+    def _validate_managed_sop_payload(
+        self,
+        sop: ManagedSopUpsertRequest,
+        *,
+        requested_by: str,
+    ) -> ManagedSopValidation:
+        errors: list[str] = []
+        warnings: list[str] = []
+        class_code = sop.class_code.strip().upper()
+        severity = sop.severity.strip().lower()
+        content = {key: [str(line).strip() for line in value if str(line).strip()] for key, value in sop.content.items()}
+        known_services = set(self._service_map())
+
+        if not sop.sop_id.strip():
+            errors.append("SOP ID is required.")
+        if not sop.title.strip():
+            errors.append("Title is required.")
+        if class_code not in {"A", "B", "C", "D", "E", "F"}:
+            errors.append("Class code must be one of A, B, C, D, E, or F.")
+        if severity not in {"critical", "high", "medium", "low", "info"}:
+            errors.append("Severity must be critical, high, medium, low, or info.")
+        if not any(content.get(section) for section in ("checks", "actions", "verification_steps", "escalation")):
+            errors.append("At least one operational section is required: checks, actions, verification steps, or escalation.")
+
+        unknown_services = sorted({service_id for service_id in sop.services if service_id and service_id not in known_services})
+        if unknown_services:
+            warnings.append(f"These service IDs are not currently in the Nexus catalog: {', '.join(unknown_services)}.")
+        if content.get("actions") and not content.get("preconditions"):
+            warnings.append("Action-bearing SOPs should define preconditions before operators execute changes.")
+        if content.get("actions") and not content.get("verification_steps"):
+            warnings.append("Action-bearing SOPs should define recovery verification steps.")
+        restart_actions = [line for line in content.get("actions", []) if "restart" in line.lower()]
+        if restart_actions and not any("approval" in line.lower() or "authorize" in line.lower() for line in content.get("preconditions", [])):
+            warnings.append("Restart SOPs should explicitly mention approval or authorization preconditions.")
+        if sop.status == "approved" and warnings:
+            warnings.append("Approved SOP has warnings; keep this intentional and reviewed.")
+
+        return ManagedSopValidation(
+            valid=not errors,
+            errors=errors,
+            warnings=warnings,
+            checked_at=datetime.utcnow(),
+            checked_by=requested_by,
+        )
 
     def _require_incident(self, incident_id: str) -> NexusIncident:
         incident = self.get_incident(incident_id)

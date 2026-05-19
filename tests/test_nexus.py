@@ -25,6 +25,7 @@ from app.nexus.models import (
     ServiceEndpointConfig,
     ServiceObservationConfig,
     ServiceUpsertRequest,
+    SyncRequest,
 )
 from app.nexus.repository import NexusRepository
 from app.nexus.service import NexusService
@@ -43,6 +44,15 @@ class InMemoryNexusRepository:
 
     def fetch_network_sentinel_evidence(self, service_map):
         return {"snapshots": [], "events": []}
+
+
+class MutableNetworkEvidenceRepository(InMemoryNexusRepository):
+    def __init__(self) -> None:
+        super().__init__()
+        self.evidence = {"snapshots": [], "events": []}
+
+    def fetch_network_sentinel_evidence(self, service_map):
+        return self.evidence
 
 
 def make_service() -> NexusService:
@@ -853,6 +863,95 @@ def test_graph_correlation_accepts_timezone_aware_database_timestamps():
 
     assert service.list_incidents()
     assert service.state.signals[0].timestamp.tzinfo is None
+
+
+def test_network_sentinel_outage_lifecycle_waits_for_operator_verdict():
+    repository = MutableNetworkEvidenceRepository()
+    service = NexusService(repository=repository)
+    service.startup()
+    seed_catalog(service)
+
+    outage_started_at = datetime.utcnow() - timedelta(minutes=26)
+    checked_at = outage_started_at + timedelta(minutes=26)
+    repository.evidence = {
+        "snapshots": [
+            {
+                "service_id": "idc-gateway",
+                "network_service_id": "11111111-1111-1111-1111-111111111111",
+                "address": "idc-gateway.local",
+                "port": 8443,
+                "overall_status": "DOWN",
+                "last_checked_at": checked_at,
+                "reason": "TCP connection failed from Network Sentinel vantage point.",
+                "consecutive_failures": 12,
+                "outage_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "outage_started_at": outage_started_at,
+                "outage_duration_seconds": 1560,
+                "outage_cause": "TCP_UNREACHABLE",
+                "outage_details": {"source": "network_sentinel"},
+            }
+        ],
+        "events": [
+            {
+                "service_id": "idc-gateway",
+                "network_service_id": "11111111-1111-1111-1111-111111111111",
+                "event_id": "legacy-network-event",
+                "severity": "CRITICAL",
+                "category": "availability",
+                "event_type": "network_check",
+                "title": "Older Network Sentinel noise",
+                "summary": "Old evidence must not become the current outage start.",
+                "details": {},
+                "created_at": outage_started_at - timedelta(hours=5),
+            }
+        ],
+    }
+
+    service.sync_network_sentinel(SyncRequest(force=True))
+    incident = next(item for item in service.list_incidents() if "idc-gateway" in item.affected_services)
+
+    assert incident.status == "OPEN"
+    assert incident.start_time == outage_started_at
+    assert "scope:network-outage:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" in incident.incident_key
+
+    recovered_at = checked_at + timedelta(seconds=10)
+    repository.evidence = {
+        "snapshots": [
+            {
+                "service_id": "idc-gateway",
+                "network_service_id": "11111111-1111-1111-1111-111111111111",
+                "address": "idc-gateway.local",
+                "port": 8443,
+                "overall_status": "UP",
+                "last_checked_at": recovered_at,
+                "reason": "Network Sentinel check recovered.",
+                "consecutive_failures": 0,
+                "icmp_latency_ms": 2,
+                "tcp_latency_ms": 7,
+            }
+        ],
+        "events": [],
+    }
+
+    service.sync_network_sentinel(SyncRequest(force=True))
+    awaiting = next(item for item in service.list_incidents() if item.incident_id == incident.incident_id)
+
+    assert awaiting.status == "AWAITING_VERDICT"
+    assert awaiting.end_time == recovered_at
+
+    service.record_verdict(
+        incident.incident_id,
+        SimpleNamespace(
+            requested_by="ops-manager",
+            verdict="confirmed",
+            actual_root_service_id="idc-gateway",
+            notes="Recovered after network path restoration.",
+        ),
+    )
+    resolved = next(item for item in service.list_incidents() if item.incident_id == incident.incident_id)
+
+    assert resolved.status == "RESOLVED"
+    assert resolved.verdict is not None
 
 
 def test_safe_restart_is_blocked_for_stateful_database_incident():

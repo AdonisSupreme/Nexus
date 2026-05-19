@@ -11,7 +11,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from app.config.settings import settings
-from app.nexus.models import NexusIncident, NexusState, TaskHandoff
+from app.nexus.models import ManagedSop, NexusIncident, NexusState, TaskHandoff
 from app.utils.logging import get_logger
 
 
@@ -350,6 +350,110 @@ class NexusRepository:
             item["service_id"] = inverse_map.get(item["network_service_id"])
 
         return {"snapshots": snapshots, "events": events}
+
+    def list_managed_sops(self, *, include_deprecated: bool = True) -> list[ManagedSop]:
+        if not self._use_postgres:
+            return []
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    rows = cur.execute(
+                        """
+                        SELECT payload
+                        FROM nexus_sop_registry
+                        WHERE deleted_at IS NULL
+                          AND (%s OR status <> 'deprecated')
+                        ORDER BY updated_at DESC, sop_id ASC
+                        """,
+                        (include_deprecated,),
+                    ).fetchall()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_sop_registry is missing. Apply 2026_05_add_nexus_sop_registry.sql.")
+            return []
+        return [ManagedSop.model_validate(row["payload"]) for row in rows]
+
+    def get_managed_sop(self, sop_id: str) -> ManagedSop | None:
+        if not self._use_postgres:
+            return None
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    row = cur.execute(
+                        """
+                        SELECT payload
+                        FROM nexus_sop_registry
+                        WHERE sop_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (sop_id,),
+                    ).fetchone()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_sop_registry is missing. Apply 2026_05_add_nexus_sop_registry.sql.")
+            return None
+        return ManagedSop.model_validate(row["payload"]) if row else None
+
+    def upsert_managed_sop(self, sop: ManagedSop) -> ManagedSop:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for managed Nexus SOPs.")
+        payload = sop.model_dump(mode="json")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO nexus_sop_registry (
+                            sop_id, title, class_code, severity, status, version, updated_at, payload
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (sop_id) DO UPDATE SET
+                            title = EXCLUDED.title,
+                            class_code = EXCLUDED.class_code,
+                            severity = EXCLUDED.severity,
+                            status = EXCLUDED.status,
+                            version = EXCLUDED.version,
+                            updated_at = EXCLUDED.updated_at,
+                            payload = EXCLUDED.payload,
+                            deleted_at = NULL
+                        """,
+                        (
+                            sop.sop_id,
+                            sop.title,
+                            sop.class_code,
+                            sop.severity,
+                            sop.status,
+                            sop.version,
+                            sop.updated_at,
+                            json.dumps(payload),
+                        ),
+                    )
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus SOP registry migration is missing. Apply 2026_05_add_nexus_sop_registry.sql.") from exc
+        return sop
+
+    def delete_managed_sop(self, sop_id: str, deleted_by: str) -> None:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for managed Nexus SOPs.")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE nexus_sop_registry
+                        SET deleted_at = now(),
+                            payload = jsonb_set(
+                                jsonb_set(payload, '{status}', '"deprecated"'::jsonb, true),
+                                '{updated_by}', to_jsonb(%s::text), true
+                            )
+                        WHERE sop_id = %s
+                        """,
+                        (deleted_by, sop_id),
+                    )
+                    if cur.rowcount == 0:
+                        raise KeyError(f"Unknown Nexus SOP {sop_id}")
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus SOP registry migration is missing. Apply 2026_05_add_nexus_sop_registry.sql.") from exc
 
     def _connect(self):
         if not self._dsn:
