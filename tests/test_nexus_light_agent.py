@@ -1,9 +1,25 @@
 from __future__ import annotations
 
 import json
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from types import SimpleNamespace
 
 from nexus_light_agent.agent import NexusLightAgent
-from nexus_light_agent.command_server import _restart_allowed
+from nexus_light_agent.command_server import (
+    BUILTIN_SPRING_BOOT_CONTROL,
+    _control_command,
+    _control_command_timeout_seconds,
+    _control_postcheck_timeout_seconds,
+    _discover_spring_server_port,
+    _execute_diagnostic_command,
+    _post_control_check,
+    _restart_allowed,
+    _start_spring_boot_service,
+    _tail_service_log,
+    _wait_for_post_control_check,
+)
 from nexus_light_agent.config import AgentSettings, config_template
 from nexus_light_agent.logs import BoundedLogTailer
 from nexus_light_agent.signatures import classify_line, summarize_signatures
@@ -15,12 +31,23 @@ def test_agent_config_template_is_valid(monkeypatch):
 
     settings = AgentSettings.from_dict(config_template())
 
-    assert settings.agent_id == "agent-ate-mobile-banking-01"
+    assert settings.agent_id == "agent-txn-mobile-ussd-ate-01"
     assert settings.resolve_agent_token() == "test-token"
+    assert [service.service_id for service in settings.enabled_services] == ["txn-mobile-ussd", "txn-ussd-adapter"]
     assert settings.enabled_services[0].service_id == "txn-mobile-ussd"
     assert settings.enabled_services[0].process_match == "txn-mobile-ussd-0.0.1-SNAPSHOT.jar"
+    assert settings.enabled_services[0].working_dir == "/srv"
+    assert settings.enabled_services[0].readiness_host == "127.0.0.1"
+    assert settings.enabled_services[0].readiness_port == 8091
+    assert settings.enabled_services[0].start_command == ["sudo", "-n", "/opt/sentinel-nexus-control/txn-mobile-ussd/start.sh"]
+    assert settings.enabled_services[0].restart_settle_seconds == 30
     assert settings.enabled_services[0].analysis_profile == "mobile_ussd"
     assert settings.enabled_services[0].analysis_config["session_expiry_warn_threshold"] == 10
+    assert settings.enabled_services[1].service_id == "txn-ussd-adapter"
+    assert settings.enabled_services[1].process_match == "txn-ussd-adapter-0.0.1-SNAPSHOT.jar"
+    assert settings.enabled_services[1].log_path == "/srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log"
+    assert settings.enabled_services[1].start_command == ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/start.sh"]
+    assert settings.enabled_services[1].readiness_port is None
 
 
 def test_log_signature_classifier_detects_hikari_database_leak():
@@ -145,7 +172,7 @@ def test_agent_collects_process_and_database_log_evidence(tmp_path, monkeypatch)
     assert reports[0]["metadata"]["log_signatures"][0]["signature_family"] == "database_connection_leak"
     assert sent_reports[0]["severity"] == "CRITICAL"
     assert sent_reports[0]["log_records"][0]["signature_family"] == "database_connection_leak"
-    assert sent_heartbeats[0]["agent_id"] == "agent-ate-mobile-banking-01"
+    assert sent_heartbeats[0]["agent_id"] == "agent-txn-mobile-ussd-ate-01"
     assert sent_heartbeats[0]["service_id"] == "txn-mobile-ussd"
     AgentProbeReport.model_validate(sent_reports[0])
     AgentHeartbeat.model_validate(sent_heartbeats[0])
@@ -293,6 +320,38 @@ def test_signature_summary_groups_database_codes():
     ]
 
 
+def test_live_log_tail_uses_cursor_and_returns_latest_first(tmp_path):
+    log_path = tmp_path / "txn-mobile-ussd-human.log"
+    log_path.write_text(
+        "\n".join(
+            [
+                "2026-06-02 20:40:00 INFO first",
+                "2026-06-02 20:40:01 WARN second",
+                "2026-06-02 20:40:02 ERROR third",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    service = SimpleNamespace(service_id="txn-mobile-ussd", service_name="Mobile Banking USSD", log_path=str(log_path))
+
+    snapshot = _tail_service_log(service, max_lines=2, max_bytes=4096)
+    cursor = snapshot["cursor"]
+    with log_path.open("a", encoding="utf-8") as handle:
+        handle.write("2026-06-02 20:40:03 INFO fourth\n")
+        handle.write("2026-06-02 20:40:04 WARN fifth\n")
+
+    delta = _tail_service_log(service, max_lines=10, max_bytes=4096, cursor=cursor)
+
+    assert snapshot["lines"][0]["message"].endswith("third")
+    assert delta["tail_mode"] == "delta"
+    assert [line["message"] for line in delta["lines"]] == [
+        "2026-06-02 20:40:04 WARN fifth",
+        "2026-06-02 20:40:03 INFO fourth",
+    ]
+    assert delta["cursor"] > cursor
+
+
 def test_restart_policy_requires_restart_ready_stateless_service_type_allowlist(monkeypatch):
     monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
     settings = AgentSettings.from_dict(config_template())
@@ -341,3 +400,435 @@ def test_restart_policy_blocks_databases_even_when_policy_is_wrong(monkeypatch):
 
     assert allowed is False
     assert any("blocked" in reason.lower() for reason in reasons)
+
+
+def test_control_postcheck_rejects_false_success_when_process_still_running(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.find_processes",
+        lambda _match: [{"pid": 4162832, "cmdline": "java -jar txn-mobile-ussd-0.0.1-SNAPSHOT.jar"}],
+    )
+
+    postcheck = _post_control_check(service, "stop", {"return_code": 0, "stdout": "", "stderr": ""})
+
+    assert postcheck["success"] is False
+    assert postcheck["status"] == "process_still_running"
+    assert postcheck["process_count"] == 1
+
+
+def test_start_postcheck_requires_tcp_readiness_when_port_is_known(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+    service.readiness_port = 9090
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.find_processes",
+        lambda _match: [{"pid": 4162832, "cmdline": "java -jar txn-mobile-ussd-0.0.1-SNAPSHOT.jar"}],
+    )
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.socket.create_connection",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("connection refused")),
+    )
+
+    postcheck = _post_control_check(service, "start", {"return_code": 0, "stdout": "", "stderr": ""})
+
+    assert postcheck["success"] is False
+    assert postcheck["status"] == "tcp_not_ready"
+    assert postcheck["process_count"] == 1
+    assert postcheck["readiness"]["port"] == 9090
+
+
+def test_start_postcheck_uses_contract_config_path_for_tcp_readiness(tmp_path, monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    config = config_template()
+    config["services"][0]["config_path"] = None
+    config["services"][0]["readiness_port"] = None
+    service = AgentSettings.from_dict(config).enabled_services[0]
+    application_yml = tmp_path / "application.yml"
+    application_yml.write_text("server:\n  port: 8091\n", encoding="utf-8")
+    contract = {
+        "service": {
+            "metadata": {
+                "config_path": str(application_yml),
+                "process_match": "txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+            }
+        }
+    }
+    calls: list[tuple[str, int]] = []
+
+    class FakeSocket:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+    def fake_create_connection(address, timeout):
+        calls.append(address)
+        return FakeSocket()
+
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.find_processes",
+        lambda _match: [{"pid": 4162832, "cmdline": "java -jar txn-mobile-ussd-0.0.1-SNAPSHOT.jar"}],
+    )
+    monkeypatch.setattr("nexus_light_agent.command_server.socket.create_connection", fake_create_connection)
+
+    postcheck = _post_control_check(
+        service,
+        "start",
+        {"return_code": 0, "stdout": "", "stderr": ""},
+        contract=contract,
+    )
+
+    assert postcheck["success"] is True
+    assert postcheck["status"] == "verified"
+    assert postcheck["readiness"]["required"] is True
+    assert postcheck["readiness"]["port"] == 8091
+    assert calls[0] == ("127.0.0.1", 8091)
+
+
+def test_start_postcheck_rejects_wrong_manual_launch_directory(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    config = config_template()
+    config["services"][0]["working_dir"] = "/srv"
+    config["services"][0]["jar_path"] = "/srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar"
+    config["services"][0]["config_path"] = "/srv/afc/txn-mobile/txn-mobile-ussd/etc/application.yml"
+    service = AgentSettings.from_dict(config).enabled_services[0]
+
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.find_processes",
+        lambda _match: [
+            {
+                "pid": 15447,
+                "cwd": "/srv/afc/txn-mobile/txn-mobile-ussd/lib",
+                "cmdline": "java -jar /srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server._service_readiness_check",
+        lambda _service, contract=None: {"required": True, "ready": False, "host": "127.0.0.1", "port": 8091},
+    )
+
+    postcheck = _post_control_check(service, "start", {"return_code": 0, "stdout": "", "stderr": ""})
+
+    assert postcheck["success"] is False
+    assert postcheck["status"] == "launch_context_mismatch"
+    assert postcheck["launch_context"]["expected_cwd"] == "/srv"
+    assert postcheck["launch_context"]["actual_cwds"] == ["/srv/afc/txn-mobile/txn-mobile-ussd/lib"]
+    assert "manual ATE launch directory" in postcheck["message"]
+
+
+def test_control_postcheck_explains_privilege_failure(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+
+    postcheck = _post_control_check(
+        service,
+        "stop",
+        {
+            "return_code": 1,
+            "stdout": "",
+            "stderr": "Permission denied killing pid 4162832: [Errno 1] Operation not permitted",
+        },
+    )
+
+    assert postcheck["success"] is False
+    assert postcheck["status"] == "command_failed"
+    assert "sudo allowlist helper" in postcheck["message"]
+
+
+def test_control_postcheck_returns_immediately_when_stop_is_verified(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+    service.restart_settle_seconds = 30
+    monkeypatch.setattr("nexus_light_agent.command_server.find_processes", lambda _match: [])
+
+    started = time.monotonic()
+    postcheck = _wait_for_post_control_check(service, "stop", {"return_code": 0, "stdout": "", "stderr": ""})
+
+    assert postcheck["success"] is True
+    assert postcheck["status"] == "verified"
+    assert postcheck["verification_timeout_seconds"] == 0
+    assert time.monotonic() - started < 1
+
+
+def test_start_postcheck_uses_configured_settle_window(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+    service.restart_settle_seconds = 30
+
+    assert _control_postcheck_timeout_seconds(service, "start") == 30
+    assert _control_postcheck_timeout_seconds(service, "restart") == 30
+    assert _control_postcheck_timeout_seconds(service, "stop") == 8
+    assert _control_command_timeout_seconds(service, "start") == 40
+    assert _control_command_timeout_seconds(service, "restart") == 50
+
+
+def test_diagnostics_runtime_status_includes_process_metrics(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    settings = AgentSettings.from_dict(config_template())
+    service = settings.enabled_services[0]
+    agent = SimpleNamespace(settings=settings, state=SimpleNamespace(data={}), get_cached_remote_contract=lambda _service_id: None)
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.find_processes",
+        lambda _match: [{"pid": 4162832, "cmdline": "java -jar txn-mobile-ussd-0.0.1-SNAPSHOT.jar"}],
+    )
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.host_snapshot",
+        lambda _log_path: {"hostname": "ussd-ate-test", "memory": {"available_mb": 12000}},
+    )
+    monkeypatch.setattr(
+        "nexus_light_agent.command_server.resource_pressure",
+        lambda _host, _load, _memory: {"collector_mode": "normal"},
+    )
+
+    result = _execute_diagnostic_command(agent, service, {"command_id": "runtime_status"})
+
+    assert result["status"] == "COMPLETED"
+    assert result["output"]["runtime_state"] == "running"
+    assert result["output"]["process_count"] == 1
+    assert result["output"]["resource_pressure"]["collector_mode"] == "normal"
+
+
+def test_spring_server_port_is_discovered_from_application_yml(tmp_path):
+    config_path = tmp_path / "application.yml"
+    config_path.write_text(
+        """
+spring:
+  application:
+    name: txn-mobile-ussd
+server:
+  port: 8091
+""",
+        encoding="utf-8",
+    )
+
+    assert _discover_spring_server_port(str(config_path)) == 8091
+
+
+def test_builtin_spring_start_uses_manual_script_style_working_dir(tmp_path, monkeypatch):
+    jar_path = tmp_path / "txn-mobile-ussd-0.0.1-SNAPSHOT.jar"
+    config_path = tmp_path / "application.yml"
+    working_dir = tmp_path / "srv"
+    jar_path.write_text("jar", encoding="utf-8")
+    config_path.write_text("server:\n  port: 8091\n", encoding="utf-8")
+    working_dir.mkdir()
+    captured: dict[str, object] = {}
+
+    class FakeProcess:
+        pid = 9876
+
+    def fake_popen(command, **kwargs):
+        captured["command"] = command
+        captured["cwd"] = kwargs.get("cwd")
+        captured["stderr"] = kwargs.get("stderr")
+        return FakeProcess()
+
+    monkeypatch.setattr("nexus_light_agent.command_server.find_processes", lambda _match: [])
+    monkeypatch.setattr("nexus_light_agent.command_server.subprocess.Popen", fake_popen)
+
+    result = _start_spring_boot_service(
+        {
+            "java_bin": "java",
+            "jar_path": str(jar_path),
+            "config_path": str(config_path),
+            "process_match": "txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+            "working_dir": str(working_dir),
+        }
+    )
+
+    assert result["return_code"] == 0
+    assert captured["command"][:3] == ["nohup", "java", "-jar"]
+    assert captured["cwd"] == str(working_dir)
+
+
+def test_builtin_spring_start_fails_if_manual_working_dir_is_missing(tmp_path, monkeypatch):
+    jar_path = tmp_path / "txn-mobile-ussd-0.0.1-SNAPSHOT.jar"
+    config_path = tmp_path / "application.yml"
+    missing_working_dir = tmp_path / "srv"
+    jar_path.write_text("jar", encoding="utf-8")
+    config_path.write_text("server:\n  port: 8091\n", encoding="utf-8")
+    monkeypatch.setattr("nexus_light_agent.command_server.find_processes", lambda _match: [])
+
+    result = _start_spring_boot_service(
+        {
+            "java_bin": "java",
+            "jar_path": str(jar_path),
+            "config_path": str(config_path),
+            "process_match": "txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+            "working_dir": str(missing_working_dir),
+        }
+    )
+
+    assert result["return_code"] == 127
+    assert "Working directory does not exist" in "\n".join(result["stderr"])
+
+
+def test_txn_mobile_ussd_helper_mirrors_manual_start_contract():
+    script = Path("nexus_light_agent/control_helpers/txn-mobile-ussd/start.sh").read_text(encoding="utf-8")
+
+    assert 'WORKING_DIR="/srv"' in script
+    assert 'READINESS_PORT="8091"' in script
+    assert 'cd "$WORKING_DIR"' in script
+    assert "systemd-run" in script
+    assert "--unit=\"$SYSTEMD_UNIT\"" in script
+    assert 'nohup "$JAVA_BIN" -jar "$JAR_PATH" --spring.config.location="$CONFIG_PATH"' in script
+    assert "stop_existing_processes" in script
+    assert "verify_launch_context" in script
+
+
+def test_txn_mobile_ussd_stop_helper_cleans_transient_unit():
+    script = Path("nexus_light_agent/control_helpers/txn-mobile-ussd/stop.sh").read_text(encoding="utf-8")
+
+    assert 'SYSTEMD_UNIT="sentinel-nexus-${SERVICE_NAME}"' in script
+    assert 'systemctl stop "${SYSTEMD_UNIT}.service"' in script
+    assert 'systemctl reset-failed "${SYSTEMD_UNIT}.service"' in script
+
+
+def test_txn_ussd_adapter_helper_mirrors_manual_start_contract():
+    script = Path("nexus_light_agent/control_helpers/txn-ussd-adapter/start.sh").read_text(encoding="utf-8")
+    stop_script = Path("nexus_light_agent/control_helpers/txn-ussd-adapter/stop.sh").read_text(encoding="utf-8")
+
+    assert 'SERVICE_NAME="txn-ussd-adapter"' in script
+    assert 'WORKING_DIR="/srv"' in script
+    assert 'CONFIG_PATH="/srv/afc/txn-mobile/txn-ussd-adapter/etc/application.yml"' in script
+    assert "discover_readiness_port" in script
+    assert "systemd-run" in script
+    assert "--unit=\"$SYSTEMD_UNIT\"" in script
+    assert 'SYSTEMD_UNIT="sentinel-nexus-${SERVICE_NAME}"' in stop_script
+    assert 'systemctl stop "${SYSTEMD_UNIT}.service"' in stop_script
+
+
+def test_restart_policy_ignores_unverified_control_history_for_cooldown(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    settings = AgentSettings.from_dict(config_template())
+    service = settings.enabled_services[0]
+    contract = {
+        "service": {
+            "service_id": service.service_id,
+            "service_type": "channel",
+            "is_stateless": True,
+            "database_profile": {"shared_dependency": False},
+            "certification": {"lifecycle_stage": "restart_ready"},
+            "restart_policy": {
+                "allow_restart": True,
+                "cooldown_minutes": 15,
+                "allowed_service_types": ["channel"],
+            },
+        }
+    }
+    state = {
+        "restart_history": {
+            service.service_id: {
+                "operation": "stop",
+                "completed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "verified": False,
+            }
+        }
+    }
+
+    allowed, reasons = _restart_allowed(contract, service, state, operation="stop")
+
+    assert allowed is True
+    assert reasons == []
+
+
+def test_restart_policy_does_not_cooldown_start_after_verified_stop(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    settings = AgentSettings.from_dict(config_template())
+    service = settings.enabled_services[0]
+    contract = {
+        "service": {
+            "service_id": service.service_id,
+            "service_type": "channel",
+            "is_stateless": True,
+            "database_profile": {"shared_dependency": False},
+            "certification": {"lifecycle_stage": "restart_ready"},
+            "restart_policy": {
+                "allow_restart": True,
+                "cooldown_minutes": 15,
+                "allowed_service_types": ["channel"],
+            },
+        }
+    }
+    state = {
+        "restart_history": {
+            service.service_id: {
+                "operation": "stop",
+                "completed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "verified": True,
+            }
+        }
+    }
+
+    allowed, reasons = _restart_allowed(contract, service, state, operation="start")
+
+    assert allowed is True
+    assert reasons == []
+
+
+def test_restart_policy_cooldown_blocks_restart_only_after_verified_restart(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    settings = AgentSettings.from_dict(config_template())
+    service = settings.enabled_services[0]
+    contract = {
+        "service": {
+            "service_id": service.service_id,
+            "service_type": "channel",
+            "is_stateless": True,
+            "database_profile": {"shared_dependency": False},
+            "certification": {"lifecycle_stage": "restart_ready"},
+            "restart_policy": {
+                "allow_restart": True,
+                "cooldown_minutes": 15,
+                "allowed_service_types": ["channel"],
+            },
+        }
+    }
+    state = {
+        "restart_history": {
+            service.service_id: {
+                "operation": "restart",
+                "completed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "verified": True,
+            }
+        }
+    }
+
+    start_allowed, start_reasons = _restart_allowed(contract, service, state, operation="start")
+    stop_allowed, stop_reasons = _restart_allowed(contract, service, state, operation="stop")
+    restart_allowed, restart_reasons = _restart_allowed(contract, service, state, operation="restart")
+
+    assert start_allowed is True
+    assert start_reasons == []
+    assert stop_allowed is True
+    assert stop_reasons == []
+    assert restart_allowed is False
+    assert any("cooldown" in reason.lower() for reason in restart_reasons)
+
+
+def test_agent_can_derive_builtin_spring_boot_control_from_contract_metadata(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    config = config_template()
+    config["services"][0]["jar_path"] = None
+    config["services"][0]["config_path"] = None
+    config["services"][0]["start_command"] = []
+    config["services"][0]["stop_command"] = []
+    config["services"][0]["restart_command"] = []
+    settings = AgentSettings.from_dict(config)
+    service = settings.enabled_services[0]
+    contract = {
+        "service": {
+            "metadata": {
+                "jar_path": "/srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+                "config_path": "/srv/afc/txn-mobile/txn-mobile-ussd/etc/application.yml",
+                "process_match": "txn-mobile-ussd-0.0.1-SNAPSHOT.jar",
+            }
+        }
+    }
+
+    command = _control_command(service, "stop", contract)
+
+    assert command == [BUILTIN_SPRING_BOOT_CONTROL, "stop"]

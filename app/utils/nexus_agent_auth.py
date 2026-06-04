@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from hmac import compare_digest
-
 from fastapi import HTTPException, Request, status
 
 from app.config.settings import settings
@@ -32,13 +30,15 @@ def validate_nexus_agent_request(request: Request, *, agent_id: str, service_id:
     if not settings.NEXUS_REQUIRE_AGENT_AUTH:
         return
 
-    if not settings.NEXUS_AGENT_API_TOKEN:
+    supplied_token = _extract_token(request)
+    if services.nexus.validate_agent_token(supplied_token):
+        return
+
+    status_payload = services.nexus.get_agent_token_status()
+    if not status_payload.get("configured") and not settings.NEXUS_AGENT_API_TOKEN:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Nexus agent authentication is required but NEXUS_AGENT_API_TOKEN is not configured.",
+            detail="Nexus agent authentication is required but no database-backed or environment token is configured.",
         )
 
-    supplied_token = _extract_token(request)
-    configured_token = settings.NEXUS_AGENT_API_TOKEN.get_secret_value()
-    if not supplied_token or not compare_digest(supplied_token, configured_token):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Nexus agent credentials.")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Nexus agent credentials.")

@@ -65,6 +65,7 @@ async def health_check(request: Request) -> dict[str, Any]:
     nexus_schema = services.nexus.repository.schema_status()
     if not nexus_schema.get("schema_ready"):
         warnings.append("Sentinel Nexus database schema is not ready.")
+    agent_token_status = services.nexus.get_agent_token_status()
 
     return {
         "status": "healthy" if not warnings else "degraded",
@@ -83,7 +84,8 @@ async def health_check(request: Request) -> dict[str, Any]:
             **nexus_schema,
             "auth_mode": "sentinelops_session",
             "agent_auth_required": settings.NEXUS_REQUIRE_AGENT_AUTH,
-            "agent_auth_configured": bool(settings.NEXUS_AGENT_API_TOKEN),
+            "agent_auth_configured": bool(agent_token_status.get("configured")),
+            "agent_auth_source": agent_token_status.get("source"),
             "local_state_disabled": not nexus_schema.get("local_state_enabled", False),
             "osemn": {
                 "obtain": "Evidence Intake",

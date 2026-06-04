@@ -28,8 +28,14 @@ ActionExecutionStatus = Literal[
 DiagnosticStatus = Literal["READY", "IN_PROGRESS", "COMPLETED"]
 FeedbackType = Literal["acknowledged", "verdict", "suppression", "root_cause_override"]
 CertificationStage = Literal["catalog_only", "observe_only", "correlate_ready", "diagnostics_ready", "restart_ready"]
+ServiceControlOperation = Literal["start", "stop", "restart"]
 SyncHealth = Literal["idle", "success", "warning", "error"]
 ManagedSopStatus = Literal["draft", "needs_review", "approved", "deprecated"]
+RolloverEnvironmentType = Literal["uat", "dr", "sandbox", "test", "production_clone", "other"]
+RolloverAssessmentStatus = Literal["unknown", "aligned", "requires_rollover", "drift", "error"]
+RolloverRuleStatus = Literal["aligned", "requires_change", "no_match", "skipped", "error"]
+RolloverExecutionStatus = Literal["PENDING", "APPROVED", "COMPLETED", "BLOCKED", "FAILED", "NOOP"]
+RolloverReminderStatus = Literal["scheduled", "cancelled", "notified"]
 
 
 class ManagedSopValidation(BaseModel):
@@ -120,9 +126,14 @@ class RestartPolicy(BaseModel):
 class DatabaseProfile(BaseModel):
     enabled: bool = False
     platform: str | None = None
+    host: str | None = None
     database_name: str | None = None
     instance_name: str | None = None
     service_name: str | None = None
+    username: str | None = None
+    jdbc_url: str | None = None
+    connection_type: str | None = None
+    config_dir: str | None = None
     role: str | None = None
     host_group: str | None = None
     port: int | None = None
@@ -374,7 +385,7 @@ class DiagnosticCommand(BaseModel):
 
 class DiagnosticBundle(BaseModel):
     bundle_id: str
-    incident_id: str
+    incident_id: str | None = None
     service_id: str
     requested_at: datetime
     requested_by: str
@@ -384,11 +395,12 @@ class DiagnosticBundle(BaseModel):
     notes: str | None = None
     diagnostics_url: str | None = None
     dispatch_status: str | None = None
+    command_results: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ActionExecution(BaseModel):
     action_execution_id: str
-    incident_id: str
+    incident_id: str | None = None
     service_id: str
     action_type: str
     requested_at: datetime
@@ -403,6 +415,7 @@ class ActionExecution(BaseModel):
     completed_at: datetime | None = None
     executor_url: str | None = None
     remote_execution_id: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class OperatorFeedback(BaseModel):
@@ -556,6 +569,7 @@ class AgentHeartbeat(BaseModel):
     zone: str | None = None
     service_version: str | None = None
     capabilities: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class AgentProbeReport(BaseModel):
@@ -591,7 +605,7 @@ class AgentProbeReport(BaseModel):
 class AgentDiagnosticResult(BaseModel):
     agent_id: str
     bundle_id: str
-    incident_id: str
+    incident_id: str | None = None
     service_id: str
     timestamp: datetime
     instance_id: str | None = None
@@ -599,6 +613,25 @@ class AgentDiagnosticResult(BaseModel):
     command_results: list[dict[str, Any]] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     notes: str | None = None
+
+
+class AgentControlResult(BaseModel):
+    agent_id: str
+    execution_id: str
+    action_execution_id: str | None = None
+    incident_id: str | None = None
+    service_id: str
+    operation: ServiceControlOperation
+    timestamp: datetime
+    accepted: bool = True
+    successful: bool = False
+    status: str
+    command: list[str] = Field(default_factory=list)
+    return_code: int | None = None
+    stdout: str = ""
+    stderr: str = ""
+    postcheck: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ServiceUpsertRequest(BaseModel):
@@ -690,6 +723,217 @@ class RestartActionRequest(BaseModel):
     requested_by: str
     approve: bool = True
     notes: str | None = None
+
+
+class ServiceControlChallengeRequest(BaseModel):
+    operation: ServiceControlOperation
+    reason: str | None = None
+    requested_by: str = ""
+
+
+class ServiceControlChallengeResponse(BaseModel):
+    challenge_id: str
+    service_id: str
+    service_name: str
+    operation: ServiceControlOperation
+    email: str
+    expires_at: datetime
+    readiness: dict[str, Any] = Field(default_factory=dict)
+    message: str
+
+
+class ServiceControlExecuteRequest(BaseModel):
+    challenge_id: str
+    otp_code: str
+    operation: ServiceControlOperation
+    reason: str | None = None
+    requested_by: str = ""
+
+
+class RolloverConnectionProfile(BaseModel):
+    platform: str | None = "oracle"
+    source_service_id: str | None = None
+    username: str = ""
+    dsn: str | None = None
+    jdbc_url: str | None = None
+    host: str | None = None
+    port: int | None = 1521
+    database_name: str | None = None
+    instance_name: str | None = None
+    sid: str | None = None
+    service_name: str | None = None
+    schema_name: str | None = None
+    connection_type: str | None = None
+    config_dir: str | None = None
+    password_set: bool = False
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverReplacementRule(BaseModel):
+    rule_id: str
+    table_name: str
+    column_name: str
+    source_value: str
+    target_value: str
+    description: str | None = None
+    enabled: bool = True
+    sequence: int = 100
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverEnvironment(BaseModel):
+    environment_id: str
+    environment_name: str
+    environment_type: RolloverEnvironmentType = "uat"
+    service_environment: str | None = None
+    owner_team: str | None = None
+    enabled: bool = True
+    connection: RolloverConnectionProfile = Field(default_factory=RolloverConnectionProfile)
+    rules: list[RolloverReplacementRule] = Field(default_factory=list)
+    notes: str | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_by: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverEnvironmentUpsertRequest(BaseModel):
+    environment_id: str
+    environment_name: str
+    environment_type: RolloverEnvironmentType = "uat"
+    service_environment: str | None = None
+    owner_team: str | None = None
+    enabled: bool = True
+    connection: RolloverConnectionProfile = Field(default_factory=RolloverConnectionProfile)
+    credential_password: str | None = Field(default=None, max_length=1000)
+    rules: list[RolloverReplacementRule] = Field(default_factory=list)
+    notes: str | None = None
+    updated_by: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverRuleAssessment(BaseModel):
+    rule_id: str
+    table_name: str
+    column_name: str
+    source_value: str
+    target_value: str
+    status: RolloverRuleStatus
+    source_matches: int = 0
+    target_matches: int = 0
+    rows_affected: int = 0
+    sample_values: list[str] = Field(default_factory=list)
+    generated_sql: str | None = None
+    message: str | None = None
+
+
+class RolloverAssessment(BaseModel):
+    assessment_id: str
+    environment_id: str
+    environment_name: str
+    status: RolloverAssessmentStatus
+    assessed_at: datetime = Field(default_factory=datetime.utcnow)
+    assessed_by: str | None = None
+    connected: bool = False
+    rules_checked: int = 0
+    rules_requiring_change: int = 0
+    rules_aligned: int = 0
+    rules_with_no_match: int = 0
+    rule_results: list[RolloverRuleAssessment] = Field(default_factory=list)
+    message: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverAssessmentRequest(BaseModel):
+    requested_by: str = ""
+    credential_password: str | None = Field(default=None, max_length=1000)
+
+
+class DatabaseConnectionTestRequest(BaseModel):
+    requested_by: str = ""
+    credential_password: str | None = Field(default=None, max_length=1000)
+    database_profile: DatabaseProfile | None = None
+    rollover_connection: RolloverConnectionProfile | None = None
+
+
+class DatabaseConnectionTestResult(BaseModel):
+    test_id: str
+    scope: Literal["database_fabric", "rollover"]
+    target_id: str
+    target_name: str
+    platform: str
+    status: Literal["success", "failed"]
+    connected: bool = False
+    tested_at: datetime = Field(default_factory=datetime.utcnow)
+    tested_by: str | None = None
+    latency_ms: int | None = None
+    driver: str | None = None
+    connection_type: str | None = None
+    message: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverChallengeRequest(BaseModel):
+    reason: str | None = None
+    requested_by: str = ""
+
+
+class RolloverChallengeResponse(BaseModel):
+    challenge_id: str
+    environment_id: str
+    environment_name: str
+    email: str
+    expires_at: datetime
+    readiness: dict[str, Any] = Field(default_factory=dict)
+    message: str
+
+
+class RolloverExecuteRequest(BaseModel):
+    challenge_id: str
+    otp_code: str
+    reason: str | None = None
+    requested_by: str = ""
+
+
+class RolloverExecution(BaseModel):
+    execution_id: str
+    environment_id: str
+    environment_name: str
+    status: RolloverExecutionStatus
+    requested_at: datetime = Field(default_factory=datetime.utcnow)
+    requested_by: str
+    approved_by: str | None = None
+    reason: str | None = None
+    pre_assessment: RolloverAssessment | None = None
+    post_assessment: RolloverAssessment | None = None
+    rule_results: list[RolloverRuleAssessment] = Field(default_factory=list)
+    committed: bool = False
+    completed_at: datetime | None = None
+    blocked_reasons: list[str] = Field(default_factory=list)
+    result_summary: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverReminder(BaseModel):
+    reminder_id: str
+    environment_id: str
+    environment_name: str
+    scheduled_for: datetime
+    timezone: str = "Africa/Johannesburg"
+    status: RolloverReminderStatus = "scheduled"
+    notify_recipients: list[str] = Field(default_factory=list)
+    notes: str | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str = ""
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RolloverReminderRequest(BaseModel):
+    scheduled_for: datetime
+    timezone: str = "Africa/Johannesburg"
+    notify_recipients: list[str] = Field(default_factory=list)
+    notes: str | None = None
+    created_by: str = ""
 
 
 class TaskHandoffRequest(BaseModel):

@@ -86,6 +86,13 @@ class Settings(BaseSettings):
     )
     NEXUS_REQUIRE_AGENT_AUTH: bool = Field(default=True, env="NEXUS_REQUIRE_AGENT_AUTH")
     NEXUS_AGENT_API_TOKEN: SecretStr | None = Field(default=None, env="NEXUS_AGENT_API_TOKEN")
+    SMTP_HOST: str | None = Field(default=None, env="SMTP_HOST")
+    SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
+    SMTP_USER: str | None = Field(default=None, env="SMTP_USER")
+    SMTP_PASSWORD: SecretStr | None = Field(default=None, env="SMTP_PASSWORD")
+    SMTP_FROM: str | None = Field(default=None, env="SMTP_FROM")
+    SMTP_USE_TLS: bool = Field(default=False, env="SMTP_USE_TLS")
+    SMTP_STARTTLS: bool = Field(default=True, env="SMTP_STARTTLS")
     REDIS_URL: SecretStr | None = Field(default=None, env="REDIS_URL")
     QDRANT_URL: str | None = Field(default=None, env="QDRANT_URL")
     QDRANT_API_KEY: SecretStr | None = Field(default=None, env="QDRANT_API_KEY")
@@ -95,6 +102,7 @@ class Settings(BaseSettings):
         default_factory=lambda: ["A", "B", "C", "D", "E", "F"],
         env="SOP_ALLOWED_CLASSES",
     )
+    
 
     MAX_SOP_RETRIEVAL: int = Field(default=8, env="MAX_SOP_RETRIEVAL")
     MAX_EVIDENCE_CITATIONS: int = Field(default=6, env="MAX_EVIDENCE_CITATIONS")
@@ -222,6 +230,7 @@ class Settings(BaseSettings):
             "POSTGRES_DSN",
             "SECRET_KEY",
             "NEXUS_AGENT_API_TOKEN",
+            "SMTP_PASSWORD",
             "REDIS_URL",
             "QDRANT_API_KEY",
             "ADMIN_API_TOKEN",

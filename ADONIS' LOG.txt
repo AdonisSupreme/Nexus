@@ -1,0 +1,8 @@
+ADONIS' LOG
+
+Week4: Fortipam introduction, onboarding and training, Econet airtime, bank to wallet (Vendor services). 
+
+
+Week5: Flexidocs & Selfservice deployment on windows server ++ Production deployment failure, rollback, diagnostics and redeployment.
+
+Week6: Salaries issues, system timeout, SLA, Netone USSD, airtime, and one money integration.

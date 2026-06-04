@@ -5,8 +5,11 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 import hashlib
+from hmac import compare_digest
 import re
+import secrets
 from typing import Iterable
+from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
 
 import httpx
@@ -16,6 +19,7 @@ from app.nexus.models import (
     ActionExecution,
     ActionRecommendation,
     AgentChangeContext,
+    AgentControlResult,
     AgentDiagnosticResult,
     AgentHeartbeat,
     AgentLogRecord,
@@ -27,6 +31,8 @@ from app.nexus.models import (
     CatalogService,
     ChangeEvent,
     ChangeEventRequest,
+    DatabaseConnectionTestRequest,
+    DatabaseConnectionTestResult,
     DatabaseDependencyProfile,
     DatabaseProfile,
     DependencyCluster,
@@ -51,7 +57,21 @@ from app.nexus.models import (
     OperatorFeedback,
     RestartActionRequest,
     RootCauseCandidate,
+    RolloverAssessment,
+    RolloverAssessmentRequest,
+    RolloverChallengeRequest,
+    RolloverChallengeResponse,
+    RolloverConnectionProfile,
+    RolloverEnvironment,
+    RolloverEnvironmentUpsertRequest,
+    RolloverExecuteRequest,
+    RolloverExecution,
+    RolloverReminder,
+    RolloverReminderRequest,
     ServiceGraphContext,
+    ServiceControlChallengeRequest,
+    ServiceControlChallengeResponse,
+    ServiceControlExecuteRequest,
     ServiceUpsertRequest,
     SignalEvent,
     SyncRequest,
@@ -59,8 +79,12 @@ from app.nexus.models import (
     TaskHandoffRequest,
 )
 from app.nexus.repository import NexusRepository
+from app.nexus.database_connections import oracle_dsn_from_datagrip
+from app.nexus.database_test import NexusDatabaseConnectionTester
+from app.nexus.rollover import RolloverOracleGateway
 from app.utils.audit import audit_logger
 from app.utils.logging import get_logger
+from app.utils.nexus_email import send_nexus_control_otp
 
 
 logger = get_logger(__name__)
@@ -73,11 +97,15 @@ class NexusService:
     INCIDENT_WINDOW = timedelta(minutes=10)
     MONITORING_WINDOW = timedelta(minutes=10)
     NETWORK_SYNC_INTERVAL = timedelta(seconds=10)
+    NETWORK_SENTINEL_INCIDENT_GRACE = timedelta(seconds=50)
+    CONTROL_CHALLENGE_TTL = timedelta(minutes=10)
     MAX_SIGNALS = 1500
     MAX_CHANGES = 500
 
     def __init__(self, repository: NexusRepository | None = None) -> None:
         self.repository = repository or NexusRepository()
+        self.rollover_gateway = RolloverOracleGateway()
+        self.database_connection_tester = NexusDatabaseConnectionTester()
         self.state = NexusState()
         self._last_network_sync_at: datetime | None = None
 
@@ -289,6 +317,32 @@ class NexusService:
         self._ensure_live_state()
         return self.state.fabric_summary
 
+    def get_agent_token_status(self) -> dict[str, object]:
+        if hasattr(self.repository, "get_agent_token_status"):
+            return self.repository.get_agent_token_status()
+        return {
+            "configured": bool(settings.NEXUS_AGENT_API_TOKEN),
+            "source": "environment" if settings.NEXUS_AGENT_API_TOKEN else "none",
+            "warning": None,
+        }
+
+    def generate_agent_token(self, *, created_by: str, rotate: bool = False) -> dict[str, object]:
+        return self.repository.generate_agent_token(created_by=created_by, rotate=rotate)
+
+    def validate_agent_token(self, supplied_token: str | None) -> bool:
+        if hasattr(self.repository, "validate_agent_token"):
+            return self.repository.validate_agent_token(supplied_token)
+        if not supplied_token or not settings.NEXUS_AGENT_API_TOKEN:
+            return False
+        return compare_digest(supplied_token, settings.NEXUS_AGENT_API_TOKEN.get_secret_value())
+
+    def active_agent_command_token(self) -> str | None:
+        if hasattr(self.repository, "active_agent_command_token"):
+            return self.repository.active_agent_command_token()
+        if settings.NEXUS_AGENT_API_TOKEN:
+            return settings.NEXUS_AGENT_API_TOKEN.get_secret_value()
+        return None
+
     def upsert_service(self, request: ServiceUpsertRequest) -> CatalogService:
         existing = self._service_map().get(request.service_id)
         service = CatalogService(
@@ -361,6 +415,42 @@ class NexusService:
             details={"service_id": service_id},
         )
         self._persist_and_refresh()
+
+    def test_database_fabric_connection(
+        self,
+        service_id: str,
+        request: DatabaseConnectionTestRequest,
+        *,
+        user: str,
+    ) -> DatabaseConnectionTestResult:
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+        profile = request.database_profile or service.database_profile
+        normalized_profile = self._normalized_database_profile(profile, service_type=service.service_type)
+        tested_by = request.requested_by or user
+        result = self.database_connection_tester.test_connection(
+            normalized_profile,
+            scope="database_fabric",
+            target_id=service.service_id,
+            target_name=service.service_name,
+            password=(request.credential_password or "").strip() or None,
+            tested_by=tested_by,
+        )
+        audit_logger.log(
+            event_type="nexus_database_fabric_connection_tested",
+            user=tested_by,
+            details={
+                "service_id": service.service_id,
+                "service_name": service.service_name,
+                "platform": result.platform,
+                "connected": result.connected,
+                "status": result.status,
+                "latency_ms": result.latency_ms,
+            },
+            success=result.connected,
+        )
+        return result
 
     def upsert_cluster(self, request: DependencyClusterUpsertRequest) -> DependencyCluster:
         missing = [service_id for service_id in request.service_ids if service_id not in self._service_map()]
@@ -527,6 +617,374 @@ class NexusService:
         )
         self._persist_and_refresh()
 
+    def list_rollover_environments(self) -> list[RolloverEnvironment]:
+        return self.repository.list_rollover_environments()
+
+    def get_rollover_environment_services(self, environment_id: str) -> list[CatalogService]:
+        environment = self.repository.get_rollover_environment(environment_id)
+        if environment is None:
+            raise KeyError(f"Unknown rollover environment {environment_id}")
+        service_environment = (environment.service_environment or environment.environment_id).strip().lower()
+        return [service for service in self.list_services() if service.environment.lower() == service_environment]
+
+    def upsert_rollover_environment(self, request: RolloverEnvironmentUpsertRequest, *, user: str) -> RolloverEnvironment:
+        existing = self.repository.get_rollover_environment(request.environment_id)
+        rule_ids = [rule.rule_id for rule in request.rules]
+        duplicate_rule_ids = sorted({rule_id for rule_id in rule_ids if rule_ids.count(rule_id) > 1})
+        if duplicate_rule_ids:
+            raise ValueError(f"Duplicate rollover rule IDs: {', '.join(duplicate_rule_ids)}")
+        environment = RolloverEnvironment(
+            environment_id=request.environment_id.strip(),
+            environment_name=request.environment_name.strip(),
+            environment_type=request.environment_type,
+            service_environment=(request.service_environment or "").strip() or None,
+            owner_team=(request.owner_team or "").strip() or None,
+            enabled=request.enabled,
+            connection=self._rollover_connection_with_database_fabric_defaults(
+                request.connection,
+                service_environment=(request.service_environment or "").strip() or None,
+            ),
+            rules=sorted(request.rules, key=lambda item: (item.sequence, item.rule_id)),
+            notes=request.notes,
+            created_at=existing.created_at if existing else datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+            updated_by=request.updated_by or user,
+            metadata=request.metadata,
+        )
+        environment.connection.password_set = existing.connection.password_set if existing else False
+        saved = self.repository.upsert_rollover_environment(
+            environment,
+            credential_password=(request.credential_password or "").strip() or None,
+        )
+        audit_logger.log(
+            event_type="nexus_rollover_environment_upserted",
+            user=user,
+            details={
+                "environment_id": saved.environment_id,
+                "environment_name": saved.environment_name,
+                "service_environment": saved.service_environment,
+                "rule_count": len(saved.rules),
+                "credential_configured": saved.connection.password_set,
+            },
+        )
+        return saved
+
+    def delete_rollover_environment(self, environment_id: str, *, user: str) -> None:
+        self.repository.delete_rollover_environment(environment_id, user)
+        audit_logger.log(
+            event_type="nexus_rollover_environment_deleted",
+            user=user,
+            details={"environment_id": environment_id},
+        )
+
+    def assess_rollover_environment(
+        self,
+        environment_id: str,
+        request: RolloverAssessmentRequest,
+        *,
+        user: str,
+    ) -> RolloverAssessment:
+        environment, password = self._rollover_environment_with_password(
+            environment_id,
+            password_override=(request.credential_password or "").strip() or None,
+        )
+        assessed_by = request.requested_by or user
+        try:
+            assessment = self.rollover_gateway.assess_environment(
+                environment,
+                password=password,
+                assessed_by=assessed_by,
+            )
+        except Exception as exc:
+            logger.exception("Nexus rollover assessment failed environment_id=%s", environment_id)
+            assessment = RolloverAssessment(
+                assessment_id=f"roll-assess-{uuid4()}",
+                environment_id=environment.environment_id,
+                environment_name=environment.environment_name,
+                status="error",
+                assessed_at=datetime.utcnow(),
+                assessed_by=assessed_by,
+                connected=False,
+                message=str(exc),
+            )
+        audit_logger.log(
+            event_type="nexus_rollover_environment_assessed",
+            user=assessed_by,
+            details={
+                "environment_id": environment.environment_id,
+                "status": assessment.status,
+                "rules_requiring_change": assessment.rules_requiring_change,
+                "connected": assessment.connected,
+            },
+            success=assessment.status != "error",
+        )
+        return assessment
+
+    def test_rollover_connection(
+        self,
+        environment_id: str,
+        request: DatabaseConnectionTestRequest,
+        *,
+        user: str,
+    ) -> DatabaseConnectionTestResult:
+        environment, password = self._rollover_environment_with_password(
+            environment_id,
+            password_override=(request.credential_password or "").strip() or None,
+        )
+        tested_by = request.requested_by or user
+        connection = request.rollover_connection or environment.connection
+        connection = self._rollover_connection_with_database_fabric_defaults(
+            connection,
+            service_environment=environment.service_environment,
+        )
+        result = self.database_connection_tester.test_connection(
+            connection,
+            scope="rollover",
+            target_id=environment.environment_id,
+            target_name=environment.environment_name,
+            password=password,
+            tested_by=tested_by,
+        )
+        audit_logger.log(
+            event_type="nexus_rollover_connection_tested",
+            user=tested_by,
+            details={
+                "environment_id": environment.environment_id,
+                "environment_name": environment.environment_name,
+                "platform": result.platform,
+                "connected": result.connected,
+                "status": result.status,
+                "latency_ms": result.latency_ms,
+            },
+            success=result.connected,
+        )
+        return result
+
+    def request_rollover_challenge(
+        self,
+        environment_id: str,
+        request: RolloverChallengeRequest,
+        *,
+        user: dict[str, object],
+    ) -> RolloverChallengeResponse:
+        environment = self.repository.get_rollover_environment(environment_id)
+        if environment is None:
+            raise KeyError(f"Unknown rollover environment {environment_id}")
+        readiness = self._rollover_readiness(environment)
+        if not readiness["ready"]:
+            raise ValueError("; ".join(readiness["blocked_reasons"]))
+        email = str(user.get("email") or "").strip()
+        if not email:
+            raise ValueError("Your SentinelOps profile does not have an email address for OTP delivery.")
+        if not settings.SMTP_HOST or not settings.SMTP_FROM:
+            raise ValueError("Nexus SMTP is not configured, so OTP rollover control cannot be enabled yet.")
+
+        now = datetime.utcnow()
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        salt = secrets.token_urlsafe(16)
+        challenge_id = f"roll-ctrl-{uuid4()}"
+        operator_name = str(user.get("username") or user.get("first_name") or email)
+        challenge = {
+            "challenge_id": challenge_id,
+            "environment_id": environment_id,
+            "operation": "rollover",
+            "code_hash": self._hash_control_code(code, salt),
+            "salt": salt,
+            "email": email,
+            "requested_by": request.requested_by or operator_name,
+            "reason": request.reason,
+            "created_at": now.isoformat() + "Z",
+            "expires_at": (now + self.CONTROL_CHALLENGE_TTL).isoformat() + "Z",
+            "status": "issued",
+        }
+        challenges = self._load_rollover_challenges(now)
+        challenges = [item for item in challenges if item.get("challenge_id") != challenge_id]
+        challenges.append(challenge)
+        self.repository.persist_rollover_challenges(challenges[-50:])
+
+        send_nexus_control_otp(
+            recipient=email,
+            operator_name=operator_name,
+            service_name=environment.environment_name,
+            service_id=environment.environment_id,
+            operation="rollover",
+            code=code,
+            expires_minutes=int(self.CONTROL_CHALLENGE_TTL.total_seconds() // 60),
+            reason=request.reason,
+        )
+        audit_logger.log(
+            event_type="nexus_rollover_challenge_issued",
+            user=operator_name,
+            details={"challenge_id": challenge_id, "environment_id": environment_id, "email": email},
+        )
+        return RolloverChallengeResponse(
+            challenge_id=challenge_id,
+            environment_id=environment_id,
+            environment_name=environment.environment_name,
+            email=email,
+            expires_at=now + self.CONTROL_CHALLENGE_TTL,
+            readiness=readiness,
+            message=f"Verification code sent to {email}.",
+        )
+
+    def execute_rollover(
+        self,
+        environment_id: str,
+        request: RolloverExecuteRequest,
+        *,
+        user: dict[str, object],
+    ) -> RolloverExecution:
+        environment, password = self._rollover_environment_with_password(environment_id)
+        now = datetime.utcnow()
+        challenges = self._load_rollover_challenges(now)
+        challenge = next((item for item in challenges if item.get("challenge_id") == request.challenge_id), None)
+        if not challenge:
+            raise ValueError("The Nexus rollover verification code is invalid or expired.")
+        if challenge.get("environment_id") != environment_id or challenge.get("operation") != "rollover":
+            raise ValueError("The Nexus rollover verification code does not match this environment action.")
+        if challenge.get("status") != "issued":
+            raise ValueError("The Nexus rollover verification code has already been used.")
+        expires_at = self._to_naive_utc(challenge.get("expires_at"))
+        if not expires_at or expires_at < now:
+            raise ValueError("The Nexus rollover verification code has expired.")
+        supplied_hash = self._hash_control_code(request.otp_code.strip(), str(challenge.get("salt") or ""))
+        if not compare_digest(supplied_hash, str(challenge.get("code_hash") or "")):
+            raise ValueError("The Nexus rollover verification code is incorrect.")
+
+        approved_by = str(user.get("username") or user.get("email") or "nexus-operator")
+        requested_by = request.requested_by or str(challenge.get("requested_by") or approved_by)
+        readiness = self._rollover_readiness(environment)
+        if not readiness["ready"]:
+            execution = RolloverExecution(
+                execution_id=f"roll-exec-{uuid4()}",
+                environment_id=environment.environment_id,
+                environment_name=environment.environment_name,
+                status="BLOCKED",
+                requested_at=now,
+                requested_by=requested_by,
+                approved_by=approved_by,
+                reason=request.reason or str(challenge.get("reason") or ""),
+                completed_at=now,
+                blocked_reasons=list(readiness["blocked_reasons"]),
+                result_summary="Rollover blocked by Nexus readiness gates.",
+                metadata={"readiness": readiness, "otp_challenge_id": request.challenge_id},
+            )
+        else:
+            try:
+                execution = self.rollover_gateway.execute_environment(
+                    environment,
+                    password=password,
+                    requested_by=requested_by,
+                    approved_by=approved_by,
+                    reason=request.reason or str(challenge.get("reason") or ""),
+                )
+                execution.metadata = {
+                    **execution.metadata,
+                    "readiness": readiness,
+                    "otp_challenge_id": request.challenge_id,
+                    "linked_service_ids": [service.service_id for service in self._rollover_linked_services(environment)],
+                }
+            except Exception as exc:
+                logger.exception("Nexus rollover execution failed environment_id=%s", environment_id)
+                execution = RolloverExecution(
+                    execution_id=f"roll-exec-{uuid4()}",
+                    environment_id=environment.environment_id,
+                    environment_name=environment.environment_name,
+                    status="FAILED",
+                    requested_at=now,
+                    requested_by=requested_by,
+                    approved_by=approved_by,
+                    reason=request.reason or str(challenge.get("reason") or ""),
+                    completed_at=datetime.utcnow(),
+                    blocked_reasons=[str(exc)],
+                    result_summary="Rollover execution failed before commit.",
+                    metadata={"readiness": readiness, "otp_challenge_id": request.challenge_id},
+                )
+
+        challenge["status"] = "consumed"
+        challenge["consumed_at"] = datetime.utcnow().isoformat() + "Z"
+        self.repository.persist_rollover_challenges(challenges[-50:])
+        self.repository.persist_rollover_execution(execution)
+        if execution.status == "COMPLETED":
+            linked_services = self._rollover_linked_services(environment)
+            self._merge_change_events(
+                [
+                    ChangeEvent(
+                        change_id=f"chg-{uuid4()}",
+                        service_id=service.service_id,
+                        change_type="environment_rollover",
+                        timestamp=datetime.utcnow(),
+                        source="nexus_rollover",
+                        summary=f"OTP-approved database configuration rollover committed for {environment.environment_name}.",
+                        metadata={
+                            "environment_id": environment.environment_id,
+                            "execution_id": execution.execution_id,
+                            "requested_by": execution.requested_by,
+                        },
+                    )
+                    for service in linked_services
+                ]
+            )
+            self._persist_and_refresh()
+        audit_logger.log(
+            event_type="nexus_rollover_executed",
+            user=requested_by,
+            details={
+                "environment_id": environment_id,
+                "execution_id": execution.execution_id,
+                "status": execution.status,
+                "committed": execution.committed,
+                "blocked_reasons": execution.blocked_reasons,
+            },
+            success=execution.status in {"COMPLETED", "NOOP"},
+        )
+        return execution
+
+    def list_rollover_executions(self, environment_id: str | None = None) -> list[RolloverExecution]:
+        return self.repository.list_rollover_executions(environment_id)
+
+    def list_rollover_reminders(self, environment_id: str | None = None) -> list[RolloverReminder]:
+        return self.repository.list_rollover_reminders(environment_id)
+
+    def schedule_rollover_reminder(
+        self,
+        environment_id: str,
+        request: RolloverReminderRequest,
+        *,
+        user: str,
+    ) -> RolloverReminder:
+        environment = self.repository.get_rollover_environment(environment_id)
+        if environment is None:
+            raise KeyError(f"Unknown rollover environment {environment_id}")
+        reminder = RolloverReminder(
+            reminder_id=f"roll-rem-{uuid4()}",
+            environment_id=environment.environment_id,
+            environment_name=environment.environment_name,
+            scheduled_for=request.scheduled_for,
+            timezone=request.timezone,
+            status="scheduled",
+            notify_recipients=request.notify_recipients,
+            notes=request.notes,
+            created_at=datetime.utcnow(),
+            created_by=request.created_by or user,
+            metadata={"autonomous_rollover": False},
+        )
+        saved = self.repository.upsert_rollover_reminder(reminder)
+        audit_logger.log(
+            event_type="nexus_rollover_reminder_scheduled",
+            user=saved.created_by,
+            details=saved.model_dump(mode="json"),
+        )
+        return saved
+
+    def cancel_rollover_reminder(self, reminder_id: str, *, user: str) -> None:
+        self.repository.cancel_rollover_reminder(reminder_id, user)
+        audit_logger.log(
+            event_type="nexus_rollover_reminder_cancelled",
+            user=user,
+            details={"reminder_id": reminder_id},
+        )
+
     def get_graph_context(self, service_id: str) -> ServiceGraphContext:
         self._ensure_live_state()
         services = self._service_map()
@@ -586,6 +1044,436 @@ class NexusService:
             cluster_ids=self._cluster_ids_for_service(service_id),
         )
 
+    def get_service_live_state(self, service_id: str) -> dict[str, object]:
+        self._ensure_live_state()
+        services = self._service_map()
+        service = services.get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+
+        now = datetime.utcnow()
+        signals = sorted(
+            [signal for signal in self.state.signals if signal.service_id == service_id],
+            key=lambda item: item.timestamp,
+            reverse=True,
+        )
+        recent_signals = [signal for signal in signals if signal.timestamp >= now - self.ACTIVE_WINDOW]
+        incidents = sorted(
+            [
+                incident
+                for incident in self.state.incidents
+                if service_id in incident.affected_services
+                or incident.suspected_root_service == service_id
+                or any(candidate.service_id == service_id for candidate in incident.root_cause_candidates)
+            ],
+            key=lambda item: item.start_time,
+            reverse=True,
+        )
+        active_incidents = [incident for incident in incidents if incident.status in {"OPEN", "MONITORING"} and incident.end_time is None]
+        awaiting_verdict = [incident for incident in incidents if incident.status == "AWAITING_VERDICT"]
+        latest_agent_signal = next(
+            (
+                signal
+                for signal in signals
+                if signal.source != "network_sentinel"
+                or signal.vantage_point in {"local_agent", "application_log", "database_probe", "distributed_trace"}
+            ),
+            None,
+        )
+        latest_network_signal = next((signal for signal in signals if signal.source == "network_sentinel"), None)
+        heartbeat = next(
+            (
+                item
+                for item in self.state.agent_heartbeats
+                if item.service_id == service_id
+                or (service.observation_config.agent_id and item.agent_id == service.observation_config.agent_id)
+            ),
+            None,
+        )
+        source_counts: dict[str, int] = defaultdict(int)
+        severity_counts: dict[str, int] = defaultdict(int)
+        vantage_counts: dict[str, int] = defaultdict(int)
+        for signal in recent_signals:
+            source_counts[signal.source] += 1
+            severity_counts[signal.severity] += 1
+            vantage_counts[signal.vantage_point or self._signal_context(signal)["vantage_point"] or "unknown"] += 1
+
+        agent_attributes = latest_agent_signal.attributes if latest_agent_signal else {}
+        metrics = agent_attributes.get("metrics") if isinstance(agent_attributes.get("metrics"), dict) else {}
+        host = metrics.get("host") if isinstance(metrics.get("host"), dict) else {}
+        resource_pressure = metrics.get("resource_pressure") if isinstance(metrics.get("resource_pressure"), dict) else {}
+        healthcheck = metrics.get("healthcheck") if isinstance(metrics.get("healthcheck"), dict) else {}
+        service_profile = metrics.get("service_profile") if isinstance(metrics.get("service_profile"), dict) else None
+        log_window = agent_attributes.get("metadata", {}).get("log_window") if isinstance(agent_attributes.get("metadata"), dict) else None
+        processes = metrics.get("processes") if isinstance(metrics.get("processes"), list) else []
+        process_count = int(metrics.get("process_count") or len(processes or []))
+
+        latest_incident = active_incidents[0] if active_incidents else awaiting_verdict[0] if awaiting_verdict else incidents[0] if incidents else None
+        runtime_status = str(agent_attributes.get("status") or latest_agent_signal.attributes.get("status") if latest_agent_signal else "").lower()
+        network_status = str(latest_network_signal.attributes.get("status") or "").upper() if latest_network_signal else ""
+        runtime_down = runtime_status in {"down", "critical", "failed", "stopped", "unhealthy"} or (
+            latest_agent_signal is not None
+            and latest_agent_signal.severity == "CRITICAL"
+            and process_count == 0
+        )
+        runtime_starting = runtime_status in {"starting", "initializing", "warming", "booting"}
+        runtime_running = process_count > 0 or runtime_status in {"up", "healthy", "running", "ok"}
+        network_problem = network_status in {"DOWN", "DEGRADED", "UNREACHABLE", "FAILED"}
+        fresh_control_runtime = bool(
+            latest_agent_signal
+            and latest_agent_signal.attributes.get("control_result_signal")
+            and (
+                latest_network_signal is None
+                or latest_agent_signal.timestamp >= latest_network_signal.timestamp
+            )
+        )
+        if active_incidents:
+            status_label = "Active impact"
+            status_tone = active_incidents[0].risk_level.lower()
+            status_detail = active_incidents[0].summary
+        elif runtime_down:
+            status_label = "Stopped"
+            status_tone = "critical"
+            status_detail = "The light agent currently sees no matching runtime process for this service."
+        elif runtime_starting:
+            status_label = "Starting"
+            status_tone = "medium"
+            status_detail = latest_agent_signal.message if latest_agent_signal else "Nexus sees the process transition and is waiting for service readiness."
+        elif runtime_running and fresh_control_runtime:
+            status_label = "Live"
+            status_tone = "quiet"
+            status_detail = "Latest control verification shows the local runtime is running."
+        elif network_problem:
+            status_label = "Reachability degraded"
+            status_tone = "medium"
+            status_detail = latest_network_signal.message if latest_network_signal else "Network Sentinel reports degraded reachability."
+        elif awaiting_verdict:
+            status_label = "Recovered"
+            status_tone = "low"
+            status_detail = f"{len(awaiting_verdict)} incident(s) await operator verdict."
+        elif runtime_running or network_status in {"UP", "HEALTHY", "OK"}:
+            status_label = "Live"
+            status_tone = "quiet"
+            status_detail = "Latest telemetry shows the service is reachable or running."
+        elif latest_agent_signal or latest_network_signal:
+            status_label = "Observed"
+            status_tone = "observed"
+            status_detail = "Nexus has telemetry, but no active incident is open."
+        else:
+            status_label = "Awaiting telemetry"
+            status_tone = "idle"
+            status_detail = "No current agent or Network Sentinel signal has reached Nexus yet."
+
+        dependencies = [edge for edge in self.state.dependency_edges if edge.from_service_id == service_id]
+        dependents = [edge for edge in self.state.dependency_edges if edge.to_service_id == service_id]
+        service_diagnostics = sorted(
+            [bundle for bundle in self.state.diagnostics if bundle.service_id == service_id],
+            key=lambda item: item.requested_at,
+            reverse=True,
+        )
+        service_actions = sorted(
+            [action for action in self.state.action_executions if action.service_id == service_id],
+            key=lambda item: item.requested_at,
+            reverse=True,
+        )
+        return {
+            "service_id": service_id,
+            "generated_at": now.isoformat() + "Z",
+            "status": {
+                "label": status_label,
+                "tone": status_tone,
+                "detail": status_detail,
+                "active_incidents": len(active_incidents),
+                "awaiting_verdict": len(awaiting_verdict),
+                "latest_incident_id": latest_incident.incident_id if latest_incident else None,
+            },
+            "agent": {
+                "configured_agent_id": service.observation_config.agent_id,
+                "heartbeat": heartbeat.model_dump(mode="json") if heartbeat else None,
+                "latest_signal": self._signal_live_digest(latest_agent_signal) if latest_agent_signal else None,
+                "status": runtime_status or None,
+                "runtime_state": "stopped" if runtime_down else "running" if runtime_running else "unknown",
+                "process_count": process_count,
+                "processes": processes[:5],
+                "healthcheck": healthcheck,
+                "host": host,
+                "resource_pressure": resource_pressure,
+                "service_profile": service_profile,
+                "log_window": log_window,
+            },
+            "network": {
+                "network_service_id": service.observation_config.network_service_id,
+                "latest_signal": self._signal_live_digest(latest_network_signal) if latest_network_signal else None,
+                "status": network_status or None,
+                "problem_eligible": bool(latest_network_signal and latest_network_signal.attributes.get("network_incident_eligible") is True),
+                "problem_duration_seconds": latest_network_signal.attributes.get("network_problem_duration_seconds") if latest_network_signal else None,
+            },
+            "signals": {
+                "recent_total": len(recent_signals),
+                "latest": [self._signal_live_digest(signal) for signal in signals[:12]],
+                "source_counts": dict(source_counts),
+                "severity_counts": dict(severity_counts),
+                "vantage_counts": dict(vantage_counts),
+            },
+            "dependencies": {
+                "outgoing": [
+                    {
+                        "edge_id": edge.edge_id,
+                        "to_service_id": edge.to_service_id,
+                        "dependency_type": edge.dependency_type,
+                        "purpose": edge.dependency_purpose,
+                        "criticality_weight": edge.criticality_weight,
+                    }
+                    for edge in dependencies
+                ],
+                "incoming": [
+                    {
+                        "edge_id": edge.edge_id,
+                        "from_service_id": edge.from_service_id,
+                        "dependency_type": edge.dependency_type,
+                        "purpose": edge.dependency_purpose,
+                        "criticality_weight": edge.criticality_weight,
+                    }
+                    for edge in dependents
+                ],
+            },
+            "diagnostics": {
+                "recent_total": len(service_diagnostics),
+                "in_progress": len([bundle for bundle in service_diagnostics if bundle.status == "IN_PROGRESS"]),
+                "completed": len([bundle for bundle in service_diagnostics if bundle.status == "COMPLETED"]),
+                "latest": [bundle.model_dump(mode="json") for bundle in service_diagnostics],
+            },
+            "actions": {
+                "recent_total": len(service_actions),
+                "latest": [action.model_dump(mode="json") for action in service_actions],
+            },
+            "control": {
+                "certification_capabilities": self._certification_capabilities(service.certification.lifecycle_stage),
+                "readiness": {
+                    operation: self._service_control_readiness(service, operation)
+                    for operation in ("start", "stop", "restart")
+                },
+            },
+        }
+
+    def get_service_signal_feed(
+        self,
+        service_id: str,
+        *,
+        source: str | None = None,
+        limit: int = 150,
+        since_hours: int = 24,
+    ) -> dict[str, object]:
+        self._ensure_live_state()
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+
+        bounded_limit = min(max(int(limit or 150), 1), 300)
+        bounded_hours = min(max(int(since_hours or 24), 1), 168)
+        cutoff = datetime.utcnow() - timedelta(hours=bounded_hours)
+        service_signals = [
+            signal
+            for signal in self.state.signals
+            if signal.service_id == service_id and signal.timestamp >= cutoff
+        ]
+        source_counts: dict[str, int] = defaultdict(int)
+        severity_counts: dict[str, int] = defaultdict(int)
+        layer_counts: dict[str, int] = defaultdict(int)
+        for signal in service_signals:
+            source_counts[signal.source] += 1
+            severity_counts[signal.severity] += 1
+            layer_counts[signal.observation_layer or self._signal_context(signal)["observation_layer"] or "unknown"] += 1
+
+        normalized_source = source.strip() if source else None
+        filtered = [
+            signal
+            for signal in service_signals
+            if not normalized_source or signal.source == normalized_source
+        ]
+        filtered.sort(key=lambda item: item.timestamp, reverse=True)
+        return {
+            "service_id": service_id,
+            "service_name": service.service_name,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "source": normalized_source,
+            "since_hours": bounded_hours,
+            "limit": bounded_limit,
+            "total": len(filtered),
+            "returned": min(len(filtered), bounded_limit),
+            "source_counts": dict(source_counts),
+            "severity_counts": dict(severity_counts),
+            "layer_counts": dict(layer_counts),
+            "signals": [self._signal_live_digest(signal) for signal in filtered[:bounded_limit]],
+        }
+
+    def get_service_log_tail(self, service_id: str, *, lines: int = 120, cursor: int | None = None) -> dict[str, object]:
+        self._ensure_live_state()
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+
+        bounded_lines = min(max(int(lines or 120), 20), 300)
+        tail_url = self._agent_command_url(service, "/logs/tail")
+        if not tail_url:
+            return {
+                "service_id": service_id,
+                "service_name": service.service_name,
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "available": False,
+                "reason": "No light-agent command server URL is configured for this service.",
+                "lines": [],
+            }
+        if service.certification.lifecycle_stage not in {"diagnostics_ready", "restart_ready"}:
+            return {
+                "service_id": service_id,
+                "service_name": service.service_name,
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "available": False,
+                "reason": "Live log tail requires diagnostics_ready or restart_ready certification.",
+                "lines": [],
+            }
+        try:
+            response = httpx.post(
+                tail_url,
+                headers=self._agent_command_headers(service),
+                json={
+                    "service_id": service_id,
+                    "max_lines": bounded_lines,
+                    "max_bytes": 196_608,
+                    "cursor": cursor,
+                    "newest_first": True,
+                },
+                timeout=8.0,
+            )
+            response.raise_for_status()
+            payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+            if isinstance(payload, dict):
+                return payload
+        except Exception as exc:
+            logger.warning("Nexus live log tail failed service_id=%s url=%s reason=%s", service_id, tail_url, exc)
+            return {
+                "service_id": service_id,
+                "service_name": service.service_name,
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "available": False,
+                "reason": f"Light-agent log tail request failed: {exc}",
+                "lines": [],
+            }
+        return {
+            "service_id": service_id,
+            "service_name": service.service_name,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "available": False,
+            "reason": "Light-agent log tail returned an invalid payload.",
+            "lines": [],
+        }
+
+    def list_light_agents(self) -> list[dict[str, object]]:
+        self._ensure_live_state()
+        services_by_agent: dict[str, list[CatalogService]] = defaultdict(list)
+        services_by_id = self._service_map()
+        for service in self.state.services:
+            agent_id = service.observation_config.agent_id
+            if agent_id:
+                services_by_agent[agent_id].append(service)
+
+        heartbeats_by_agent: dict[str, list[AgentHeartbeat]] = defaultdict(list)
+        for heartbeat in self.state.agent_heartbeats:
+            heartbeats_by_agent[heartbeat.agent_id].append(heartbeat)
+
+        agent_ids = sorted(heartbeats_by_agent)
+        now = datetime.utcnow()
+        agents: list[dict[str, object]] = []
+        for agent_id in agent_ids:
+            heartbeats = sorted(heartbeats_by_agent.get(agent_id, []), key=lambda item: item.timestamp, reverse=True)
+            latest = heartbeats[0] if heartbeats else None
+            metadata = latest.metadata if latest and isinstance(latest.metadata, dict) else {}
+            reported_watches = metadata.get("watched_services") if isinstance(metadata.get("watched_services"), list) else []
+            reported_watch_ids = {
+                str(item.get("service_id") or "").strip()
+                for item in reported_watches
+                if isinstance(item, dict) and str(item.get("service_id") or "").strip()
+            }
+            heartbeat_service_ids = {heartbeat.service_id for heartbeat in heartbeats}
+            configured_service_ids = reported_watch_ids or heartbeat_service_ids or {
+                service.service_id for service in services_by_agent.get(agent_id, [])
+            }
+            watched_services = [
+                services_by_id[service_id]
+                for service_id in configured_service_ids
+                if service_id in services_by_id
+            ]
+            unknown_watch_rows = [
+                item
+                for item in reported_watches
+                if isinstance(item, dict)
+                and str(item.get("service_id") or "").strip()
+                and str(item.get("service_id") or "").strip() not in services_by_id
+            ]
+            last_seen_at = self._to_naive_utc(latest.timestamp) if latest else None
+            age_seconds = (
+                max((now - last_seen_at).total_seconds(), 0)
+                if last_seen_at
+                else None
+            )
+            status = "online" if age_seconds is not None and age_seconds <= 180 else "stale" if latest else "not_seen"
+            host = metadata.get("host") if isinstance(metadata.get("host"), dict) else {}
+            pressure = metadata.get("resource_pressure") if isinstance(metadata.get("resource_pressure"), dict) else {}
+            command_server = metadata.get("command_server") if isinstance(metadata.get("command_server"), dict) else {}
+            agents.append(
+                {
+                    "agent_id": agent_id,
+                    "status": status,
+                    "last_seen_at": last_seen_at.isoformat() + "Z" if last_seen_at else None,
+                    "last_seen_age_seconds": age_seconds,
+                    "environment": latest.environment if latest else (watched_services[0].environment if watched_services else None),
+                    "platform": latest.platform if latest else None,
+                    "version": latest.version if latest else None,
+                    "host_id": latest.host_id if latest else None,
+                    "instance_id": latest.instance_id if latest else None,
+                    "cluster": latest.cluster if latest else None,
+                    "capabilities": latest.capabilities if latest else [],
+                    "heartbeat_count": len(heartbeats),
+                    "configured_service_count": len(configured_service_ids),
+                    "reporting_service_count": len(heartbeat_service_ids),
+                    "missing_service_ids": sorted(configured_service_ids - heartbeat_service_ids),
+                    "unexpected_service_ids": sorted(heartbeat_service_ids - configured_service_ids),
+                    "host": host,
+                    "resource_pressure": pressure,
+                    "command_server": command_server,
+                    "services": [
+                        {
+                            "service_id": service.service_id,
+                            "service_name": service.service_name,
+                            "environment": service.environment,
+                            "service_type": service.service_type,
+                            "criticality": service.criticality,
+                            "lifecycle_stage": service.certification.lifecycle_stage,
+                            "has_heartbeat": service.service_id in heartbeat_service_ids,
+                            "diagnostics_url": service.endpoint_config.diagnostics_url,
+                            "control_url": service.endpoint_config.restart_url,
+                        }
+                        for service in sorted(watched_services, key=lambda item: item.service_name)
+                    ]
+                    + [
+                        {
+                            "service_id": str(item.get("service_id") or ""),
+                            "service_name": str(item.get("service_name") or item.get("service_id") or "Unknown service"),
+                            "environment": str(item.get("environment") or latest.environment),
+                            "service_type": "unknown",
+                            "criticality": "unknown",
+                            "lifecycle_stage": "agent_reported",
+                            "has_heartbeat": str(item.get("service_id") or "") in heartbeat_service_ids,
+                            "diagnostics_url": None,
+                            "control_url": None,
+                        }
+                        for item in sorted(unknown_watch_rows, key=lambda row: str(row.get("service_name") or row.get("service_id") or ""))
+                    ],
+                }
+            )
+        return agents
+
     def sync_network_sentinel(self, request: SyncRequest | None = None) -> FabricSummary:
         force = bool(request.force) if request else False
         now = datetime.utcnow()
@@ -607,7 +1495,7 @@ class NexusService:
                 sync_health="warning",
                 sync_message="No Network Sentinel mappings configured yet. Add network_service_id values to start live sync.",
             )
-            self._persist_and_refresh()
+            self._refresh_and_persist_telemetry(signals=[], changes=[])
             self._last_network_sync_at = now
             return self.state.fabric_summary
 
@@ -620,7 +1508,7 @@ class NexusService:
                 sync_health="error",
                 sync_message=f"Network Sentinel sync failed: {exc}",
             )
-            self.repository.persist_state(self.state)
+            self._refresh_and_persist_telemetry(signals=[], changes=[])
             self._last_network_sync_at = now
             return self.state.fabric_summary
 
@@ -643,7 +1531,7 @@ class NexusService:
             sync_health="success",
             sync_message=f"Synchronized {len(signals)} live evidence records for {len(mapped_services)} mapped services.",
         )
-        self._persist_and_refresh()
+        self._refresh_and_persist_telemetry(signals=signals, changes=changes)
         self._last_network_sync_at = now
         return self.state.fabric_summary
 
@@ -718,6 +1606,65 @@ class NexusService:
             event_type="nexus_diagnostics_requested",
             user=request.requested_by,
             details={"incident_id": incident_id, "bundle_id": bundle.bundle_id, "service_id": target_service_id},
+        )
+        self._persist_and_refresh()
+        return bundle
+
+    def request_service_diagnostics(self, service_id: str, request: DiagnosticsRequest) -> DiagnosticBundle:
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+        diagnostics_url = service.endpoint_config.diagnostics_url or self._cluster_diagnostics_url(service_id)
+        commands = self._diagnostic_commands_for_service(service_id)
+        evidence_snapshot = [
+            self._evidence_from_signal(signal)
+            for signal in sorted(
+                [signal for signal in self.state.signals if signal.service_id == service_id],
+                key=lambda item: item.timestamp,
+                reverse=True,
+            )[:6]
+        ]
+        bundle = DiagnosticBundle(
+            bundle_id=f"diag-{uuid4()}",
+            incident_id=None,
+            service_id=service_id,
+            requested_at=datetime.utcnow(),
+            requested_by=request.requested_by,
+            status="READY",
+            commands=commands,
+            evidence_snapshot=evidence_snapshot,
+            notes=request.notes,
+            diagnostics_url=diagnostics_url,
+        )
+        if diagnostics_url and service.certification.lifecycle_stage in {"diagnostics_ready", "restart_ready"}:
+            try:
+                response = httpx.post(
+                    diagnostics_url,
+                    headers=self._agent_command_headers(service),
+                    json={
+                        "bundle_id": bundle.bundle_id,
+                        "incident_id": None,
+                        "service_id": service_id,
+                        "requested_by": request.requested_by,
+                        "commands": [item.model_dump(mode="json") for item in commands],
+                    },
+                    timeout=8.0,
+                )
+                response.raise_for_status()
+                bundle.status = "IN_PROGRESS"
+                bundle.dispatch_status = "sent"
+            except Exception as exc:
+                bundle.dispatch_status = f"dispatch_failed: {exc}"
+        elif diagnostics_url:
+            bundle.dispatch_status = "blocked: service is not certified for diagnostics"
+        else:
+            bundle.dispatch_status = "pending: no diagnostics endpoint configured"
+        self.state.diagnostics = [item for item in self.state.diagnostics if item.bundle_id != bundle.bundle_id]
+        self.state.diagnostics.insert(0, bundle)
+        audit_logger.log(
+            event_type="nexus_service_diagnostics_requested",
+            user=request.requested_by,
+            details={"bundle_id": bundle.bundle_id, "service_id": service_id},
         )
         self._persist_and_refresh()
         return bundle
@@ -864,6 +1811,228 @@ class NexusService:
         self._persist_and_refresh()
         return execution
 
+    def request_service_control_challenge(
+        self,
+        service_id: str,
+        request: ServiceControlChallengeRequest,
+        *,
+        user: dict[str, object],
+    ) -> ServiceControlChallengeResponse:
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+        readiness = self._service_control_readiness(service, request.operation)
+        if not readiness["ready"]:
+            raise ValueError("; ".join(readiness["blocked_reasons"]))
+        email = str(user.get("email") or "").strip()
+        if not email:
+            raise ValueError("Your SentinelOps profile does not have an email address for OTP delivery.")
+        if not settings.SMTP_HOST or not settings.SMTP_FROM:
+            raise ValueError("Nexus SMTP is not configured, so OTP service control cannot be enabled yet.")
+
+        now = datetime.utcnow()
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        salt = secrets.token_urlsafe(16)
+        challenge_id = f"ctrl-{uuid4()}"
+        challenge = {
+            "challenge_id": challenge_id,
+            "service_id": service_id,
+            "operation": request.operation,
+            "code_hash": self._hash_control_code(code, salt),
+            "salt": salt,
+            "email": email,
+            "requested_by": request.requested_by or str(user.get("username") or email),
+            "reason": request.reason,
+            "created_at": now.isoformat() + "Z",
+            "expires_at": (now + self.CONTROL_CHALLENGE_TTL).isoformat() + "Z",
+            "status": "issued",
+        }
+        challenges = self._load_control_challenges(now)
+        challenges = [item for item in challenges if item.get("challenge_id") != challenge_id]
+        challenges.append(challenge)
+        self.repository.persist_control_challenges(challenges[-50:])
+
+        operator_name = str(user.get("username") or user.get("first_name") or email)
+        send_nexus_control_otp(
+            recipient=email,
+            operator_name=operator_name,
+            service_name=service.service_name,
+            service_id=service.service_id,
+            operation=request.operation,
+            code=code,
+            expires_minutes=int(self.CONTROL_CHALLENGE_TTL.total_seconds() // 60),
+            reason=request.reason,
+        )
+        audit_logger.log(
+            event_type="nexus_service_control_challenge_issued",
+            user=operator_name,
+            details={"challenge_id": challenge_id, "service_id": service_id, "operation": request.operation, "email": email},
+        )
+        return ServiceControlChallengeResponse(
+            challenge_id=challenge_id,
+            service_id=service_id,
+            service_name=service.service_name,
+            operation=request.operation,
+            email=email,
+            expires_at=now + self.CONTROL_CHALLENGE_TTL,
+            readiness=readiness,
+            message=f"Verification code sent to {email}.",
+        )
+
+    def execute_service_control(
+        self,
+        service_id: str,
+        request: ServiceControlExecuteRequest,
+        *,
+        user: dict[str, object],
+    ) -> ActionExecution:
+        service = self._service_map().get(service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {service_id}")
+        now = datetime.utcnow()
+        challenges = self._load_control_challenges(now)
+        challenge = next((item for item in challenges if item.get("challenge_id") == request.challenge_id), None)
+        if not challenge:
+            raise ValueError("The Nexus control verification code is invalid or expired.")
+        if challenge.get("service_id") != service_id or challenge.get("operation") != request.operation:
+            raise ValueError("The Nexus control verification code does not match this service action.")
+        if challenge.get("status") != "issued":
+            raise ValueError("The Nexus control verification code has already been used.")
+        expires_at = self._to_naive_utc(challenge.get("expires_at"))
+        if not expires_at or expires_at < now:
+            raise ValueError("The Nexus control verification code has expired.")
+        supplied_hash = self._hash_control_code(request.otp_code.strip(), str(challenge.get("salt") or ""))
+        if not compare_digest(supplied_hash, str(challenge.get("code_hash") or "")):
+            raise ValueError("The Nexus control verification code is incorrect.")
+
+        readiness = self._service_control_readiness(service, request.operation)
+        control_url = readiness.get("control_url")
+        evidence_snapshot = [
+            self._evidence_from_signal(signal)
+            for signal in sorted(
+                [signal for signal in self.state.signals if signal.service_id == service_id],
+                key=lambda item: item.timestamp,
+                reverse=True,
+            )[:4]
+        ]
+        if not readiness["ready"] or not control_url:
+            execution = ActionExecution(
+                action_execution_id=f"act-{uuid4()}",
+                incident_id=None,
+                service_id=service_id,
+                action_type=f"planned_{request.operation}",
+                requested_at=now,
+                requested_by=request.requested_by or str(user.get("username") or user.get("email") or "nexus-operator"),
+                approved_by=str(user.get("username") or user.get("email") or "nexus-operator"),
+                status="BLOCKED",
+                justification=request.reason or f"Planned {request.operation} blocked by Nexus readiness gates.",
+                precheck_evidence=evidence_snapshot,
+                blocked_reasons=list(readiness["blocked_reasons"]),
+                completed_at=now,
+                executor_url=str(control_url or ""),
+                metadata={"operation": request.operation, "readiness": readiness, "otp_challenge_id": request.challenge_id},
+            )
+            self.state.action_executions.insert(0, execution)
+            self._persist_and_refresh()
+            return execution
+
+        execution = ActionExecution(
+            action_execution_id=f"act-{uuid4()}",
+            incident_id=None,
+            service_id=service_id,
+            action_type=f"planned_{request.operation}",
+            requested_at=now,
+            requested_by=request.requested_by or str(user.get("username") or user.get("email") or "nexus-operator"),
+            approved_by=str(user.get("username") or user.get("email") or "nexus-operator"),
+            status="MONITORING",
+            justification=request.reason or f"Planned {request.operation} approved from Nexus command center.",
+            precheck_evidence=evidence_snapshot,
+            monitoring_until=now + self.MONITORING_WINDOW,
+            executor_url=str(control_url),
+            metadata={
+                "operation": request.operation,
+                "readiness": readiness,
+                "otp_challenge_id": request.challenge_id,
+                "planned_control": True,
+            },
+        )
+        try:
+            response = httpx.post(
+                str(control_url),
+                headers=self._agent_command_headers(service),
+                json={
+                    "operation": request.operation,
+                    "action_execution_id": execution.action_execution_id,
+                    "incident_id": None,
+                    "service_id": service_id,
+                    "approved_by": execution.approved_by,
+                    "requested_by": execution.requested_by,
+                    "reason": request.reason,
+                },
+                timeout=8.0,
+            )
+            response.raise_for_status()
+            payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+            execution.remote_execution_id = str(payload.get("execution_id") or payload.get("request_id") or "")
+        except Exception as exc:
+            failure_summary, blocked_reasons, failure_metadata = self._describe_executor_failure(exc)
+            execution.status = "BLOCKED"
+            execution.blocked_reasons = blocked_reasons
+            execution.completed_at = now
+            execution.result_summary = f"{request.operation.upper()} request blocked by the configured service executor: {failure_summary}"
+            execution.metadata = {
+                **execution.metadata,
+                "executor_failure": failure_metadata,
+                "control_url": str(control_url),
+            }
+            logger.exception(
+                "Nexus service control dispatch failed service_id=%s operation=%s control_url=%s reason=%s",
+                service_id,
+                request.operation,
+                control_url,
+                failure_summary,
+            )
+
+        challenge["status"] = "consumed"
+        challenge["consumed_at"] = now.isoformat() + "Z"
+        self.repository.persist_control_challenges(challenges[-50:])
+        self.state.action_executions.insert(0, execution)
+        self._merge_change_events(
+            [
+                ChangeEvent(
+                    change_id=f"chg-{uuid4()}",
+                    service_id=service_id,
+                    change_type=f"planned_{request.operation}",
+                    timestamp=now,
+                    source="nexus_service_control",
+                    summary=f"OTP-approved {request.operation.upper()} initiated for {service.service_name}.",
+                    metadata={
+                        "action_execution_id": execution.action_execution_id,
+                        "requested_by": execution.requested_by,
+                        "planned_control": True,
+                        "operation": request.operation,
+                        "expected_signal_interruption": True,
+                    },
+                )
+            ]
+        )
+        audit_logger.log(
+            event_type="nexus_service_control_executed",
+            user=execution.requested_by,
+            details={
+                "service_id": service_id,
+                "operation": request.operation,
+                "status": execution.status,
+                "action_execution_id": execution.action_execution_id,
+                "blocked_reasons": execution.blocked_reasons,
+                "result_summary": execution.result_summary,
+                "executor_url": execution.executor_url,
+            },
+            success=execution.status != "BLOCKED",
+        )
+        self._persist_and_refresh()
+        return execution
+
     def record_verdict(self, incident_id: str, request: IncidentVerdictRequest) -> OperatorFeedback:
         feedback = OperatorFeedback(
             feedback_id=f"fb-{uuid4()}",
@@ -887,10 +2056,17 @@ class NexusService:
         return feedback
 
     def record_heartbeat(self, heartbeat: AgentHeartbeat) -> AgentHeartbeat:
-        self.state.agent_heartbeats = [item for item in self.state.agent_heartbeats if item.agent_id != heartbeat.agent_id]
+        self.state.agent_heartbeats = [
+            item
+            for item in self.state.agent_heartbeats
+            if not (item.agent_id == heartbeat.agent_id and item.service_id == heartbeat.service_id)
+        ]
         self.state.agent_heartbeats.insert(0, heartbeat)
-        self.state.agent_heartbeats = self.state.agent_heartbeats[:200]
-        self.repository.persist_state(self.state)
+        self.state.agent_heartbeats = self.state.agent_heartbeats[:300]
+        if hasattr(self.repository, "persist_heartbeat"):
+            self.repository.persist_heartbeat(heartbeat, state=self.state)
+        else:
+            self.repository.persist_state(self.state)
         return heartbeat
 
     def record_probe_report(self, report: AgentProbeReport) -> list[SignalEvent]:
@@ -1060,7 +2236,7 @@ class NexusService:
         self._merge_signals(signals)
         self._merge_change_events(change_events)
         self._refresh_restart_monitoring(report.service_id, report.timestamp)
-        self._persist_and_refresh()
+        self._refresh_and_persist_telemetry(signals=signals, changes=change_events)
         return signals
 
     def record_diagnostic_result(self, result: AgentDiagnosticResult) -> DiagnosticBundle:
@@ -1069,6 +2245,7 @@ class NexusService:
             raise KeyError(f"Unknown diagnostic bundle {result.bundle_id}")
         bundle.status = "COMPLETED"
         bundle.dispatch_status = "completed"
+        bundle.command_results = result.command_results
         bundle.notes = result.notes or bundle.notes
         audit_logger.log(
             event_type="nexus_diagnostics_completed",
@@ -1077,6 +2254,145 @@ class NexusService:
         )
         self.repository.persist_state(self.state)
         return bundle
+
+    def record_control_result(self, result: AgentControlResult) -> ActionExecution:
+        service = self._service_map().get(result.service_id)
+        if service is None:
+            raise KeyError(f"Unknown service {result.service_id}")
+
+        action = next(
+            (
+                item
+                for item in self.state.action_executions
+                if item.action_execution_id == result.action_execution_id
+                or (result.execution_id and item.remote_execution_id == result.execution_id)
+            ),
+            None,
+        )
+        if action is None:
+            raise KeyError(f"Unknown control action {result.action_execution_id or result.execution_id}")
+
+        observed_at = self._to_naive_utc(result.timestamp) or datetime.utcnow()
+        result_payload = result.model_dump(mode="json")
+        postcheck_message = str(result.postcheck.get("message") or "").strip()
+        operation = result.operation.upper()
+        postcheck_status = str(result.postcheck.get("status") or result.status or "").lower()
+        transitional = str(result.status or "").lower() in {"starting", "verifying", "in_progress"} or postcheck_status == "tcp_not_ready"
+        action.remote_execution_id = result.execution_id or action.remote_execution_id
+        action.metadata = {
+            **action.metadata,
+            "agent_control_result": result_payload,
+            "agent_postcheck": result.postcheck,
+            "agent_return_code": result.return_code,
+        }
+        if transitional:
+            action.status = "MONITORING"
+            action.completed_at = None
+            action.result_summary = postcheck_message or f"{operation} is in progress; Nexus sees the runtime transition and is waiting for readiness."
+            action.blocked_reasons = [
+                reason
+                for reason in action.blocked_reasons
+                if "post-" not in reason.lower() and "verification" not in reason.lower()
+            ]
+        elif result.successful:
+            action.completed_at = observed_at
+            action.status = "EFFECTIVE"
+            action.result_summary = postcheck_message or f"{operation} completed and post-control verification passed."
+            action.blocked_reasons = []
+        else:
+            action.completed_at = observed_at
+            action.status = "INEFFECTIVE"
+            action.result_summary = postcheck_message or f"{operation} completed but post-control verification failed."
+            failure_reason = action.result_summary
+            if failure_reason not in action.blocked_reasons:
+                action.blocked_reasons.append(failure_reason)
+
+        control_signal = self._control_result_signal(service, result, observed_at, postcheck_message)
+        self._merge_signals([control_signal])
+        self._refresh_restart_monitoring(result.service_id, observed_at)
+        audit_logger.log(
+            event_type="nexus_service_control_result_recorded",
+            user=result.agent_id,
+            details={
+                "service_id": result.service_id,
+                "operation": result.operation,
+                "status": action.status,
+                "successful": result.successful,
+                "action_execution_id": action.action_execution_id,
+                "remote_execution_id": result.execution_id,
+                "postcheck_status": result.postcheck.get("status"),
+            },
+            success=result.successful,
+        )
+        self._refresh_and_persist_telemetry(signals=[control_signal], changes=[])
+        return action
+
+    def _control_result_signal(
+        self,
+        service: CatalogService,
+        result: AgentControlResult,
+        observed_at: datetime,
+        postcheck_message: str,
+    ) -> SignalEvent:
+        postcheck = result.postcheck if isinstance(result.postcheck, dict) else {}
+        expected_state = str(postcheck.get("expected_state") or ("stopped" if result.operation == "stop" else "running")).lower()
+        process_count = int(postcheck.get("process_count") or 0)
+        processes = postcheck.get("processes") if isinstance(postcheck.get("processes"), list) else []
+        control_status = str(result.status or postcheck.get("status") or "").lower()
+        transitional = control_status in {"starting", "verifying", "in_progress"} or postcheck.get("status") == "tcp_not_ready"
+        runtime_status = (
+            "starting"
+            if transitional
+            else
+            "down"
+            if result.successful and expected_state == "stopped"
+            else "up"
+            if result.successful and expected_state == "running"
+            else "degraded"
+        )
+        signal_id = f"control-{result.execution_id or result.action_execution_id or uuid4()}"
+        return SignalEvent(
+            signal_id=signal_id,
+            signal_type="synthetic",
+            service_id=service.service_id,
+            service_name=service.service_name,
+            severity="INFO" if result.successful or transitional else "WARN",
+            timestamp=observed_at,
+            source="nexus_light_agent",
+            environment=service.environment,
+            cluster=service.cluster or (service.cluster_ids[0] if service.cluster_ids else None),
+            vantage_point="local_agent",
+            observation_layer="service_runtime",
+            failure_domain_hint="service_runtime",
+            message=postcheck_message or f"{result.operation.upper()} control verification reported {runtime_status}.",
+            fingerprint=f"{service.service_id}:control:{result.execution_id or signal_id}",
+            attributes={
+                "status": runtime_status,
+                "control_result_signal": True,
+                "control_operation": result.operation,
+                "control_status": result.status,
+                "expected_state": expected_state,
+                "planned_control": True,
+                "metrics": {
+                    "process_count": process_count,
+                    "processes": processes[:5],
+                    "healthcheck": {},
+                    "host": {},
+                    "resource_pressure": {},
+                    "control_postcheck": postcheck,
+                    "readiness": postcheck.get("readiness") if isinstance(postcheck.get("readiness"), dict) else {},
+                },
+                "metadata": {
+                    "operation": result.operation,
+                    "execution_id": result.execution_id,
+                    "action_execution_id": result.action_execution_id,
+                    "return_code": result.return_code,
+                    "verified": result.successful,
+                    "transitional": transitional,
+                    "postcheck": postcheck,
+                },
+            },
+        )
 
     def _ensure_live_state(self, force_sync: bool = False) -> None:
         if not self.state.services:
@@ -1090,6 +2406,59 @@ class NexusService:
         self._update_fabric_summary()
         self._normalize_state_datetimes()
         self.repository.persist_state(self.state)
+
+    def _refresh_and_persist_telemetry(self, *, signals: list[SignalEvent], changes: list[ChangeEvent]) -> None:
+        self._normalize_state_datetimes()
+        self._rebuild_incidents()
+        self._update_fabric_summary()
+        self._normalize_state_datetimes()
+        if hasattr(self.repository, "persist_telemetry_update"):
+            self.repository.persist_telemetry_update(self.state, signals=signals, changes=changes)
+        else:
+            self.repository.persist_state(self.state)
+
+    @staticmethod
+    def _describe_executor_failure(exc: Exception) -> tuple[str, list[str], dict[str, object]]:
+        metadata: dict[str, object] = {
+            "exception_type": exc.__class__.__name__,
+            "exception": str(exc),
+        }
+        if isinstance(exc, httpx.HTTPStatusError):
+            response = exc.response
+            metadata["status_code"] = response.status_code
+            metadata["response_text"] = response.text[:1000]
+            payload: dict[str, object] = {}
+            try:
+                parsed = response.json()
+                if isinstance(parsed, dict):
+                    payload = parsed
+                    metadata["response_json"] = parsed
+            except ValueError:
+                payload = {}
+
+            raw_reasons = payload.get("blocked_reasons")
+            if isinstance(raw_reasons, list):
+                reasons = [str(reason) for reason in raw_reasons if reason]
+            else:
+                reason = payload.get("detail") or payload.get("error") or response.text or str(exc)
+                reasons = [str(reason)]
+            summary = "; ".join(reasons) or f"HTTP {response.status_code}"
+            return summary, reasons, metadata
+
+        if isinstance(exc, httpx.TimeoutException):
+            summary = "Timed out while connecting to or waiting for the light-agent command server."
+            return summary, [summary], metadata
+
+        if isinstance(exc, httpx.ConnectError):
+            summary = "Could not connect to the light-agent command server from Nexus Core."
+            return summary, [summary], metadata
+
+        if isinstance(exc, httpx.RequestError):
+            summary = f"Light-agent command server request failed: {exc}"
+            return summary, [summary], metadata
+
+        summary = str(exc) or exc.__class__.__name__
+        return summary, [f"Control executor request failed: {summary}"], metadata
 
     @staticmethod
     def _to_naive_utc(value: datetime | str | None) -> datetime | None:
@@ -1204,9 +2573,49 @@ class NexusService:
             cluster = service.cluster or (service.cluster_ids[0] if service.cluster_ids else None)
             status = str(snapshot.get("overall_status") or "UNKNOWN").upper()
             checked_at = self._to_naive_utc(snapshot.get("last_checked_at")) or datetime.utcnow()
+            last_state_change_at = self._to_naive_utc(snapshot.get("last_state_change_at"))
             outage_started_at = self._to_naive_utc(snapshot.get("outage_started_at"))
             outage_id = str(snapshot.get("outage_id") or "").strip() or None
-            severity = "CRITICAL" if status == "DOWN" else "WARN" if status == "DEGRADED" else "INFO"
+            outage_duration_seconds = self._network_outage_duration_seconds(
+                started_at=outage_started_at,
+                observed_at=checked_at,
+                reported_duration=snapshot.get("outage_duration_seconds"),
+            )
+            problem_status = status in {"DOWN", "DEGRADED"}
+            problem_started_at = outage_started_at if outage_id else last_state_change_at
+            if problem_status and problem_started_at is None:
+                try:
+                    consecutive_failures = max(0, int(snapshot.get("consecutive_failures") or 0))
+                except (TypeError, ValueError):
+                    consecutive_failures = 0
+                if consecutive_failures:
+                    problem_started_at = checked_at - (self.NETWORK_SYNC_INTERVAL * consecutive_failures)
+            network_problem_duration_seconds = (
+                self._network_outage_duration_seconds(
+                    started_at=problem_started_at,
+                    observed_at=checked_at,
+                    reported_duration=snapshot.get("outage_duration_seconds") if outage_id else None,
+                )
+                if problem_status
+                else 0
+            )
+            network_incident_eligible = problem_status and network_problem_duration_seconds >= int(
+                self.NETWORK_SENTINEL_INCIDENT_GRACE.total_seconds()
+            )
+            network_problem_id = None
+            if problem_status:
+                network_problem_id = outage_id or self._network_problem_id(
+                    snapshot.get("network_service_id"),
+                    status,
+                    problem_started_at or checked_at,
+                )
+            severity = (
+                "CRITICAL"
+                if status == "DOWN" and network_incident_eligible
+                else "WARN"
+                if status == "DEGRADED" and network_incident_eligible
+                else "INFO"
+            )
             status_attributes = {
                 "network_service_id": snapshot.get("network_service_id"),
                 "address": snapshot.get("address"),
@@ -1218,8 +2627,24 @@ class NexusService:
                 "outage_id": outage_id,
                 "active_outage_id": outage_id,
                 "outage_started_at": outage_started_at.isoformat() if outage_started_at else None,
-                "outage_duration_seconds": snapshot.get("outage_duration_seconds"),
+                "outage_duration_seconds": outage_duration_seconds,
                 "outage_active": bool(outage_id),
+                "last_state_change_at": last_state_change_at.isoformat() if last_state_change_at else None,
+                "network_problem_id": network_problem_id,
+                "active_network_problem_id": network_problem_id if network_incident_eligible else None,
+                "network_problem_status": status if problem_status else None,
+                "network_problem_started_at": problem_started_at.isoformat() if problem_started_at else None,
+                "network_problem_duration_seconds": network_problem_duration_seconds,
+                "network_problem_active": problem_status,
+                "network_incident_source": "active_outage" if outage_id else "status_persistence" if problem_status else None,
+                "network_incident_eligible": network_incident_eligible,
+                "incident_grace_seconds": int(self.NETWORK_SENTINEL_INCIDENT_GRACE.total_seconds()),
+                "transient_network_observation": problem_status and not network_incident_eligible,
+                "suppression_reason": (
+                    f"Network Sentinel {status} observation has not persisted for {int(self.NETWORK_SENTINEL_INCIDENT_GRACE.total_seconds())} seconds."
+                    if problem_status and not network_incident_eligible
+                    else None
+                ),
                 "vantage_point": "external_network",
                 "observation_layer": "network",
                 "failure_domain_hint": "network_path",
@@ -1238,36 +2663,55 @@ class NexusService:
                     vantage_point="external_network",
                     observation_layer="network",
                     failure_domain_hint="network_path",
-                    message=snapshot.get("reason")
-                    or f"Network Sentinel reports {service.service_name} as {status}.",
+                    message=self._network_sentinel_snapshot_message(snapshot, service.service_name, status),
                     fingerprint=f"{service_id}:network_sentinel:status:{status}:{checked_at.isoformat()}",
                     attributes=status_attributes,
                 )
             )
-            if snapshot.get("outage_id"):
+            if network_incident_eligible and network_problem_id:
+                alert_id = (
+                    f"ns-outage-{outage_id}"
+                    if outage_id
+                    else f"ns-network-problem-{hashlib.sha1(network_problem_id.encode('utf-8')).hexdigest()[:18]}"
+                )
+                alert_message = (
+                    f"Active outage detected for {service.service_name}: {snapshot.get('outage_cause') or 'UNKNOWN'}."
+                    if outage_id
+                    else f"Persistent Network Sentinel {status} condition for {service.service_name} exceeded the {int(self.NETWORK_SENTINEL_INCIDENT_GRACE.total_seconds())} second incident threshold."
+                )
                 signals.append(
                     SignalEvent(
-                        signal_id=f"ns-outage-{snapshot['outage_id']}",
+                        signal_id=alert_id,
                         signal_type="alert",
                         service_id=service_id,
                         service_name=service.service_name,
-                        severity="CRITICAL",
-                        timestamp=outage_started_at or checked_at,
+                        severity="CRITICAL" if status == "DOWN" else "WARN",
+                        timestamp=problem_started_at or outage_started_at or checked_at,
                         source="network_sentinel",
                         environment=service.environment,
                         cluster=cluster,
                         vantage_point="external_network",
                         observation_layer="network",
                         failure_domain_hint="network_path",
-                        message=f"Active outage detected for {service.service_name}: {snapshot.get('outage_cause') or 'UNKNOWN'}.",
-                        fingerprint=f"{service_id}:network_sentinel:outage:{snapshot['outage_id']}",
+                        message=alert_message,
+                        fingerprint=f"{service_id}:network_sentinel:problem:{network_problem_id}",
                         attributes={
                             "network_service_id": snapshot.get("network_service_id"),
                             "outage_id": snapshot.get("outage_id"),
                             "active_outage_id": outage_id,
                             "outage_started_at": outage_started_at.isoformat() if outage_started_at else None,
-                            "outage_active": True,
-                            "outage_duration_seconds": snapshot.get("outage_duration_seconds"),
+                            "outage_active": bool(outage_id),
+                            "outage_duration_seconds": outage_duration_seconds,
+                            "last_state_change_at": last_state_change_at.isoformat() if last_state_change_at else None,
+                            "network_problem_id": network_problem_id,
+                            "active_network_problem_id": network_problem_id,
+                            "network_problem_status": status,
+                            "network_problem_started_at": problem_started_at.isoformat() if problem_started_at else None,
+                            "network_problem_duration_seconds": network_problem_duration_seconds,
+                            "network_problem_active": True,
+                            "network_incident_source": "active_outage" if outage_id else "status_persistence",
+                            "network_incident_eligible": True,
+                            "incident_grace_seconds": int(self.NETWORK_SENTINEL_INCIDENT_GRACE.total_seconds()),
                             "cause": snapshot.get("outage_cause"),
                             "details": snapshot.get("outage_details"),
                             "vantage_point": "external_network",
@@ -1288,13 +2732,18 @@ class NexusService:
             if self._network_event_is_change(event):
                 continue
             message = event.get("summary") or event.get("title") or "Network Sentinel event recorded."
+            event_context = f"{event.get('event_type') or ''} {event.get('category') or ''} {message}".lower()
+            event_is_recovery = any(
+                marker in event_context
+                for marker in ("recovered", "recovery", "restored", "cleared", "returned to normal", "resolved")
+            )
             signals.append(
                 SignalEvent(
                     signal_id=f"ns-event-{event['event_id']}",
                     signal_type="alert",
                     service_id=service_id,
                     service_name=service.service_name,
-                    severity=severity,
+                    severity="INFO" if event_is_recovery else severity,
                     timestamp=event.get("created_at") or datetime.utcnow(),
                     source="network_sentinel",
                     environment=service.environment,
@@ -1310,6 +2759,14 @@ class NexusService:
                         "event_type": event.get("event_type"),
                         "title": event.get("title"),
                         "details": event.get("details"),
+                        "network_incident_eligible": False,
+                        "transient_network_observation": not event_is_recovery,
+                        "event_is_recovery": event_is_recovery,
+                        "suppression_reason": (
+                            "Network Sentinel events enrich durable outages but do not create Nexus incidents without a persisted outage window."
+                            if not event_is_recovery
+                            else None
+                        ),
                         "vantage_point": "external_network",
                         "observation_layer": "network",
                         "failure_domain_hint": "network_path",
@@ -1317,6 +2774,39 @@ class NexusService:
                 )
             )
         return signals
+
+    def _network_outage_duration_seconds(
+        self,
+        *,
+        started_at: datetime | None,
+        observed_at: datetime,
+        reported_duration: object,
+    ) -> int:
+        try:
+            if reported_duration is not None:
+                return max(0, int(float(reported_duration)))
+        except (TypeError, ValueError):
+            pass
+        if started_at:
+            return max(0, int((observed_at - started_at).total_seconds()))
+        return 0
+
+    def _network_sentinel_snapshot_message(self, snapshot: dict[str, object], service_name: str, status: str) -> str:
+        reason = str(snapshot.get("reason") or "").strip()
+        reason_lower = reason.lower()
+        if status == "DEGRADED" and "tcp" in reason_lower and "service remained reachable" in reason_lower:
+            return "TCP failed while the host remained reachable; the service port is not accepting connections."
+        if status == "DEGRADED" and "tcp" in reason_lower and "host" in reason_lower and "reachable" in reason_lower:
+            return "TCP failed while the host remained reachable; the service port is not accepting connections."
+        if reason:
+            return reason
+        if status == "DEGRADED" and snapshot.get("tcp_latency_ms") is None and snapshot.get("icmp_latency_ms") is not None:
+            return "Host is reachable, but the service TCP port is not accepting connections."
+        return f"Network Sentinel reports {service_name} as {status}."
+
+    def _network_problem_id(self, network_service_id: object, status: str, started_at: datetime) -> str:
+        service_key = str(network_service_id or "unknown-network-service").strip()
+        return f"{service_key}:{status}:{started_at.isoformat(timespec='seconds')}"
 
     def _changes_from_network_sentinel(self, evidence: dict[str, object]) -> list[ChangeEvent]:
         services = self._service_map()
@@ -1550,11 +3040,8 @@ class NexusService:
             incidents.append(incident)
             active_incident_ids.add(incident.incident_id)
 
-        active_service_sets = [
-            set(incident.affected_services)
-            for incident in incidents
-            if incident.status in {"OPEN", "MONITORING"}
-        ]
+        active_incident_components = [incident for incident in incidents if incident.status in {"OPEN", "MONITORING"}]
+        active_service_sets = [set(incident.affected_services) for incident in active_incident_components]
         for previous in previous_incidents:
             if previous.incident_id in active_incident_ids:
                 continue
@@ -1569,6 +3056,19 @@ class NexusService:
                 and any(
                     previous_services < active_services
                     for active_services in active_service_sets
+                )
+            ) or (
+                previous.status in {"OPEN", "MONITORING"}
+                and previous.failure_domain == "network_path"
+                and not verdict_feedback
+                and not previous.linked_tasks
+                and not previous.diagnostics
+                and not previous.action_executions
+                and any(
+                    previous_services == set(active.affected_services)
+                    and active.failure_domain != "network_path"
+                    and bool(set(active.data_sources) - {"network_sentinel"})
+                    for active in active_incident_components
                 )
             )
             if superseded_by_current_component:
@@ -1628,14 +3128,33 @@ class NexusService:
         for signal in signals:
             if signal.source != "network_sentinel":
                 continue
-            if not (signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active")):
+            if signal.attributes.get("network_incident_eligible") is False:
+                continue
+            active_network_problem = bool(
+                signal.attributes.get("active_outage_id")
+                or signal.attributes.get("outage_active")
+                or signal.attributes.get("active_network_problem_id")
+                or signal.attributes.get("network_problem_active")
+            )
+            if not active_network_problem:
                 continue
             if signal.timestamp < now - self.ACTIVE_WINDOW:
                 continue
-            outage_started_at = self._to_naive_utc(signal.attributes.get("outage_started_at")) or signal.timestamp
-            if outage_started_at > starts.get(signal.service_id, datetime.min):
-                starts[signal.service_id] = outage_started_at
+            started_at = (
+                self._to_naive_utc(signal.attributes.get("network_problem_started_at"))
+                or self._to_naive_utc(signal.attributes.get("outage_started_at"))
+                or signal.timestamp
+            )
+            if started_at > starts.get(signal.service_id, datetime.min):
+                starts[signal.service_id] = started_at
         return starts
+
+    def _is_network_sentinel_sync_signal(self, signal: SignalEvent) -> bool:
+        return signal.source == "network_sentinel" and (
+            bool(signal.attributes.get("network_service_id"))
+            or "outage_duration_seconds" in signal.attributes
+            or "network_incident_eligible" in signal.attributes
+        )
 
     def _signal_is_current_for_correlation(
         self,
@@ -1644,13 +3163,26 @@ class NexusService:
         healthy_cutoffs: dict[str, datetime],
         active_outage_starts: dict[str, datetime],
     ) -> bool:
+        if self._signal_inside_planned_control(signal):
+            return False
         active_outage_start = active_outage_starts.get(signal.service_id)
         if active_outage_start and signal.source == "network_sentinel" and signal.timestamp < active_outage_start:
             return False
-        active_outage = bool(signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active"))
-        if signal.timestamp < now - self.ACTIVE_WINDOW and not active_outage:
+        active_network_problem = bool(
+            signal.attributes.get("active_outage_id")
+            or signal.attributes.get("outage_active")
+            or signal.attributes.get("active_network_problem_id")
+            or signal.attributes.get("network_problem_active")
+        )
+        if signal.timestamp < now - self.ACTIVE_WINDOW and not active_network_problem:
             return False
-        if signal.source == "network_sentinel" and active_outage and signal.timestamp < now - self.ACTIVE_WINDOW:
+        if signal.source == "network_sentinel" and active_network_problem and signal.timestamp < now - self.ACTIVE_WINDOW:
+            return False
+        if (
+            self._is_network_sentinel_sync_signal(signal)
+            and self._severity_value(signal.severity) >= 0.55
+            and signal.attributes.get("network_incident_eligible") is not True
+        ):
             return False
         healthy_cutoff = healthy_cutoffs.get(signal.service_id)
         if (
@@ -1662,10 +3194,37 @@ class NexusService:
             return False
         return True
 
+    def _signal_inside_planned_control(self, signal: SignalEvent) -> bool:
+        for action in self.state.action_executions:
+            if action.service_id != signal.service_id:
+                continue
+            if action.action_type not in {"planned_start", "planned_stop", "planned_restart"}:
+                continue
+            if action.status not in {"MONITORING", "EFFECTIVE"}:
+                continue
+            start = self._to_naive_utc(action.requested_at)
+            until = self._to_naive_utc(action.monitoring_until) or ((start + self.MONITORING_WINDOW) if start else None)
+            if not start or not until:
+                continue
+            if start - timedelta(seconds=30) <= signal.timestamp <= until:
+                return True
+        return False
+
     def _incident_start_for_signals(self, signals: list[SignalEvent]) -> datetime:
         active_outage_candidates: list[datetime] = []
         candidates: list[datetime] = []
         for signal in signals:
+            network_problem_started_at = self._to_naive_utc(signal.attributes.get("network_problem_started_at"))
+            if network_problem_started_at and signal.attributes.get("network_incident_eligible") is True:
+                if (
+                    signal.attributes.get("active_network_problem_id")
+                    or signal.attributes.get("network_problem_active")
+                    or signal.attributes.get("active_outage_id")
+                    or signal.attributes.get("outage_active")
+                ):
+                    active_outage_candidates.append(network_problem_started_at)
+                candidates.append(network_problem_started_at)
+                continue
             outage_started_at = self._to_naive_utc(signal.attributes.get("outage_started_at"))
             if outage_started_at and (signal.attributes.get("active_outage_id") or signal.attributes.get("outage_id")):
                 if signal.attributes.get("active_outage_id") or signal.attributes.get("outage_active"):
@@ -1687,6 +3246,17 @@ class NexusService:
         )
         if outage_ids:
             return "network-outage:" + "|".join(outage_ids)
+        network_problem_ids = sorted(
+            {
+                str(signal.attributes.get("active_network_problem_id") or signal.attributes.get("network_problem_id")).strip()
+                for signal in signals
+                if signal.attributes.get("network_incident_eligible") is True
+                and str(signal.attributes.get("active_network_problem_id") or signal.attributes.get("network_problem_id") or "").strip()
+            }
+        )
+        if network_problem_ids:
+            digest = hashlib.sha1("|".join(network_problem_ids).encode("utf-8")).hexdigest()[:18]
+            return f"network-problem:{digest}"
         if any(signal.source == "network_sentinel" and self._severity_value(signal.severity) >= 0.55 for signal in signals):
             return f"network-window:{incident_start.isoformat(timespec='seconds')}"
         return None
@@ -2013,23 +3583,263 @@ class NexusService:
             ),
         ]
 
+    def _service_control_readiness(self, service: CatalogService, operation: str) -> dict[str, object]:
+        blocked_types = {"db", "database", "cache", "queue", "auth", "infra"}
+        capable_types = {"app", "worker", "gateway", "channel", "channel_adapter", "integration"}
+        service_type = service.service_type.lower()
+        policy_allowed_types = {item.lower() for item in service.restart_policy.allowed_service_types} or capable_types
+        control_url = service.endpoint_config.restart_url or self._cluster_restart_url(service.service_id)
+        blockers: list[str] = []
+        if operation not in {"start", "stop", "restart"}:
+            blockers.append(f"Unsupported service control operation: {operation}.")
+        if service_type in blocked_types:
+            blockers.append(f"{service_type} services are blocked from Nexus control execution.")
+        if service_type not in capable_types:
+            blockers.append(f"Service type {service_type or 'unknown'} is not supported by the light-agent control plane.")
+        if service_type not in policy_allowed_types:
+            blockers.append("Restart policy does not include this service type in allowed_service_types.")
+        if not service.restart_policy.allow_restart:
+            blockers.append("Restart policy does not allow controlled execution for this service.")
+        if not service.restart_policy.requires_human_approval:
+            blockers.append("Human approval must remain enabled for Nexus service control.")
+        if not service.is_stateless:
+            blockers.append("Nexus service control requires a certified stateless service.")
+        if service.certification.lifecycle_stage != "restart_ready":
+            blockers.append("Service must be certified at restart_ready stage.")
+        if service.database_profile.shared_dependency:
+            blockers.append("Shared database/dependency services are blocked from service control.")
+        if self._has_active_maintenance(service.service_id):
+            blockers.append("An active maintenance window is already recorded for this service.")
+        if operation == "restart" and self._recent_restart_exists(service.service_id):
+            blockers.append("A restart action is still inside the cooldown window.")
+        if not control_url:
+            blockers.append("No agent control URL is configured in restart_url or the dependency cluster.")
+        elif operation in {"start", "stop"} and str(control_url).rstrip("/").endswith("/restart"):
+            blockers.append("START/STOP require the light-agent /control endpoint, not the legacy /restart endpoint.")
+        if not self.active_agent_command_token():
+            blockers.append("No active Nexus agent command token is configured.")
+        capabilities = self._certification_capabilities(service.certification.lifecycle_stage)
+        return {
+            "ready": not blockers,
+            "operation": operation,
+            "control_url": control_url,
+            "blocked_reasons": blockers,
+            "service_type": service.service_type,
+            "lifecycle_stage": service.certification.lifecycle_stage,
+            "capabilities": capabilities,
+            "requires_otp": True,
+            "requires_human_approval": service.restart_policy.requires_human_approval,
+            "cooldown_minutes": service.restart_policy.cooldown_minutes,
+        }
+
+    @staticmethod
+    def _certification_capabilities(stage: str) -> dict[str, bool]:
+        order = ["catalog_only", "observe_only", "correlate_ready", "diagnostics_ready", "restart_ready"]
+        try:
+            rank = order.index(stage)
+        except ValueError:
+            rank = 0
+        return {
+            "catalog": rank >= 0,
+            "observe": rank >= order.index("observe_only"),
+            "correlate": rank >= order.index("correlate_ready"),
+            "diagnostics": rank >= order.index("diagnostics_ready"),
+            "service_control": rank >= order.index("restart_ready"),
+        }
+
+    @staticmethod
+    def _hash_control_code(code: str, salt: str) -> str:
+        return hashlib.sha256(f"{salt}:{code.strip()}".encode("utf-8")).hexdigest()
+
+    def _load_control_challenges(self, now: datetime | None = None) -> list[dict[str, object]]:
+        now = now or datetime.utcnow()
+        try:
+            challenges = self.repository.load_control_challenges()
+        except Exception:
+            logger.exception("Failed to load Nexus service-control challenges")
+            return []
+        retained: list[dict[str, object]] = []
+        stale_cutoff = now - timedelta(hours=24)
+        for item in challenges:
+            created_at = self._to_naive_utc(item.get("created_at"))
+            expires_at = self._to_naive_utc(item.get("expires_at"))
+            if not created_at or created_at < stale_cutoff:
+                continue
+            if item.get("status") == "issued" and expires_at and expires_at < now:
+                item = {**item, "status": "expired"}
+            retained.append(item)
+        if len(retained) != len(challenges):
+            self.repository.persist_control_challenges(retained[-50:])
+        return retained
+
+    def _load_rollover_challenges(self, now: datetime | None = None) -> list[dict[str, object]]:
+        now = now or datetime.utcnow()
+        try:
+            challenges = self.repository.load_rollover_challenges()
+        except Exception:
+            logger.exception("Failed to load Nexus rollover challenges")
+            return []
+        retained: list[dict[str, object]] = []
+        stale_cutoff = now - timedelta(hours=24)
+        for item in challenges:
+            created_at = self._to_naive_utc(item.get("created_at"))
+            expires_at = self._to_naive_utc(item.get("expires_at"))
+            if not created_at or created_at < stale_cutoff:
+                continue
+            if item.get("status") == "issued" and expires_at and expires_at < now:
+                item = {**item, "status": "expired"}
+            retained.append(item)
+        if len(retained) != len(challenges):
+            self.repository.persist_rollover_challenges(retained[-50:])
+        return retained
+
+    def _rollover_connection_with_database_fabric_defaults(
+        self,
+        connection: RolloverConnectionProfile,
+        *,
+        service_environment: str | None,
+    ) -> RolloverConnectionProfile:
+        resolved = connection.model_copy(deep=True)
+        metadata = dict(resolved.metadata or {})
+        source_service_id = (resolved.source_service_id or str(metadata.get("database_service_id") or "")).strip()
+        database_service = self._database_fabric_service(source_service_id) if source_service_id else None
+        if database_service is None and self._rollover_connection_needs_target(resolved):
+            candidates = self._database_fabric_services_for_environment(service_environment, platform="oracle")
+            if len(candidates) == 1:
+                database_service = candidates[0]
+        if database_service is None:
+            return resolved
+
+        profile = database_service.database_profile
+        profile_metadata = profile.metadata or {}
+        metadata.update(
+            {
+                "database_service_id": database_service.service_id,
+                "database_service_name": database_service.service_name,
+                "database_fabric_inherited": True,
+            }
+        )
+        updates = {
+            "platform": resolved.platform or profile.platform or "oracle",
+            "source_service_id": resolved.source_service_id or database_service.service_id,
+            "username": resolved.username or profile.username or "",
+            "jdbc_url": resolved.jdbc_url or profile.jdbc_url,
+            "host": resolved.host or profile.host or profile.host_group,
+            "port": resolved.port or profile.port or (1521 if (profile.platform or "").lower() == "oracle" else 5432),
+            "database_name": resolved.database_name or profile.database_name,
+            "instance_name": resolved.instance_name or profile.instance_name,
+            "sid": resolved.sid or profile.instance_name or profile.database_name,
+            "service_name": resolved.service_name or profile.service_name,
+            "schema_name": resolved.schema_name or (profile.schemas[0] if profile.schemas else None),
+            "connection_type": resolved.connection_type or profile.connection_type,
+            "config_dir": resolved.config_dir or profile.config_dir or profile_metadata.get("config_dir") or profile_metadata.get("tns_admin"),
+            "metadata": metadata,
+        }
+        return resolved.model_copy(update=updates)
+
+    def _database_fabric_service(self, service_id: str) -> CatalogService | None:
+        return next((service for service in self.state.services if service.service_id == service_id), None)
+
+    def _database_fabric_services_for_environment(
+        self,
+        service_environment: str | None,
+        *,
+        platform: str | None = None,
+    ) -> list[CatalogService]:
+        environment = (service_environment or "").strip().lower()
+        platform_key = (platform or "").strip().lower()
+        candidates = [
+            service
+            for service in self.state.services
+            if (service.service_type.lower() in {"db", "database"} or service.database_profile.enabled)
+            and (not environment or service.environment.lower() == environment)
+        ]
+        if platform_key:
+            candidates = [
+                service
+                for service in candidates
+                if (service.database_profile.platform or service.service_type or "").strip().lower() in {platform_key, "postgresql" if platform_key == "postgres" else platform_key}
+            ]
+        return candidates
+
+    @staticmethod
+    def _rollover_connection_needs_target(connection: RolloverConnectionProfile) -> bool:
+        if connection.jdbc_url or connection.dsn:
+            return False
+        if connection.host and (connection.service_name or connection.sid or connection.instance_name or connection.database_name):
+            return False
+        return True
+
+    def _rollover_environment_with_password(
+        self,
+        environment_id: str,
+        *,
+        password_override: str | None = None,
+    ) -> tuple[RolloverEnvironment, str | None]:
+        environment, stored_password = self.repository.get_rollover_environment_with_secret(environment_id)
+        if environment is None:
+            raise KeyError(f"Unknown rollover environment {environment_id}")
+        return environment, password_override or stored_password
+
+    def _rollover_readiness(self, environment: RolloverEnvironment) -> dict[str, object]:
+        blockers: list[str] = []
+        if not environment.enabled:
+            blockers.append("Rollover environment is disabled.")
+        if not environment.rules or not any(rule.enabled for rule in environment.rules):
+            blockers.append("At least one enabled rollover rule is required.")
+        if not environment.connection.username:
+            blockers.append("Oracle username is required.")
+        if not environment.connection.password_set:
+            blockers.append("Oracle password is not stored for this environment.")
+        try:
+            oracle_dsn_from_datagrip(environment.connection)
+        except ValueError as exc:
+            blockers.append(str(exc))
+        linked_services = self._rollover_linked_services(environment)
+        return {
+            "ready": not blockers,
+            "blocked_reasons": blockers,
+            "requires_otp": True,
+            "requires_human_approval": True,
+            "autonomous_rollover": False,
+            "linked_service_count": len(linked_services),
+            "linked_service_ids": [service.service_id for service in linked_services],
+            "rule_count": len([rule for rule in environment.rules if rule.enabled]),
+            "service_environment": environment.service_environment,
+        }
+
+    def _rollover_linked_services(self, environment: RolloverEnvironment) -> list[CatalogService]:
+        service_environment = (environment.service_environment or environment.environment_id).strip().lower()
+        if not service_environment:
+            return []
+        return [service for service in self.state.services if service.environment.lower() == service_environment]
+
     def _refresh_restart_monitoring(self, service_id: str, observed_at: datetime) -> None:
         observed_at = self._to_naive_utc(observed_at) or observed_at
         relevant_actions = [
             action
             for action in self.state.action_executions
-            if action.service_id == service_id and action.action_type == "safe_restart" and action.status == "MONITORING"
+            if action.service_id == service_id
+            and action.action_type in {"safe_restart", "planned_start", "planned_stop", "planned_restart"}
+            and action.status == "MONITORING"
         ]
         latest_severity = self._latest_severity_for_service(service_id)
         for action in relevant_actions:
             self._normalize_action_datetime(action)
             if action.monitoring_until and observed_at >= action.monitoring_until:
-                if latest_severity in {"INFO", "WARN"}:
+                if action.action_type == "planned_stop":
+                    action.status = "EFFECTIVE" if latest_severity == "CRITICAL" else "INEFFECTIVE"
+                    action.result_summary = (
+                        "Post-stop evidence shows the service entered the expected stopped/unreachable state."
+                        if action.status == "EFFECTIVE"
+                        else "Post-stop evidence did not show the expected stopped state."
+                    )
+                elif latest_severity in {"INFO", "WARN"}:
                     action.status = "EFFECTIVE"
-                    action.result_summary = "Post-restart evidence shows the service stabilizing."
+                    action.result_summary = "Post-control evidence shows the service stabilizing."
                 else:
                     action.status = "INEFFECTIVE"
-                    action.result_summary = "Post-restart evidence still indicates critical service degradation."
+                    action.result_summary = "Post-control evidence still indicates critical service degradation."
                 action.completed_at = observed_at
 
     def _aggregate_log_signatures(self, signals: Iterable[SignalEvent]) -> list[LogSignature]:
@@ -2053,6 +3863,12 @@ class NexusService:
         runtime_scope = ["app", "worker", "gateway", "channel", "channel_adapter", "integration", "auth"]
         host_scope = [*runtime_scope, "db", "database", "cache", "queue", "infra"]
         commands = [
+            DiagnosticCommand(
+                command_id="runtime_status",
+                label="Runtime status",
+                service_type_scope=host_scope,
+                execution_hint="pgrep/process snapshot plus host resource metrics",
+            ),
             DiagnosticCommand(
                 command_id="systemd_status",
                 label="systemctl status",
@@ -2725,7 +4541,7 @@ class NexusService:
         cutoff = datetime.utcnow() - timedelta(minutes=15)
         return any(
             action.service_id == service_id
-            and action.action_type == "safe_restart"
+            and action.action_type in {"safe_restart", "planned_restart"}
             and action.requested_at >= cutoff
             and action.status in {"APPROVED", "MONITORING", "EFFECTIVE"}
             for action in self.state.action_executions
@@ -2753,6 +4569,39 @@ class NexusService:
             business_flow_id=signal.business_flow_id,
             provenance_url=provenance_url,
         )
+
+    def _signal_live_digest(self, signal: SignalEvent | None) -> dict[str, object] | None:
+        if signal is None:
+            return None
+        return {
+            "signal_id": signal.signal_id,
+            "signal_type": signal.signal_type,
+            "severity": signal.severity,
+            "timestamp": signal.timestamp.isoformat() + ("Z" if signal.timestamp.tzinfo is None else ""),
+            "source": signal.source,
+            "message": signal.message,
+            "vantage_point": signal.vantage_point or self._signal_context(signal)["vantage_point"],
+            "observation_layer": signal.observation_layer or self._signal_context(signal)["observation_layer"],
+            "failure_domain_hint": signal.failure_domain_hint or self._signal_context(signal)["failure_domain_hint"],
+            "business_flow_id": signal.business_flow_id,
+            "signature_family": signal.signature.signature_family if signal.signature else None,
+            "attributes": {
+                "status": signal.attributes.get("status"),
+                "network_problem_status": signal.attributes.get("network_problem_status"),
+                "network_incident_eligible": signal.attributes.get("network_incident_eligible"),
+                "network_problem_duration_seconds": signal.attributes.get("network_problem_duration_seconds"),
+                "process_count": (
+                    signal.attributes.get("metrics", {}).get("process_count")
+                    if isinstance(signal.attributes.get("metrics"), dict)
+                    else None
+                ),
+                "collector_mode": (
+                    signal.attributes.get("metadata", {}).get("collector_mode")
+                    if isinstance(signal.attributes.get("metadata"), dict)
+                    else None
+                ),
+            },
+        }
 
     def _incident_key_for_services(
         self,
@@ -2847,9 +4696,18 @@ class NexusService:
             "replication_summary",
             "recent_database_errors",
         ]
+        platform = (profile.platform or "").strip().lower()
+        default_port = 1521 if platform == "oracle" else 5432 if platform in {"postgres", "postgresql"} else profile.port
+        connection_type = profile.connection_type
+        if not connection_type and platform == "oracle":
+            connection_type = "sid" if profile.instance_name and not profile.service_name else "service_name"
+        elif not connection_type and platform in {"postgres", "postgresql"}:
+            connection_type = "database"
         return profile.model_copy(
             update={
                 "enabled": True,
+                "port": profile.port or default_port,
+                "connection_type": connection_type,
                 "expected_evidence": expected_evidence,
                 "safe_diagnostics": safe_diagnostics,
                 "shared_dependency": profile.shared_dependency or service_type.lower() in {"db", "database", "oracle", "postgres", "postgresql"},
@@ -2905,12 +4763,31 @@ class NexusService:
                 return cluster.routing_config.diagnostics_url
         return None
 
+    def _agent_command_url(self, service: CatalogService, path: str) -> str | None:
+        base_url = (
+            service.endpoint_config.diagnostics_url
+            or service.endpoint_config.restart_url
+            or self._cluster_diagnostics_url(service.service_id)
+            or self._cluster_restart_url(service.service_id)
+        )
+        if not base_url:
+            return None
+        try:
+            parsed = urlparse(str(base_url))
+        except ValueError:
+            return None
+        if not parsed.scheme or not parsed.netloc:
+            return None
+        normalized_path = "/" + path.strip("/")
+        return urlunparse((parsed.scheme, parsed.netloc, normalized_path, "", "", ""))
+
     def _agent_command_headers(self, service: CatalogService) -> dict[str, str]:
         headers: dict[str, str] = {}
         if service.observation_config.agent_id:
             headers["X-Nexus-Agent-Id"] = service.observation_config.agent_id
-        if settings.NEXUS_AGENT_API_TOKEN:
-            headers["X-Nexus-Agent-Token"] = settings.NEXUS_AGENT_API_TOKEN.get_secret_value()
+        command_token = self.active_agent_command_token()
+        if command_token:
+            headers["X-Nexus-Agent-Token"] = command_token
         return headers
 
     def _network_event_is_change(self, event: dict[str, object]) -> bool:

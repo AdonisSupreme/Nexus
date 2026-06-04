@@ -142,7 +142,7 @@
       "cluster_ids": ["mobile-banking-ate", "mobile-channel-fabric-ate"],
       "restart_policy": {"allow_restart": false, "requires_human_approval": true, "cooldown_minutes": 15, "allowed_service_types": ["app", "worker"]},
       "endpoint_config": {"logs_url": "file:///srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log"},
-      "observation_config": {"agent_id": "agent-txn-ussd-adapter-ate-01", "host_group": "ussd-ate-test", "log_selector": "{service=\"txn-ussd-adapter\", environment=\"ate\"}", "metrics_namespace": "txn_ussd_adapter", "trace_service_name": "txn-ussd-adapter", "preferred_signal_source": "agent"},
+      "observation_config": {"agent_id": "agent-txn-mobile-ussd-ate-01", "host_group": "ussd-ate-test", "log_selector": "{service=\"txn-ussd-adapter\", environment=\"ate\"}", "metrics_namespace": "txn_ussd_adapter", "trace_service_name": "txn-ussd-adapter", "preferred_signal_source": "agent"},
       "certification": {"lifecycle_stage": "catalog_only", "certified_by": "Sentinel Nexus seed", "certified_at": "2026-05-12T00:00:00Z", "notes": "Status sample shows stopped; validate whether this is expected in ATE before alerting on runtime absence."},
       "metadata": {"seed_version": "mobile-banking-ate-2026-05-12", "jar_path": "/srv/afc/txn-mobile/txn-ussd-adapter/lib/txn-ussd-adapter-0.0.1-SNAPSHOT.jar", "config_path": "/srv/afc/txn-mobile/txn-ussd-adapter/etc/application.yml", "log_path": "/srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log", "process_match": "txn-ussd-adapter-0.0.1-SNAPSHOT.jar", "status_sample": "stopped", "expected_state_requires_owner_validation": true}
     },

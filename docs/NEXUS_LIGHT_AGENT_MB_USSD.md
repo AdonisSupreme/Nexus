@@ -2,6 +2,8 @@
 
 This is the first production-shaped Nexus light agent. It is designed for dense Linux application servers where many Java services share the same host, so the agent is one small host process that can watch multiple configured services. The first enabled service is `txn-mobile-ussd`.
 
+Current ATE rollout details, including the validated control pattern and the next `txn-ussd-adapter` service, are maintained in `docs/NEXUS_LIGHT_AGENT_ATE_OPERATIONS.md`. Treat that file as the operational runbook for production preparation.
+
 ## Why This Shape
 
 - It reads service process state from `/proc`, not from expensive shell pipelines.
@@ -155,7 +157,7 @@ python -m nexus_light_agent --config /etc/sentinel-nexus-agent/txn-mobile-ussd.j
 
 Then confirm in Nexus:
 
-- agent heartbeat appears for `agent-ate-mobile-banking-01`
+- agent heartbeat appears for `agent-txn-mobile-ussd-ate-01`
 - `txn-mobile-ussd` receives local runtime evidence
 - log signatures are attached to incidents only when real evidence exists
 - no fake incidents or seeded signals are created by the agent
@@ -189,4 +191,4 @@ If restart execution is enabled, grant the agent only the narrow permission need
 
 ## Next Services
 
-After `txn-mobile-ussd` is stable, add one service at a time to the same `services` array. Start with adjacent Mobile Banking services whose logs and process markers are already known, then add `txn-integration-idc` because it is the exact banking-core integration path.
+After `txn-mobile-ussd` is stable, add one service at a time to the same `services` array. The next service is `txn-ussd-adapter`, using the same host agent and its own exact allowlisted control scripts. After that, continue with adjacent Mobile Banking services whose logs and process markers are already known, then add `txn-integration-idc` because it is the exact banking-core integration path.

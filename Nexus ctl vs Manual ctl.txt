@@ -1,0 +1,552 @@
+Nexus ctl vs Manual ctl
+NEXUS CONTROL 
+[2026-06-03 18:30:28.232] INFO  [.ShutdownThread]
+                     c.h.core.LifecycleService ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8085 is SHUTTING_DOWN
+[2026-06-03 18:30:28.237] WARN  [.ShutdownThread]
+                     c.hazelcast.instance.Node ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Terminating forcefully...
+[2026-06-03 18:30:28.237] INFO  [.ShutdownThread]
+                     c.hazelcast.instance.Node ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Shutting down connection manager...
+[2026-06-03 18:30:28.238] INFO  [.ShutdownThread]
+                     c.hazelcast.instance.Node ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Shutting down node engine...
+[2026-06-03 18:30:28.249] INFO  [.ShutdownThread]
+                           c.h.i.NodeExtension ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Destroying node NodeExtension.
+[2026-06-03 18:30:28.249] INFO  [.ShutdownThread]
+                     c.hazelcast.instance.Node ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Hazelcast Shutdown is completed in 12 ms.
+[2026-06-03 18:30:28.250] INFO  [.ShutdownThread]
+                     c.h.core.LifecycleService ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8085 is SHUTDOWN
+[2026-06-03 18:30:28.665] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:30:28.668] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:30:30.306] INFO  [ionShutdownHook]
+                .t.e.m.s.s.SessionStoreManager ATE-Trace-ID=[] - Shutting down session timers...
+[2026-06-03 18:30:30.306] INFO  [ionShutdownHook]
+                .t.e.m.s.s.SessionStoreManager ATE-Trace-ID=[] - 0 currently pending session timers
+[2026-06-03 18:30:30.306] INFO  [ionShutdownHook]
+                .t.e.m.s.s.SessionStoreManager ATE-Trace-ID=[] - Session timers stopped
+[2026-06-03 18:30:30.319] INFO  [ionShutdownHook]
+                tainerEntityManagerFactoryBean ATE-Trace-ID=[] - Closing JPA EntityManagerFactory for persistence unit 'default'
+[2026-06-03 18:30:30.323] INFO  [ionShutdownHook]
+                        c.z.h.HikariDataSource ATE-Trace-ID=[] - HikariPool-1 - Shutdown initiated...
+[2026-06-03 18:30:30.346] INFO  [ionShutdownHook]
+                        c.z.h.HikariDataSource ATE-Trace-ID=[] - HikariPool-1 - Shutdown completed.
+[2026-06-03 18:30:30.347] INFO  [ionShutdownHook]
+                 z.c.a.t.e.m.c.HazelcastConfig ATE-Trace-ID=[] - Shutting down Hazelcast instance...
+[2026-06-03 18:30:30.347] INFO  [ionShutdownHook]
+                 z.c.a.t.e.m.c.HazelcastConfig ATE-Trace-ID=[] - Hazelcast shutdown
+18:38:36,627 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Could NOT find resource [logback-test.xml]
+18:38:37,126 |-INFO in ch.qos.logback.classic.LoggerContext[default] - Found resource [logback.xml] at [file:/srv/afc/txn-mobile/txn-mobile-ussd/etc/logback.xml]
+18:39:34,227 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - debug attribute not set
+18:39:39,527 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - Will scan for changes in [file:/srv/afc/txn-mobile/txn-mobile-ussd/etc/logback.xml] 
+18:39:39,527 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - Setting ReconfigureOnChangeTask scanning period to 30 seconds
+18:39:41,026 |-INFO in ch.qos.logback.classic.joran.action.LoggerContextListenerAction - Adding LoggerContextListener of type [ch.qos.logback.classic.jul.LevelChangePropagator] to the object stack
+18:39:49,827 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@33d512c1 - Propagating DEBUG level on Logger[ROOT] onto the JUL framework
+18:39:50,027 |-INFO in ch.qos.logback.classic.joran.action.LoggerContextListenerAction - Starting LoggerContextListener
+18:39:50,027 |-INFO in ch.qos.logback.classic.joran.action.JMXConfiguratorAction - begin
+18:40:50,727 |-INFO in ch.qos.logback.core.joran.action.ConversionRuleAction - registering conversion word args with class [zw.co.afc.txn.engine.logging.AteArgumentJsonConverter]
+18:40:50,826 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.rolling.RollingFileAppender]
+18:40:51,927 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [FILE_HUMAN]
+18:40:53,526 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+18:41:34,527 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@1365008457 - No compression will be used
+18:41:35,027 |-INFO in c.q.l.core.rolling.TimeBasedRollingPolicy@1365008457 - Will use the pattern /srv/log/ate/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.%d{yyyy-MM-dd}.%i.log for the active file
+18:41:35,431 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@639c2c1d - The date pattern is 'yyyy-MM-dd' from file name pattern '/srv/log/ate/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.%d{yyyy-MM-dd}.%i.log'.
+18:41:35,431 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@639c2c1d - Roll-over at midnight.
+18:41:38,927 |-INFO in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@639c2c1d - Setting initial period to Wed Jun 03 18:30:30 CAT 2026
+18:41:39,126 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@639c2c1d - SizeAndTimeBasedFNATP is deprecated. Use SizeAndTimeBasedRollingPolicy instead
+18:41:39,126 |-WARN in ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP@639c2c1d - For more information see http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy
+18:41:40,427 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[FILE_HUMAN] - Active log file name: /srv/log/ate/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.log
+18:41:40,427 |-INFO in ch.qos.logback.core.rolling.RollingFileAppender[FILE_HUMAN] - File property is set to [/srv/log/ate/txn-mobile/txn-mobile-ussd/txn-mobile-ussd-human.log]
+18:41:40,527 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+18:41:40,827 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [CONSOLE_HUMAN]
+18:41:40,927 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+18:41:41,726 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.classic.AsyncAppender]
+18:41:42,227 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [CONSOLE_HUMAN_ASYNC]
+18:41:42,227 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [CONSOLE_HUMAN] to ch.qos.logback.classic.AsyncAppender[CONSOLE_HUMAN_ASYNC]
+18:41:42,227 |-INFO in ch.qos.logback.classic.AsyncAppender[CONSOLE_HUMAN_ASYNC] - Attaching appender named [CONSOLE_HUMAN] to AsyncAppender.
+18:41:42,426 |-INFO in ch.qos.logback.classic.AsyncAppender[CONSOLE_HUMAN_ASYNC] - Setting discardingThreshold to 51
+18:41:42,427 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.classic.AsyncAppender]
+18:41:42,427 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [FILE_HUMAN_ASYNC]
+18:41:42,526 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [FILE_HUMAN] to ch.qos.logback.classic.AsyncAppender[FILE_HUMAN_ASYNC]
+18:41:42,526 |-INFO in ch.qos.logback.classic.AsyncAppender[FILE_HUMAN_ASYNC] - Attaching appender named [FILE_HUMAN] to AsyncAppender.
+18:41:42,526 |-INFO in ch.qos.logback.classic.AsyncAppender[FILE_HUMAN_ASYNC] - Setting discardingThreshold to 51
+18:41:42,727 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger [zw.co.afc.txn.engine] to DEBUG
+18:41:42,727 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@33d512c1 - Propagating DEBUG level on Logger[zw.co.afc.txn.engine] onto the JUL framework
+18:41:42,827 |-INFO in ch.qos.logback.classic.joran.action.RootLoggerAction - Setting level of ROOT logger to INFO
+18:41:42,827 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@33d512c1 - Propagating INFO level on Logger[ROOT] onto the JUL framework
+18:41:42,827 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [FILE_HUMAN_ASYNC] to Logger[ROOT]
+18:41:42,827 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [CONSOLE_HUMAN_ASYNC] to Logger[ROOT]
+18:41:42,827 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - End of configuration.
+18:41:42,827 |-INFO in ch.qos.logback.classic.joran.JoranConfigurator@5fe94a96 - Registering current configuration as safe fallback point
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.6.8)
+
+[2026-06-03 18:45:51.627] WARN  [main           ]
+                       o.s.b.StartupInfoLogger ATE-Trace-ID=[] - InetAddress.getLocalHost().getHostName() took 201 milliseconds to respond. Please verify your network configuration.
+[2026-06-03 18:45:51.627] WARN  [main           ]
+                       o.s.b.StartupInfoLogger ATE-Trace-ID=[] - InetAddress.getLocalHost().getHostName() took 201 milliseconds to respond. Please verify your network configuration.
+[2026-06-03 18:45:53.427] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Starting TxnMobileUssdApplication v0.0.1-SNAPSHOT using Java 17.0.4 on ussd-ate-test with PID 15447 (/srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar started by root in /srv/afc/txn-mobile/txn-mobile-ussd/lib)
+[2026-06-03 18:45:53.427] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Starting TxnMobileUssdApplication v0.0.1-SNAPSHOT using Java 17.0.4 on ussd-ate-test with PID 15447 (/srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar started by root in /srv/afc/txn-mobile/txn-mobile-ussd/lib)
+[2026-06-03 18:45:53.627] DEBUG [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Running with Spring Boot v2.6.8, Spring v5.3.20
+[2026-06-03 18:45:53.627] DEBUG [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Running with Spring Boot v2.6.8, Spring v5.3.20
+[2026-06-03 18:45:53.927] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - No active profile set, falling back to 1 default profile: "default"
+[2026-06-03 18:45:53.927] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - No active profile set, falling back to 1 default profile: "default"
+
+MANUAL CONTROL
+[2026-06-03 18:45:53.927] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - No active profile set, falling back to 1 default profile: "default"
+[2026-06-03 18:55:28.155] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Starting TxnMobileUssdApplication v0.0.1-SNAPSHOT using Java 17.0.4 on ussd-ate-test with PID 21017 (/srv/afc/txn-mobile/txn-mobile-ussd/lib/txn-mobile-ussd-0.0.1-SNAPSHOT.jar started by root in /srv)
+[2026-06-03 18:55:28.160] DEBUG [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Running with Spring Boot v2.6.8, Spring v5.3.20
+[2026-06-03 18:55:28.161] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - No active profile set, falling back to 1 default profile: "default"
+[2026-06-03 18:55:30.579] INFO  [main           ]
+                epositoryConfigurationDelegate ATE-Trace-ID=[] - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+[2026-06-03 18:55:31.236] INFO  [main           ]
+                epositoryConfigurationDelegate ATE-Trace-ID=[] - Finished Spring Data repository scanning in 637 ms. Found 20 JPA repository interfaces.
+[2026-06-03 18:55:32.687] INFO  [main           ]
+                   o.s.b.w.e.t.TomcatWebServer ATE-Trace-ID=[] - Tomcat initialized with port(s): 8091 (http)
+[2026-06-03 18:55:32.707] INFO  [main           ]
+                     o.a.c.h.Http11NioProtocol ATE-Trace-ID=[] - Initializing ProtocolHandler ["http-nio-8091"]
+[2026-06-03 18:55:32.709] INFO  [main           ]
+                       o.a.c.c.StandardService ATE-Trace-ID=[] - Starting service [Tomcat]
+[2026-06-03 18:55:32.711] INFO  [main           ]
+                     o.a.c.core.StandardEngine ATE-Trace-ID=[] - Starting Servlet engine: [Apache Tomcat/9.0.63]
+[2026-06-03 18:55:32.866] INFO  [main           ]
+                .[/txn-mobile/txn-mobile-ussd] ATE-Trace-ID=[] - Initializing Spring embedded WebApplicationContext
+[2026-06-03 18:55:32.868] INFO  [main           ]
+                letWebServerApplicationContext ATE-Trace-ID=[] - Root WebApplicationContext: initialization completed in 4555 ms
+[2026-06-03 18:55:33.252] WARN  [main           ]
+                    c.h.i.DefaultAddressPicker ATE-Trace-ID=[] - [LOCAL] [dev] [3.8] You configured your member address as host name. Please be aware of that your dns can be spoofed. Make sure that your dns configurations are correct.
+[2026-06-03 18:55:33.253] INFO  [main           ]
+                    c.h.i.DefaultAddressPicker ATE-Trace-ID=[] - [LOCAL] [dev] [3.8] Resolving domain name 'localhost' to address(es): [127.0.0.1]
+[2026-06-03 18:55:33.253] INFO  [main           ]
+                    c.h.i.DefaultAddressPicker ATE-Trace-ID=[] - [LOCAL] [dev] [3.8] Interfaces is disabled, trying to pick one address from TCP-IP config addresses: [localhost/127.0.0.1]
+[2026-06-03 18:55:33.253] INFO  [main           ]
+                    c.h.i.DefaultAddressPicker ATE-Trace-ID=[] - [LOCAL] [dev] [3.8] Prefer IPv4 stack is true.
+[2026-06-03 18:55:33.264] INFO  [main           ]
+                    c.h.i.DefaultAddressPicker ATE-Trace-ID=[] - [LOCAL] [dev] [3.8] Picked [localhost]:8085, using socket ServerSocket[addr=/0:0:0:0:0:0:0:0,localport=8085], bind any local is true
+[2026-06-03 18:55:33.275] INFO  [main           ]
+                          com.hazelcast.system ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Hazelcast 3.8 (20170217 - d7998b4) starting at [localhost]:8085
+[2026-06-03 18:55:33.275] INFO  [main           ]
+                          com.hazelcast.system ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Copyright (c) 2008-2017, Hazelcast, Inc. All Rights Reserved.
+[2026-06-03 18:55:33.275] INFO  [main           ]
+                          com.hazelcast.system ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Configured Hazelcast Serialization version : 1
+[2026-06-03 18:55:33.560] INFO  [main           ]
+                .s.i.o.i.BackpressureRegulator ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Backpressure is disabled
+[2026-06-03 18:55:34.275] INFO  [main           ]
+                     c.hazelcast.instance.Node ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Creating TcpIpJoiner
+[2026-06-03 18:55:34.451] INFO  [main           ]
+                .s.i.o.i.OperationExecutorImpl ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Starting 8 partition threads
+[2026-06-03 18:55:34.455] INFO  [main           ]
+                .s.i.o.i.OperationExecutorImpl ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Starting 5 generic threads (1 dedicated for priority tasks)
+[2026-06-03 18:55:34.463] INFO  [main           ]
+                     c.h.core.LifecycleService ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8085 is STARTING
+[2026-06-03 18:55:34.501] INFO  [cached.thread-3]
+                    c.h.n.t.InitConnectionTask ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Connecting to localhost/127.0.0.1:8087, timeout: 0, bind-any: true
+[2026-06-03 18:55:34.501] INFO  [cached.thread-2]
+                    c.h.n.t.InitConnectionTask ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Connecting to localhost/127.0.0.1:8086, timeout: 0, bind-any: true
+[2026-06-03 18:55:34.502] INFO  [cached.thread-3]
+                    c.h.n.t.InitConnectionTask ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Could not connect to: localhost/127.0.0.1:8087. Reason: SocketException[Connection refused to address localhost/127.0.0.1:8087]
+[2026-06-03 18:55:34.502] INFO  [cached.thread-2]
+                    c.h.n.t.InitConnectionTask ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Could not connect to: localhost/127.0.0.1:8086. Reason: SocketException[Connection refused to address localhost/127.0.0.1:8086]
+[2026-06-03 18:55:34.502] INFO  [cached.thread-3]
+                        c.h.c.impl.TcpIpJoiner ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8087 is added to the blacklist.
+[2026-06-03 18:55:34.502] INFO  [cached.thread-2]
+                        c.h.c.impl.TcpIpJoiner ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8086 is added to the blacklist.
+[2026-06-03 18:55:35.498] INFO  [main           ]
+                          com.hazelcast.system ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] Cluster version set to 3.8
+[2026-06-03 18:55:35.500] INFO  [main           ]
+                        c.h.c.impl.TcpIpJoiner ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] 
+
+
+Members [1] {
+        Member [localhost]:8085 - 34ff523d-f3bd-44fe-abfa-6cd68382253e this
+}
+
+[2026-06-03 18:55:35.553] INFO  [main           ]
+                     c.h.core.LifecycleService ATE-Trace-ID=[] - [localhost]:8085 [dev] [3.8] [localhost]:8085 is STARTED
+[2026-06-03 18:55:35.948] INFO  [main           ]
+                        c.z.h.HikariDataSource ATE-Trace-ID=[] - HikariPool-1 - Starting...
+[2026-06-03 18:55:36.606] INFO  [main           ]
+                        c.z.h.HikariDataSource ATE-Trace-ID=[] - HikariPool-1 - Start completed.
+[2026-06-03 18:55:36.947] INFO  [main           ]
+                            liquibase.database ATE-Trace-ID=[] - Set default schema name to public
+[2026-06-03 18:55:37.143] INFO  [main           ]
+                         liquibase.lockservice ATE-Trace-ID=[] - Successfully acquired change log lock
+[2026-06-03 18:55:38.463] INFO  [main           ]
+                           liquibase.changelog ATE-Trace-ID=[] - Reading from public.databasechangelog
+[2026-06-03 18:55:38.773] INFO  [main           ]
+                         liquibase.lockservice ATE-Trace-ID=[] - Successfully released change log lock
+[2026-06-03 18:55:39.011] INFO  [main           ]
+                        o.h.j.i.util.LogHelper ATE-Trace-ID=[] - HHH000204: Processing PersistenceUnitInfo [name: default]
+[2026-06-03 18:55:39.099] INFO  [main           ]
+                         org.hibernate.Version ATE-Trace-ID=[] - HHH000412: Hibernate ORM core version 5.6.9.Final
+[2026-06-03 18:55:39.395] INFO  [main           ]
+                          o.h.a.common.Version ATE-Trace-ID=[] - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+[2026-06-03 18:55:39.564] INFO  [main           ]
+                           o.h.dialect.Dialect ATE-Trace-ID=[] - HHH000400: Using dialect: org.hibernate.dialect.PostgreSQLDialect
+[2026-06-03 18:55:41.498] INFO  [main           ]
+                e.t.j.p.i.JtaPlatformInitiator ATE-Trace-ID=[] - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+[2026-06-03 18:55:41.512] INFO  [main           ]
+                tainerEntityManagerFactoryBean ATE-Trace-ID=[] - Initialized JPA EntityManagerFactory for persistence unit 'default'
+[2026-06-03 18:55:44.098] INFO  [main           ]
+                c.a.t.e.m.c.SessionStoreConfig ATE-Trace-ID=[] - Store type set to hazelcast, configuring Hazelcast
+[2026-06-03 18:55:44.158] INFO  [main           ]
+                .e.m.s.s.HazelcastSessionStore ATE-Trace-ID=[] - HazelcastSessionStore initialized
+[2026-06-03 18:55:45.632] WARN  [main           ]
+                figuration$JpaWebConfiguration ATE-Trace-ID=[] - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+[2026-06-03 18:55:46.600] WARN  [main           ]
+                .f.FreeMarkerAutoConfiguration ATE-Trace-ID=[] - Cannot find template location(s): [classpath:/templates/] (please add some templates, check your FreeMarker configuration, or set spring.freemarker.checkTemplateLocation=false)
+[2026-06-03 18:55:46.712] WARN  [main           ]
+                etailsServiceAutoConfiguration ATE-Trace-ID=[] - 
+
+Using generated security password: 3421e7a0-3b28-4207-979a-74c9fd9ed60e
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+[2026-06-03 18:55:47.058] INFO  [main           ]
+                s.w.DefaultSecurityFilterChain ATE-Trace-ID=[] - Will secure any request with [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@19bdf520, org.springframework.security.web.context.SecurityContextPersistenceFilter@633a4a3d, org.springframework.security.web.header.HeaderWriterFilter@24c6f389, org.springframework.security.web.authentication.logout.LogoutFilter@74f7eefa, org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter@4fb52fa5, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@350c7188, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@519552ae, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@7a5f612f, org.springframework.security.web.session.SessionManagementFilter@2159137c, org.springframework.security.web.access.ExceptionTranslationFilter@41366811, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@1417fb4]
+[2026-06-03 18:55:47.072] INFO  [main           ]
+                s.w.DefaultSecurityFilterChain ATE-Trace-ID=[] - Will secure Ant [pattern='/**'] with [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@f35f81d, org.springframework.security.web.context.SecurityContextPersistenceFilter@1ed5cb12, org.springframework.security.web.header.HeaderWriterFilter@6f4bafc2, org.springframework.security.web.csrf.CsrfFilter@18744e18, org.springframework.security.web.authentication.logout.LogoutFilter@4fb54ca0, org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter@73a347e8, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4dbd1fdb, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7f3a9c11, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@15db982e, org.springframework.security.web.session.SessionManagementFilter@390645a, org.springframework.security.web.access.ExceptionTranslationFilter@339c14ff, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@3a42b2b6]
+[2026-06-03 18:55:47.188] INFO  [main           ]
+                     o.a.c.h.Http11NioProtocol ATE-Trace-ID=[] - Starting ProtocolHandler ["http-nio-8091"]
+[2026-06-03 18:55:47.238] INFO  [main           ]
+                   o.s.b.w.e.t.TomcatWebServer ATE-Trace-ID=[] - Tomcat started on port(s): 8091 (http) with context path '/txn-mobile/txn-mobile-ussd'
+[2026-06-03 18:55:47.276] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Started TxnMobileUssdApplication in 20.359 seconds (JVM running for 21.847)
+[2026-06-03 18:55:47.600] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - POST to http://localhost:8090/auth/oauth/token?username=MOBILE%3AourlovelyUssd&password=wealwaysloveourUssd&grant_type=password
+[2026-06-03 18:55:47.602] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Content-Type=application/json
+[2026-06-03 18:55:47.602] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Authorization=Basic ZGVmYXVsdC1jbGllbnQ6WXlrTXpJejFLY3RONW1DWXZtbWo=
+[2026-06-03 18:55:47.602] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - ATE-Trace-ID=null
+[2026-06-03 18:55:48.713] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Returned status code 200 (OK)
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Cache-Control=no-store
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Pragma=no-cache
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - X-Content-Type-Options=nosniff
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - X-XSS-Protection=1; mode=block
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - X-Frame-Options=DENY
+[2026-06-03 18:55:48.718] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Content-Type=application/json;charset=UTF-8
+[2026-06-03 18:55:48.719] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Transfer-Encoding=chunked
+[2026-06-03 18:55:48.719] DEBUG [or-http-epoll-2]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Date=Wed, 03 Jun 2026 16:55:48 GMT
+[2026-06-03 18:55:48.786] INFO  [main           ]
+                .r.MobileAuthRemoteServiceImpl ATE-Trace-ID=[] - REMOTE SERVICE SUCCESS RESPONSE, HTTP STATUS=200 and RESPONSE={access_token=2844def0-f648-44eb-aef0-ad2e7208b7a1, token_type=bearer, refresh_token=393bfc41-9b72-44b6-b011-61741ef1ab83, expires_in=8764, scope=super}
+[2026-06-03 18:55:48.883] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - GET to http://localhost:9300/api/v1/response-code
+[2026-06-03 18:55:48.884] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Content-Type=application/json
+[2026-06-03 18:55:48.884] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - Authorization=Bearer 2844def0-f648-44eb-aef0-ad2e7208b7a1
+[2026-06-03 18:55:48.884] DEBUG [main           ]
+                .c.a.t.e.u.l.w.WebClientFilter ATE-Trace-ID=[] - ATE-Trace-ID=null
+[2026-06-03 18:55:48.982] INFO  [or-http-epoll-3]
+                a.t.e.e.RemoteServiceException ATE-Trace-ID=[] - REMOTE SERVICE ERROR RESPONSE, HTTP STATUS=500 and RESPONSE={}
+java.lang.Exception: could not extract ResultSet; SQL [n/a]; nested exception is org.hibernate.exception.SQLGrammarException: could not extract ResultSet
+        at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+        at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+        at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+        at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+        at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:480)
+        at com.fasterxml.jackson.databind.introspect.AnnotatedConstructor.call1(AnnotatedConstructor.java:133)
+        at com.fasterxml.jackson.databind.deser.std.StdValueInstantiator.createFromString(StdValueInstantiator.java:332)
+        at com.fasterxml.jackson.databind.deser.std.ThrowableDeserializer.deserializeFromObject(ThrowableDeserializer.java:133)
+        at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:185)
+        at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:323)
+        at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2105)
+        at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1481)
+        at org.springframework.http.codec.json.AbstractJackson2Decoder.decode(AbstractJackson2Decoder.java:193)
+        at org.springframework.http.codec.json.AbstractJackson2Decoder.lambda$decodeToMono$1(AbstractJackson2Decoder.java:179)
+        at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:125)
+        at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onNext(FluxContextWrite.java:107)
+        at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.onNext(FluxMapFuseable.java:299)
+        at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.onNext(FluxFilterFuseable.java:337)
+        at reactor.core.publisher.Operators$MonoSubscriber.complete(Operators.java:1816)
+        at reactor.core.publisher.MonoCollect$CollectSubscriber.onComplete(MonoCollect.java:159)
+        at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+        at reactor.core.publisher.FluxPeek$PeekSubscriber.onComplete(FluxPeek.java:260)
+        at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+        at reactor.netty.channel.FluxReceive.onInboundComplete(FluxReceive.java:400)
+        at reactor.netty.channel.ChannelOperations.onInboundComplete(ChannelOperations.java:419)
+        at reactor.netty.channel.ChannelOperations.terminate(ChannelOperations.java:473)
+        at reactor.netty.http.client.HttpClientOperations.onInboundNext(HttpClientOperations.java:703)
+        at reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelOperationsHandler.java:93)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+        at io.netty.handler.codec.MessageToMessageDecoder.channelRead(MessageToMessageDecoder.java:103)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+        at io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(CombinedChannelDuplexHandler.java:436)
+        at io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:327)
+        at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:299)
+        at io.netty.channel.CombinedChannelDuplexHandler.channelRead(CombinedChannelDuplexHandler.java:251)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+        at io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1410)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:379)
+        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:365)
+        at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:919)
+        at io.netty.channel.epoll.AbstractEpollStreamChannel$EpollStreamUnsafe.epollInReady(AbstractEpollStreamChannel.java:800)
+        at io.netty.channel.epoll.EpollEventLoop.processReady(EpollEventLoop.java:487)
+        at io.netty.channel.epoll.EpollEventLoop.run(EpollEventLoop.java:385)
+        at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:995)
+        at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+        at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+        at java.base/java.lang.Thread.run(Thread.java:833)
+[2026-06-03 18:55:48.990] INFO  [main           ]
+                t.e.m.TxnMobileUssdApplication ATE-Trace-ID=[] - Remote service exception, request status 500
+[2026-06-03 18:56:17.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:17.422] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:19.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:19.276] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:21.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:21.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:23.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:23.276] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:25.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:25.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:27.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:27.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:29.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:29.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:31.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:31.276] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:33.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:33.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:35.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:35.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:37.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:37.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:39.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:39.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:41.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:41.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:43.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:43.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:45.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:45.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:47.269] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:47.278] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:49.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:49.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:51.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:51.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:53.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:53.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:55.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:55.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:57.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:57.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:56:59.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:56:59.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:01.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:01.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:03.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:03.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:05.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:05.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:07.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:07.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:09.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:09.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:11.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:11.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:13.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:13.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:15.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:15.278] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:17.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:17.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:19.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:19.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:21.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:21.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:23.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:23.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:25.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:25.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:27.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:27.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:29.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:29.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:31.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:31.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:33.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:33.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:35.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:35.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:37.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:37.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:39.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:39.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:41.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:41.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:43.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:43.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:45.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:45.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:47.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:47.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:49.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:49.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:51.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:51.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:53.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:53.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:55.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:55.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:57.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:57.273] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:57:59.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:57:59.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:58:01.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:58:01.275] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:58:03.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:58:03.272] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:58:05.269] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:58:05.278] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:58:07.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:58:07.274] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued
+[2026-06-03 18:58:09.268] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll Started
+[2026-06-03 18:58:09.281] INFO  [scheduling-1   ]
+                .n.s.i.NotificationServiceImpl ATE-Trace-ID=[] - NotificationService - Poll - No notifications queued

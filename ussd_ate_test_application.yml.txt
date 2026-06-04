@@ -1,0 +1,79 @@
+ussd_ate_test_application.yml
+
+server:
+  port: 8091
+  servlet:
+    context-path: /txn-mobile/txn-mobile-ussd/
+spring:
+  liquibase:
+    change-log: classpath:/liquibase/db.changelog-master.xml
+    enabled: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/txn_ussd_app
+    password: system
+    username: system
+    sql:
+      init:
+        mode: never
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: none
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    defer-datasource-initialization: false
+
+  main:
+    allow-bean-definition-overriding: true
+#eureka:
+#  instance:
+#    preferIpAddress: true
+#  client:
+#    registerWithEureka: true
+#    fetchRegistry: true
+#    serviceUrl:
+#      defaultZone: http://localhost:9100/eureka/
+
+security:
+  oauth2:
+    resource:
+      userInfoUri: http://localhost:8090/auth/v1/user-details
+
+
+verification:
+  token:
+    validity:
+      minutes: 1440
+
+
+app:
+  long:
+    name: Txn Engine Mobile USSD
+  name: txn-mobile-ussd
+  version: 0.0.1-SNAPSHOT
+  moduleName: txn-mobile
+  componentName: txn-mobile-ussd
+  clientServiceId: txn-mobile-ussd
+  buildNumber: 0.0.1-SNAPSHOT
+  username: MOBILE:ourlovelyUssd
+  password: wealwaysloveourUssd
+  client:
+    id: default-client
+    secret: <secret>
+
+store:
+  type: hazelcast
+txn-ussd:
+  cluster:
+    members: localhost
+
+    listen:
+      port: 8085
+
+txnEngine:
+  encryption:
+    key: <Key>

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from uuid import uuid4
 
 from app.config.prompts import build_query_messages
@@ -40,8 +41,15 @@ class OperationalOrchestrator:
         trace_id = str(uuid4())
         intent = await self.intent_extractor.classify(query=request.query)
         retrieved_chunks = self.retriever.search(request.query, top_k=settings.MAX_SOP_RETRIEVAL)
+        relevance_notes: list[str] = []
+        if request.scope.startswith("nexus_"):
+            retrieved_chunks, relevance_notes = self._filter_nexus_sop_context(
+                request=request,
+                chunks=retrieved_chunks,
+            )
         evidence, citations = self.context_builder.build(retrieved_chunks)
         confidence, warnings = self.confidence_gate.evaluate(evidence=evidence)
+        warnings.extend(relevance_notes)
 
         answer: str | None = None
         llm_attempted = bool(evidence and self.mistral_client.available)
@@ -51,6 +59,8 @@ class OperationalOrchestrator:
                 intent=intent,
                 evidence=evidence,
                 warnings=warnings,
+                scope=request.scope,
+                system_context=request.system_context,
             )
             answer = await self.mistral_client.chat_complete(messages=messages)
 
@@ -58,6 +68,7 @@ class OperationalOrchestrator:
             answer=answer,
             evidence=evidence,
             warnings=warnings,
+            scope=request.scope,
         )
         next_steps = self.response_validator.recommended_steps(evidence=evidence, citations=citations)
 
@@ -86,6 +97,8 @@ class OperationalOrchestrator:
                     "llm_attempted": llm_attempted,
                     "llm_answer_received": bool(answer and answer.strip()),
                     "fallback_used": not bool(answer and answer.strip()),
+                    "nexus_scope": request.scope.startswith("nexus_"),
+                    "sop_relevance_notes": relevance_notes,
                 },
                 "warnings": warnings,
             }
@@ -101,3 +114,76 @@ class OperationalOrchestrator:
             trace_id=trace_id,
             trace=trace,
         )
+
+    def _filter_nexus_sop_context(self, request: ChatRequest, chunks: list[object]) -> tuple[list[object], list[str]]:
+        """Keep Nexus briefs from grounding on procedures for the wrong system."""
+
+        if not chunks:
+            return [], []
+
+        anchors = self._nexus_anchor_terms(request)
+        if not anchors:
+            return chunks, []
+
+        filtered = []
+        for chunk in chunks:
+            sop_id = str(getattr(chunk, "sop_id", ""))
+            sop = self.indexer.normalized_sops.get(sop_id)
+            haystack_parts = [
+                getattr(chunk, "title", ""),
+                getattr(chunk, "text", ""),
+                *(sop.services if sop else []),
+                *(sop.systems if sop else []),
+                *(sop.aliases if sop else []),
+                *(sop.environments if sop else []),
+            ]
+            haystack = self._normalize_for_match(" ".join(str(part) for part in haystack_parts))
+            if any(anchor in haystack for anchor in anchors):
+                filtered.append(chunk)
+
+        if filtered:
+            return filtered, []
+        return [], [
+            (
+                "No SOP evidence explicitly matched the Nexus incident service, affected systems, "
+                "environment, or business-flow context. Use Nexus evidence only and avoid unrelated procedures."
+            )
+        ]
+
+    def _nexus_anchor_terms(self, request: ChatRequest) -> set[str]:
+        raw_terms: set[str] = set()
+        raw_terms.update(request.system_context.affected_systems or [])
+        if request.system_context.environment:
+            raw_terms.add(request.system_context.environment)
+
+        for line in request.query.splitlines():
+            lowered = line.lower()
+            if any(
+                marker in lowered
+                for marker in (
+                    "incident:",
+                    "failure domain:",
+                    "business flow:",
+                    "affected services:",
+                    "probable root cause:",
+                    "root candidates:",
+                    "service:",
+                    "environment:",
+                )
+            ):
+                raw_terms.add(line.split(":", 1)[-1] if ":" in line else line)
+
+        anchors: set[str] = set()
+        for term in raw_terms:
+            normalized = self._normalize_for_match(str(term))
+            if not normalized:
+                continue
+            anchors.add(normalized)
+            for token in normalized.split():
+                if len(token) >= 3 and token not in {"the", "and", "for", "with", "risk", "open", "low", "high"}:
+                    anchors.add(token)
+        return anchors
+
+    @staticmethod
+    def _normalize_for_match(value: str) -> str:
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", value.lower())).strip()

@@ -3,15 +3,30 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timezone
+from hmac import compare_digest
+import hashlib
 import json
 from pathlib import Path
+import secrets
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 import psycopg
 from psycopg.rows import dict_row
 
 from app.config.settings import settings
-from app.nexus.models import ManagedSop, NexusIncident, NexusState, TaskHandoff
+from app.nexus.models import (
+    AgentHeartbeat,
+    ChangeEvent,
+    ManagedSop,
+    NexusIncident,
+    NexusState,
+    RolloverEnvironment,
+    RolloverExecution,
+    RolloverReminder,
+    SignalEvent,
+    TaskHandoff,
+)
 from app.utils.logging import get_logger
 
 
@@ -41,6 +56,7 @@ class NexusRepository:
         "diagnostic_bundle",
         "action_execution",
         "agent_heartbeat",
+        "nexus_agent_token",
     )
 
     def __init__(self) -> None:
@@ -78,6 +94,233 @@ class NexusRepository:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.file_path, "w", encoding="utf-8") as handle:
             json.dump(state.model_dump(mode="json"), handle, indent=2, ensure_ascii=False)
+
+    def persist_heartbeat(self, heartbeat: AgentHeartbeat, state: NexusState | None = None) -> None:
+        """Persist a single heartbeat without rewriting the full Nexus graph."""
+        if not self._use_postgres:
+            if state is not None:
+                self.persist_state(state)
+            return
+
+        payload = heartbeat.model_dump(mode="json")
+        key = f"{payload['agent_id']}:{payload['service_id']}:{payload['timestamp']}"
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO agent_heartbeat (heartbeat_key, agent_id, service_id, timestamp, payload)
+                    VALUES (%s, %s, %s, %s, %s::jsonb)
+                    ON CONFLICT (heartbeat_key) DO UPDATE SET
+                        payload = EXCLUDED.payload,
+                        timestamp = EXCLUDED.timestamp
+                    """,
+                    (
+                        key,
+                        payload["agent_id"],
+                        payload["service_id"],
+                        payload["timestamp"],
+                        json.dumps(payload),
+                    ),
+                )
+                cur.execute(
+                    """
+                    DELETE FROM agent_heartbeat
+                    WHERE heartbeat_key IN (
+                        SELECT heartbeat_key
+                        FROM (
+                            SELECT heartbeat_key, row_number() OVER (ORDER BY timestamp DESC) AS rn
+                            FROM agent_heartbeat
+                        ) ranked
+                        WHERE ranked.rn > %s
+                    )
+                    """,
+                    (self.HEARTBEAT_RETENTION,),
+                )
+            conn.commit()
+
+    def persist_telemetry_update(
+        self,
+        state: NexusState,
+        *,
+        signals: list[SignalEvent],
+        changes: list[ChangeEvent],
+    ) -> None:
+        """Persist live telemetry and rebuilt incidents without rewriting static catalog rows."""
+        if not self._use_postgres:
+            self.persist_state(state)
+            return
+
+        payload = state.model_dump(mode="json")
+        flow_ids = {flow["flow_id"] for flow in payload["business_flows"]}
+
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO nexus_meta (meta_key, payload, updated_at)
+                    VALUES ('fabric_summary', %s::jsonb, now())
+                    ON CONFLICT (meta_key) DO UPDATE SET
+                        payload = EXCLUDED.payload,
+                        updated_at = now()
+                    """,
+                    (json.dumps(payload["fabric_summary"]),),
+                )
+
+                for signal_model in signals:
+                    signal = signal_model.model_dump(mode="json")
+                    signal_flow_id = signal.get("business_flow_id")
+                    if signal_flow_id not in flow_ids:
+                        signal_flow_id = None
+                    signal_payload = {**signal, "business_flow_id": signal_flow_id}
+                    cur.execute(
+                        """
+                        INSERT INTO signal_event (
+                            signal_id, service_id, signal_type, severity, timestamp,
+                            vantage_point, observation_layer, failure_domain_hint, business_flow_id, payload
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (signal_id) DO UPDATE SET
+                            severity = EXCLUDED.severity,
+                            timestamp = EXCLUDED.timestamp,
+                            vantage_point = EXCLUDED.vantage_point,
+                            observation_layer = EXCLUDED.observation_layer,
+                            failure_domain_hint = EXCLUDED.failure_domain_hint,
+                            business_flow_id = EXCLUDED.business_flow_id,
+                            payload = EXCLUDED.payload
+                        """,
+                        (
+                            signal["signal_id"],
+                            signal["service_id"],
+                            signal["signal_type"],
+                            signal["severity"],
+                            signal["timestamp"],
+                            signal.get("vantage_point"),
+                            signal.get("observation_layer"),
+                            signal.get("failure_domain_hint"),
+                            signal_flow_id,
+                            json.dumps(signal_payload),
+                        ),
+                    )
+
+                cur.execute(
+                    """
+                    DELETE FROM signal_event
+                    WHERE signal_id IN (
+                        SELECT signal_id
+                        FROM (
+                            SELECT signal_id, row_number() OVER (ORDER BY timestamp DESC) AS rn
+                            FROM signal_event
+                        ) ranked
+                        WHERE ranked.rn > %s
+                    )
+                    """,
+                    (self.SIGNAL_RETENTION,),
+                )
+
+                for change_model in changes:
+                    change = change_model.model_dump(mode="json")
+                    cur.execute(
+                        """
+                        INSERT INTO change_event (change_id, service_id, change_type, timestamp, payload)
+                        VALUES (%s, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (change_id) DO UPDATE SET
+                            timestamp = EXCLUDED.timestamp,
+                            payload = EXCLUDED.payload
+                        """,
+                        (
+                            change["change_id"],
+                            change["service_id"],
+                            change["change_type"],
+                            change["timestamp"],
+                            json.dumps(change),
+                        ),
+                    )
+
+                if changes:
+                    cur.execute(
+                        """
+                        DELETE FROM change_event
+                        WHERE change_id IN (
+                            SELECT change_id
+                            FROM (
+                                SELECT change_id, row_number() OVER (ORDER BY timestamp DESC) AS rn
+                                FROM change_event
+                            ) ranked
+                            WHERE ranked.rn > %s
+                        )
+                        """,
+                        (self.CHANGE_RETENTION,),
+                    )
+
+                cur.execute("DELETE FROM incident_service")
+                cur.execute("DELETE FROM incident")
+                for incident in payload["incidents"]:
+                    incident_flow_id = incident.get("primary_business_flow_id")
+                    if incident_flow_id not in flow_ids:
+                        incident_flow_id = None
+                    incident_payload = {**incident, "primary_business_flow_id": incident_flow_id}
+                    cur.execute(
+                        """
+                        INSERT INTO incident (
+                            incident_id, incident_key, status, start_time,
+                            primary_business_flow_id, failure_domain, payload
+                        )
+                        VALUES (%s::uuid, %s, %s, %s, %s, %s, %s::jsonb)
+                        """,
+                        (
+                            incident["incident_id"],
+                            incident["incident_key"],
+                            incident["status"],
+                            incident["start_time"],
+                            incident_flow_id,
+                            incident.get("failure_domain"),
+                            json.dumps(incident_payload),
+                        ),
+                    )
+                    for service_id in incident["affected_services"]:
+                        role = "suspected_root" if service_id == incident.get("suspected_root_service") else "affected"
+                        key = f"{incident['incident_id']}:{service_id}"
+                        cur.execute(
+                            """
+                            INSERT INTO incident_service (incident_service_key, incident_id, service_id, role, payload)
+                            VALUES (%s, %s::uuid, %s, %s, %s::jsonb)
+                            """,
+                            (
+                                key,
+                                incident["incident_id"],
+                                service_id,
+                                role,
+                                json.dumps(
+                                    {
+                                        "incident_id": incident["incident_id"],
+                                        "service_id": service_id,
+                                        "role": role,
+                                    }
+                                ),
+                            ),
+                        )
+
+                for action in payload["action_executions"]:
+                    cur.execute(
+                        """
+                        INSERT INTO action_execution (action_execution_id, incident_id, service_id, action_type, requested_at, payload)
+                        VALUES (%s, %s::uuid, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (action_execution_id) DO UPDATE SET
+                            payload = EXCLUDED.payload,
+                            requested_at = EXCLUDED.requested_at
+                        """,
+                        (
+                            action["action_execution_id"],
+                            action.get("incident_id"),
+                            action["service_id"],
+                            action["action_type"],
+                            action["requested_at"],
+                            json.dumps(action),
+                        ),
+                    )
+            conn.commit()
+
+        logger.debug("Persisted Sentinel Nexus telemetry delta to PostgreSQL.")
 
     def delete_service(self, service_id: str) -> None:
         if not self._use_postgres:
@@ -302,6 +545,7 @@ class NexusRepository:
             s.owner_team,
             s.tags,
             st.last_checked_at,
+            st.last_state_change_at,
             COALESCE(st.overall_status::text, 'UNKNOWN') AS overall_status,
             st.reason,
             st.consecutive_failures,
@@ -455,6 +699,584 @@ class NexusRepository:
         except psycopg.errors.UndefinedTable as exc:
             raise RuntimeError("Nexus SOP registry migration is missing. Apply 2026_05_add_nexus_sop_registry.sql.") from exc
 
+    def list_rollover_environments(self) -> list[RolloverEnvironment]:
+        if not self._use_postgres:
+            return []
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    rows = cur.execute(
+                        """
+                        SELECT payload, credential_ciphertext IS NOT NULL AS credential_configured
+                        FROM nexus_rollover_environment
+                        WHERE deleted_at IS NULL
+                        ORDER BY environment_name ASC
+                        """
+                    ).fetchall()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_rollover_environment is missing. Apply 2026_05_add_nexus_rollover.sql.")
+            return []
+        return [self._rollover_environment_from_row(row) for row in rows]
+
+    def get_rollover_environment(self, environment_id: str) -> RolloverEnvironment | None:
+        if not self._use_postgres:
+            return None
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    row = cur.execute(
+                        """
+                        SELECT payload, credential_ciphertext IS NOT NULL AS credential_configured
+                        FROM nexus_rollover_environment
+                        WHERE environment_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (environment_id,),
+                    ).fetchone()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_rollover_environment is missing. Apply 2026_05_add_nexus_rollover.sql.")
+            return None
+        return self._rollover_environment_from_row(row) if row else None
+
+    def get_rollover_environment_with_secret(self, environment_id: str) -> tuple[RolloverEnvironment | None, str | None]:
+        if not self._use_postgres:
+            return None, None
+        encryption_key = self._agent_token_encryption_key()
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    row = cur.execute(
+                        """
+                        SELECT
+                            payload,
+                            credential_ciphertext IS NOT NULL AS credential_configured,
+                            CASE
+                                WHEN credential_ciphertext IS NULL THEN NULL
+                                ELSE pgp_sym_decrypt(credential_ciphertext, %s)
+                            END AS credential_password
+                        FROM nexus_rollover_environment
+                        WHERE environment_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (encryption_key, environment_id),
+                    ).fetchone()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_rollover_environment is missing. Apply 2026_05_add_nexus_rollover.sql.")
+            return None, None
+        if not row:
+            return None, None
+        return self._rollover_environment_from_row(row), row.get("credential_password")
+
+    def upsert_rollover_environment(
+        self,
+        environment: RolloverEnvironment,
+        *,
+        credential_password: str | None = None,
+    ) -> RolloverEnvironment:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for Nexus environment rollover.")
+        credential_password = credential_password if credential_password else None
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    existing = cur.execute(
+                        """
+                        SELECT credential_ciphertext IS NOT NULL AS credential_configured
+                        FROM nexus_rollover_environment
+                        WHERE environment_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (environment.environment_id,),
+                    ).fetchone()
+                    password_set = bool(credential_password) or bool(existing and existing.get("credential_configured"))
+                    environment.connection.password_set = password_set
+                    payload = environment.model_dump(mode="json")
+                    if credential_password:
+                        encryption_key = self._agent_token_encryption_key()
+                        cur.execute(
+                            """
+                            INSERT INTO nexus_rollover_environment (
+                                environment_id, environment_name, environment_type, service_environment,
+                                enabled, credential_ciphertext, payload, updated_at
+                            )
+                            VALUES (%s, %s, %s, %s, %s, pgp_sym_encrypt(%s, %s), %s::jsonb, %s)
+                            ON CONFLICT (environment_id) DO UPDATE SET
+                                environment_name = EXCLUDED.environment_name,
+                                environment_type = EXCLUDED.environment_type,
+                                service_environment = EXCLUDED.service_environment,
+                                enabled = EXCLUDED.enabled,
+                                credential_ciphertext = EXCLUDED.credential_ciphertext,
+                                payload = EXCLUDED.payload,
+                                updated_at = EXCLUDED.updated_at,
+                                deleted_at = NULL
+                            """,
+                            (
+                                environment.environment_id,
+                                environment.environment_name,
+                                environment.environment_type,
+                                environment.service_environment,
+                                environment.enabled,
+                                credential_password,
+                                encryption_key,
+                                json.dumps(payload),
+                                environment.updated_at,
+                            ),
+                        )
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO nexus_rollover_environment (
+                                environment_id, environment_name, environment_type, service_environment,
+                                enabled, payload, updated_at
+                            )
+                            VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+                            ON CONFLICT (environment_id) DO UPDATE SET
+                                environment_name = EXCLUDED.environment_name,
+                                environment_type = EXCLUDED.environment_type,
+                                service_environment = EXCLUDED.service_environment,
+                                enabled = EXCLUDED.enabled,
+                                payload = EXCLUDED.payload,
+                                updated_at = EXCLUDED.updated_at,
+                                deleted_at = NULL
+                            """,
+                            (
+                                environment.environment_id,
+                                environment.environment_name,
+                                environment.environment_type,
+                                environment.service_environment,
+                                environment.enabled,
+                                json.dumps(payload),
+                                environment.updated_at,
+                            ),
+                        )
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus rollover migration is missing. Apply 2026_05_add_nexus_rollover.sql.") from exc
+        return environment
+
+    def delete_rollover_environment(self, environment_id: str, deleted_by: str) -> None:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for Nexus environment rollover.")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE nexus_rollover_environment
+                        SET deleted_at = now(),
+                            payload = jsonb_set(payload, '{updated_by}', to_jsonb(%s::text), true)
+                        WHERE environment_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (deleted_by, environment_id),
+                    )
+                    if cur.rowcount == 0:
+                        raise KeyError(f"Unknown Nexus rollover environment {environment_id}")
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus rollover migration is missing. Apply 2026_05_add_nexus_rollover.sql.") from exc
+
+    def list_rollover_executions(self, environment_id: str | None = None) -> list[RolloverExecution]:
+        if not self._use_postgres:
+            return []
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    rows = cur.execute(
+                        """
+                        SELECT payload
+                        FROM nexus_rollover_execution
+                        WHERE (%s::text IS NULL OR environment_id = %s)
+                        ORDER BY requested_at DESC
+                        LIMIT 100
+                        """,
+                        (environment_id, environment_id),
+                    ).fetchall()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_rollover_execution is missing. Apply 2026_05_add_nexus_rollover.sql.")
+            return []
+        return [RolloverExecution.model_validate(row["payload"]) for row in rows]
+
+    def persist_rollover_execution(self, execution: RolloverExecution) -> RolloverExecution:
+        if not self._use_postgres:
+            return execution
+        payload = execution.model_dump(mode="json")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO nexus_rollover_execution (
+                            execution_id, environment_id, status, requested_at, payload
+                        )
+                        VALUES (%s, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (execution_id) DO UPDATE SET
+                            status = EXCLUDED.status,
+                            payload = EXCLUDED.payload
+                        """,
+                        (
+                            execution.execution_id,
+                            execution.environment_id,
+                            execution.status,
+                            execution.requested_at,
+                            json.dumps(payload),
+                        ),
+                    )
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus rollover migration is missing. Apply 2026_05_add_nexus_rollover.sql.") from exc
+        return execution
+
+    def list_rollover_reminders(self, environment_id: str | None = None) -> list[RolloverReminder]:
+        if not self._use_postgres:
+            return []
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    rows = cur.execute(
+                        """
+                        SELECT payload
+                        FROM nexus_rollover_reminder
+                        WHERE deleted_at IS NULL
+                          AND (%s::text IS NULL OR environment_id = %s)
+                        ORDER BY scheduled_for ASC
+                        LIMIT 200
+                        """,
+                        (environment_id, environment_id),
+                    ).fetchall()
+        except psycopg.errors.UndefinedTable:
+            logger.warning("nexus_rollover_reminder is missing. Apply 2026_05_add_nexus_rollover.sql.")
+            return []
+        return [RolloverReminder.model_validate(row["payload"]) for row in rows]
+
+    def upsert_rollover_reminder(self, reminder: RolloverReminder) -> RolloverReminder:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for Nexus rollover reminders.")
+        payload = reminder.model_dump(mode="json")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO nexus_rollover_reminder (
+                            reminder_id, environment_id, scheduled_for, status, payload
+                        )
+                        VALUES (%s, %s, %s, %s, %s::jsonb)
+                        ON CONFLICT (reminder_id) DO UPDATE SET
+                            scheduled_for = EXCLUDED.scheduled_for,
+                            status = EXCLUDED.status,
+                            payload = EXCLUDED.payload,
+                            deleted_at = NULL
+                        """,
+                        (
+                            reminder.reminder_id,
+                            reminder.environment_id,
+                            reminder.scheduled_for,
+                            reminder.status,
+                            json.dumps(payload),
+                        ),
+                    )
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus rollover migration is missing. Apply 2026_05_add_nexus_rollover.sql.") from exc
+        return reminder
+
+    def cancel_rollover_reminder(self, reminder_id: str, cancelled_by: str) -> None:
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required for Nexus rollover reminders.")
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE nexus_rollover_reminder
+                        SET status = 'cancelled',
+                            deleted_at = now(),
+                            payload = jsonb_set(
+                                jsonb_set(payload, '{status}', '"cancelled"'::jsonb, true),
+                                '{created_by}', to_jsonb(%s::text), true
+                            )
+                        WHERE reminder_id = %s
+                          AND deleted_at IS NULL
+                        """,
+                        (cancelled_by, reminder_id),
+                    )
+                    if cur.rowcount == 0:
+                        raise KeyError(f"Unknown Nexus rollover reminder {reminder_id}")
+                conn.commit()
+        except psycopg.errors.UndefinedTable as exc:
+            raise RuntimeError("Nexus rollover migration is missing. Apply 2026_05_add_nexus_rollover.sql.") from exc
+
+    def load_rollover_challenges(self) -> list[dict[str, object]]:
+        if not self._use_postgres:
+            return []
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                row = cur.execute(
+                    "SELECT payload FROM nexus_meta WHERE meta_key = 'rollover_challenges'"
+                ).fetchone()
+        payload = row.get("payload") if row else []
+        return payload if isinstance(payload, list) else []
+
+    def persist_rollover_challenges(self, challenges: list[dict[str, object]]) -> None:
+        if not self._use_postgres:
+            return
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO nexus_meta (meta_key, payload, updated_at)
+                    VALUES ('rollover_challenges', %s::jsonb, now())
+                    ON CONFLICT (meta_key) DO UPDATE SET
+                        payload = EXCLUDED.payload,
+                        updated_at = EXCLUDED.updated_at
+                    """,
+                    (json.dumps(challenges),),
+                )
+            conn.commit()
+
+    @staticmethod
+    def _rollover_environment_from_row(row: dict[str, object]) -> RolloverEnvironment:
+        environment = RolloverEnvironment.model_validate(row["payload"])
+        environment.connection.password_set = bool(row.get("credential_configured"))
+        return environment
+
+    def get_agent_token_status(self) -> dict[str, object]:
+        """Return safe metadata for the active DB-backed Nexus agent credential."""
+        if not self._use_postgres:
+            return {
+                "configured": False,
+                "source": "none",
+                "warning": "Nexus is not connected to the SentinelOps database.",
+            }
+        try:
+            row = self._active_agent_token_row(include_secret_columns=False)
+        except psycopg.errors.UndefinedTable:
+            return {
+                "configured": False,
+                "source": "missing_migration",
+                "warning": "Apply 2026_05_add_nexus_agent_tokens.sql before generating agent tokens.",
+            }
+        if row:
+            return {
+                "configured": True,
+                "source": "database",
+                "token_id": row["token_id"],
+                "token_prefix": row["token_prefix"],
+                "created_by": row["created_by"],
+                "created_at": row["created_at"],
+                "last_used_at": row.get("last_used_at"),
+                "usage_count": row.get("usage_count") or 0,
+                "warning": "An active Nexus light-agent token already exists. Rotate only when you are ready to update every deployed agent.",
+            }
+        if settings.NEXUS_AGENT_API_TOKEN:
+            return {
+                "configured": True,
+                "source": "environment",
+                "warning": "Nexus is using the legacy NEXUS_AGENT_API_TOKEN environment variable. Generate a DB-backed token to enable rotation without restart.",
+            }
+        return {
+            "configured": False,
+            "source": "none",
+            "warning": "No Nexus light-agent token exists. Generate one before launching agents.",
+        }
+
+    def generate_agent_token(self, *, created_by: str, rotate: bool = False) -> dict[str, object]:
+        """Create a one-time-visible DB-backed Nexus agent token."""
+        if not self._use_postgres:
+            raise RuntimeError("DATABASE_URL is required to generate Nexus agent tokens.")
+        encryption_key = self._agent_token_encryption_key()
+
+        token = f"snx_agent_{secrets.token_urlsafe(32)}"
+        salt = secrets.token_urlsafe(16)
+        token_hash = self._hash_agent_token(token, salt)
+        token_id = str(uuid4())
+        token_prefix = f"{token[:18]}...{token[-4:]}"
+        actor = created_by or "nexus-admin"
+
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                active = cur.execute(
+                    """
+                    SELECT token_id::text AS token_id
+                    FROM nexus_agent_token
+                    WHERE status = 'active'
+                      AND revoked_at IS NULL
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+                if active and not rotate:
+                    raise ValueError("An active Nexus agent token already exists. Confirm rotation or keep the existing token.")
+
+                if rotate:
+                    cur.execute(
+                        """
+                        UPDATE nexus_agent_token
+                        SET status = 'revoked',
+                            revoked_at = now(),
+                            revoked_by = %s
+                        WHERE status = 'active'
+                          AND revoked_at IS NULL
+                        """,
+                        (actor,),
+                    )
+
+                cur.execute(
+                    """
+                    INSERT INTO nexus_agent_token (
+                        token_id, token_hash, token_salt, token_ciphertext, token_prefix,
+                        status, created_by, created_at, payload
+                    )
+                    VALUES (%s::uuid, %s, %s, pgp_sym_encrypt(%s, %s), %s, 'active', %s, now(), %s::jsonb)
+                    """,
+                    (
+                        token_id,
+                        token_hash,
+                        salt,
+                        token,
+                        encryption_key,
+                        token_prefix,
+                        actor,
+                        json.dumps({"token_format": "snx_agent", "managed_by": "sentinel_nexus"}),
+                    ),
+                )
+            conn.commit()
+
+        return {
+            "configured": True,
+            "source": "database",
+            "token_id": token_id,
+            "token": token,
+            "token_prefix": token_prefix,
+            "created_by": actor,
+            "created_at": datetime.now(timezone.utc),
+            "rotated": bool(rotate),
+            "warning": "Copy this token now. Nexus stores only a hash and cannot show it again.",
+        }
+
+    def validate_agent_token(self, supplied_token: str | None) -> bool:
+        """Validate a Nexus light-agent token against the latest DB token, with env fallback."""
+        if not supplied_token:
+            return False
+        if self._use_postgres:
+            try:
+                row = self._active_agent_token_row(include_secret_columns=True)
+            except psycopg.errors.UndefinedTable:
+                row = None
+            if row:
+                candidate_hash = self._hash_agent_token(supplied_token, row["token_salt"])
+                if compare_digest(candidate_hash, row["token_hash"]):
+                    self._mark_agent_token_used(row["token_id"])
+                    return True
+                return False
+
+        if settings.NEXUS_AGENT_API_TOKEN:
+            return compare_digest(supplied_token, settings.NEXUS_AGENT_API_TOKEN.get_secret_value())
+        return False
+
+    def active_agent_command_token(self) -> str | None:
+        """Return the active token for Nexus -> agent command-server calls."""
+        if self._use_postgres:
+            try:
+                encryption_key = self._agent_token_encryption_key()
+                with self._connect() as conn:
+                    with conn.cursor() as cur:
+                        row = cur.execute(
+                            """
+                            SELECT pgp_sym_decrypt(token_ciphertext, %s) AS token
+                            FROM nexus_agent_token
+                            WHERE status = 'active'
+                              AND revoked_at IS NULL
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                            """,
+                            (encryption_key,),
+                        ).fetchone()
+                if row and row.get("token"):
+                    return str(row["token"])
+            except psycopg.errors.UndefinedTable:
+                pass
+        if settings.NEXUS_AGENT_API_TOKEN:
+            return settings.NEXUS_AGENT_API_TOKEN.get_secret_value()
+        return None
+
+    def load_control_challenges(self) -> list[dict[str, object]]:
+        """Load short-lived service-control challenges from Nexus metadata."""
+        if not self._use_postgres:
+            return []
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                row = cur.execute(
+                    "SELECT payload FROM nexus_meta WHERE meta_key = 'service_control_challenges'"
+                ).fetchone()
+        payload = row.get("payload") if row else []
+        return payload if isinstance(payload, list) else []
+
+    def persist_control_challenges(self, challenges: list[dict[str, object]]) -> None:
+        """Persist hashed, short-lived service-control challenges."""
+        if not self._use_postgres:
+            return
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO nexus_meta (meta_key, payload, updated_at)
+                    VALUES ('service_control_challenges', %s::jsonb, now())
+                    ON CONFLICT (meta_key) DO UPDATE SET
+                        payload = EXCLUDED.payload,
+                        updated_at = EXCLUDED.updated_at
+                    """,
+                    (json.dumps(challenges),),
+                )
+            conn.commit()
+
+    def _active_agent_token_row(self, *, include_secret_columns: bool) -> dict[str, object] | None:
+        secret_columns = ", token_hash, token_salt" if include_secret_columns else ""
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                return cur.execute(
+                    f"""
+                    SELECT
+                        token_id::text AS token_id,
+                        token_prefix,
+                        created_by,
+                        created_at,
+                        last_used_at,
+                        usage_count
+                        {secret_columns}
+                    FROM nexus_agent_token
+                    WHERE status = 'active'
+                      AND revoked_at IS NULL
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+
+    def _mark_agent_token_used(self, token_id: str) -> None:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE nexus_agent_token
+                    SET last_used_at = now(),
+                        usage_count = usage_count + 1
+                    WHERE token_id = %s::uuid
+                    """,
+                    (token_id,),
+                )
+            conn.commit()
+
+    @staticmethod
+    def _hash_agent_token(token: str, salt: str) -> str:
+        return hashlib.sha256(f"{salt}:{token}".encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _agent_token_encryption_key() -> str:
+        if not settings.SECRET_KEY:
+            raise RuntimeError("SECRET_KEY is required to encrypt Nexus agent tokens.")
+        return settings.SECRET_KEY.get_secret_value()
+
     def _connect(self):
         if not self._dsn:
             raise RuntimeError("DATABASE_URL is required for Sentinel Nexus database access.")
@@ -494,7 +1316,7 @@ class NexusRepository:
             raise RuntimeError(
                 "Sentinel Nexus database schema is missing tables: "
                 f"{', '.join(missing)}. Apply SentinelOps-beta/app/db/migrations/2026_04_add_sentinel_nexus.sql "
-                "and SentinelOps-beta/app/db/migrations/2026_05_add_nexus_business_flows.sql."
+                "plus the latest SentinelOps Nexus migrations, including 2026_05_add_nexus_agent_tokens.sql."
             )
 
     def _missing_schema_tables(self) -> list[str]:
@@ -1019,7 +1841,7 @@ class NexusRepository:
                         """,
                         (
                             bundle["bundle_id"],
-                            bundle["incident_id"],
+                            bundle.get("incident_id"),
                             bundle["service_id"],
                             bundle["requested_at"],
                             json.dumps(bundle),
@@ -1037,7 +1859,7 @@ class NexusRepository:
                         """,
                         (
                             action["action_execution_id"],
-                            action["incident_id"],
+                            action.get("incident_id"),
                             action["service_id"],
                             action["action_type"],
                             action["requested_at"],
@@ -1046,7 +1868,7 @@ class NexusRepository:
                     )
 
                 for heartbeat in payload["agent_heartbeats"]:
-                    key = f"{heartbeat['agent_id']}:{heartbeat['timestamp']}"
+                    key = f"{heartbeat['agent_id']}:{heartbeat['service_id']}:{heartbeat['timestamp']}"
                     cur.execute(
                         """
                         INSERT INTO agent_heartbeat (heartbeat_key, agent_id, service_id, timestamp, payload)
