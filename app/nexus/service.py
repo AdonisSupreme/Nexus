@@ -1692,57 +1692,11 @@ class NexusService:
         incident = self._require_incident(incident_id)
         target_service_id = incident.suspected_root_service or incident.affected_services[0]
         target_service = self._service_map()[target_service_id]
-        recommendation = next((item for item in incident.recommendations if item.action_type == "safe_restart"), None)
-        blocked_reasons = recommendation.blocked_reasons[:] if recommendation and not recommendation.eligible else []
         restart_url = target_service.endpoint_config.restart_url or self._cluster_restart_url(target_service_id)
-
-        if not request.approve:
-            execution = ActionExecution(
-                action_execution_id=f"act-{uuid4()}",
-                incident_id=incident_id,
-                service_id=target_service_id,
-                action_type="safe_restart",
-                requested_at=datetime.utcnow(),
-                requested_by=request.requested_by,
-                status="REJECTED",
-                justification=request.notes or "Operator rejected safe restart recommendation.",
-                precheck_evidence=incident.evidence_timeline[:4],
-                blocked_reasons=["Operator rejected restart approval."],
-                completed_at=datetime.utcnow(),
-                executor_url=restart_url,
-            )
-            self.state.action_executions.insert(0, execution)
-            self._persist_and_refresh()
-            return execution
-
-        if not restart_url:
-            blocked_reasons.append("No restart execution URL is configured for this service or its dependency cluster.")
-
-        if blocked_reasons:
-            execution = ActionExecution(
-                action_execution_id=f"act-{uuid4()}",
-                incident_id=incident_id,
-                service_id=target_service_id,
-                action_type="safe_restart",
-                requested_at=datetime.utcnow(),
-                requested_by=request.requested_by,
-                approved_by=request.requested_by,
-                status="BLOCKED",
-                justification=request.notes or "Safe restart blocked by policy.",
-                precheck_evidence=incident.evidence_timeline[:4],
-                blocked_reasons=blocked_reasons,
-                completed_at=datetime.utcnow(),
-                executor_url=restart_url,
-            )
-            self.state.action_executions.insert(0, execution)
-            audit_logger.log(
-                event_type="nexus_restart_blocked",
-                user=request.requested_by,
-                details={"incident_id": incident_id, "service_id": target_service_id, "reasons": blocked_reasons},
-                success=False,
-            )
-            self._persist_and_refresh()
-            return execution
+        legacy_reason = (
+            "Incident-level restart approval is retired. Open the service Live Operations control gate "
+            "and use OTP-gated START, STOP, or RESTART instead."
+        )
 
         execution = ActionExecution(
             action_execution_id=f"act-{uuid4()}",
@@ -1751,62 +1705,27 @@ class NexusService:
             action_type="safe_restart",
             requested_at=datetime.utcnow(),
             requested_by=request.requested_by,
-            approved_by=request.requested_by,
-            status="MONITORING",
-            justification=request.notes or f"Approved safe restart for {target_service.service_name}.",
+            approved_by=request.requested_by if request.approve else None,
+            status="BLOCKED" if request.approve else "REJECTED",
+            justification=request.notes or legacy_reason,
             precheck_evidence=incident.evidence_timeline[:4],
-            monitoring_until=datetime.utcnow() + self.MONITORING_WINDOW,
+            blocked_reasons=[legacy_reason],
+            completed_at=datetime.utcnow(),
             executor_url=restart_url,
+            result_summary=legacy_reason,
         )
-        try:
-            response = httpx.post(
-                restart_url,
-                headers=self._agent_command_headers(target_service),
-                json={
-                    "action_execution_id": execution.action_execution_id,
-                    "incident_id": incident_id,
-                    "service_id": target_service_id,
-                    "approved_by": request.requested_by,
-                    "requested_by": request.requested_by,
-                },
-                timeout=8.0,
-            )
-            response.raise_for_status()
-            payload = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
-            execution.remote_execution_id = str(payload.get("execution_id") or payload.get("request_id") or "")
-        except Exception as exc:
-            execution.status = "BLOCKED"
-            execution.blocked_reasons = [f"Restart executor request failed: {exc}"]
-            execution.completed_at = datetime.utcnow()
-            execution.result_summary = "Restart request could not be dispatched to the configured service executor."
-            self.state.action_executions.insert(0, execution)
-            audit_logger.log(
-                event_type="nexus_restart_blocked",
-                user=request.requested_by,
-                details={"incident_id": incident_id, "service_id": target_service_id, "reasons": execution.blocked_reasons},
-                success=False,
-            )
-            self._persist_and_refresh()
-            return execution
-
         self.state.action_executions.insert(0, execution)
-        self._merge_change_events(
-            [
-                ChangeEvent(
-                    change_id=f"chg-{uuid4()}",
-                    service_id=target_service_id,
-                    change_type="manual_restart",
-                    timestamp=datetime.utcnow(),
-                    source="nexus_restart",
-                    summary=f"Human-approved safe restart initiated for {target_service.service_name}.",
-                    metadata={"incident_id": incident_id, "requested_by": request.requested_by},
-                )
-            ]
-        )
         audit_logger.log(
-            event_type="nexus_restart_approved",
+            event_type="nexus_restart_legacy_path_blocked",
             user=request.requested_by,
-            details={"incident_id": incident_id, "service_id": target_service_id, "action_execution_id": execution.action_execution_id},
+            details={
+                "incident_id": incident_id,
+                "service_id": target_service_id,
+                "service_name": target_service.service_name,
+                "action_execution_id": execution.action_execution_id,
+                "reasons": execution.blocked_reasons,
+            },
+            success=False,
         )
         self._persist_and_refresh()
         return execution

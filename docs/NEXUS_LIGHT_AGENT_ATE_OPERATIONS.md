@@ -170,6 +170,7 @@ Nexus service contract must use:
 
 ```text
 observation_config.agent_id: agent-txn-mobile-ussd-ate-01
+endpoint_config.collector_url: http://192.168.203.143:8010/api/v1/nexus/agents/probe-report
 endpoint_config.logs_url: file:///srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log
 endpoint_config.diagnostics_url: http://192.168.4.13:8765/diagnostics
 endpoint_config.restart_url: http://192.168.4.13:8765/control
@@ -178,6 +179,45 @@ certification.lifecycle_stage: diagnostics_ready first, then restart_ready only 
 ```
 
 Do not use `agent-txn-ussd-adapter-ate-01` for this host unless a second physical agent is actually deployed. The current ATE adapter is watched by `agent-txn-mobile-ussd-ate-01`.
+
+## Adapter Remote Config 401
+
+If the agent log shows this error:
+
+```text
+remote config unavailable for txn-ussd-adapter: Nexus returned HTTP 401
+Agent 'agent-txn-mobile-ussd-ate-01' is not assigned to service 'txn-ussd-adapter'.
+```
+
+The local `/etc/nexus-light/txn-mobile-ussd.json` can still be correct. This error means the Nexus Core service contract stored in the Nexus database still assigns `txn-ussd-adapter` to a different agent ID.
+
+Fix it in Nexus:
+
+1. Open `Nexus -> Services -> USSD Adapter -> Contract Configuration`.
+2. In `Observation Mapping`, set `Agent ID` to `agent-txn-mobile-ussd-ate-01`.
+3. Set `Preferred Signal Source` to `agent`.
+4. Set `Host Group` to `ussd-ate-test`.
+5. Set `Log Selector` to `{service="txn-ussd-adapter", environment="ate"}`.
+6. Set `Metrics Namespace` to `txn_ussd_adapter`.
+7. Set `Trace Service Name` to `txn-ussd-adapter`.
+8. In `Execution & Shipping URLs`, set `Collector URL` to `http://192.168.203.143:8010/api/v1/nexus/agents/probe-report`.
+9. Set `Diagnostics URL` to `http://192.168.4.13:8765/diagnostics`.
+10. Set `Restart URL` to `http://192.168.4.13:8765/control`.
+11. Set `Logs URL` to `file:///srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log`.
+12. Save the service contract.
+
+Verify from `ussd-ate-test`:
+
+```bash
+TOKEN="$(sudo awk -F= '/^NEXUS_AGENT_API_TOKEN=/{print $2}' /etc/nexus-light/txn-mobile-ussd.env)"
+curl -fsS \
+  -H "X-Nexus-Agent-Id: agent-txn-mobile-ussd-ate-01" \
+  -H "X-Nexus-Agent-Token: $TOKEN" \
+  "http://192.168.203.143:8010/api/v1/nexus/agents/agent-txn-mobile-ussd-ate-01/config?service_id=txn-ussd-adapter" | python3 -m json.tool
+unset TOKEN
+```
+
+Expected result: HTTP 200 with `service_id` equal to `txn-ussd-adapter` and `observation_config.agent_id` equal to `agent-txn-mobile-ussd-ate-01`.
 
 ## Adapter Deployment Steps
 
@@ -190,10 +230,22 @@ sudo install -o root -g root -m 0750 stop.sh /opt/sentinel-nexus-control/txn-uss
 sudo install -o root -g root -m 0750 restart.sh /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
 ```
 
-Sudoers:
+Validate helper syntax before enabling Nexus control:
 
-```text
+```bash
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+```
+
+Sudoers must be narrow and command-specific. Create this exact allowlist:
+
+```bash
+sudo tee /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter >/dev/null <<'SUDOERS'
 ashumba ALL=(root) NOPASSWD: /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh, /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh, /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+SUDOERS
+sudo chmod 0440 /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter
+sudo visudo -cf /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter
 ```
 
 Validate:
@@ -231,3 +283,23 @@ Before production deployment, every service must have:
 - Nexus service contract pointing to the actual host agent ID
 - diagnostics-ready validation before restart-ready certification
 - one successful STOP and START in ATE using Nexus, not only manual shell
+
+## Nexus Control UX Rule
+
+Service START, STOP, and RESTART must run only through the service `Live Operations -> Service Control Gate`.
+
+- The incident command view may link operators to Service Control, but it must not expose direct `Approve Restart` or `Reject Restart` execution buttons.
+- The retired incident restart API path records a blocked audit action and tells callers to use the OTP-gated service control path.
+- The control OTP modal auto-verifies once the operator enters six digits. The code is still single-use, email-bound, service-bound, and operation-bound.
+- Restart cooldown applies to `restart` only. `start` and `stop` remain available according to runtime state and readiness gates.
+
+## Nexus Log Tail Rule
+
+ATE Java/Spring logs use timestamp headers followed by continuation payload lines:
+
+```text
+[2026-05-15 13:42:09.724] INFO  [o-8091-exec-582]
+                m.s.r.ProfileRemoteServiceImpl ATE-Trace-ID=[...] - message payload
+```
+
+Nexus live log tail groups this as one timestamped log event, not two unrelated rows. The UI remains latest-first, but the bounded window counts grouped events instead of raw physical lines. Each grouped event may expose `physical_line_count` and `continuation_count` so operators can see when a readable row contains multiple file lines.

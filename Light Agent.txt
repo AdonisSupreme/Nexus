@@ -1,0 +1,115 @@
+Light Agent 
+
+sudo install -d -o root -g root -m 0750 /opt/sentinel-nexus-control/txn-ussd-adapter
+
+sudo tee /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh >/dev/null <<'SH'
+
+SH
+
+
+
+sudo tee /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh >/dev/null <<'SH'
+
+SH
+
+
+
+sudo tee /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh >/dev/null <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+"$SCRIPT_DIR/stop.sh"
+sleep 2
+"$SCRIPT_DIR/start.sh"
+SH
+
+
+
+sudo chown root:root /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh
+sudo chown root:root /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh
+sudo chown root:root /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+
+sudo chmod 0750 /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh
+sudo chmod 0750 /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh
+sudo chmod 0750 /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+
+sudo ls -la /opt/sentinel-nexus-control/txn-ussd-adapter
+
+SUDOWERS FIX
+
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh
+sudo bash -n /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+
+sudo tee /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter >/dev/null <<'SUDOERS'
+ashumba ALL=(root) NOPASSWD: /opt/sentinel-nexus-control/txn-ussd-adapter/start.sh, /opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh, /opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh
+SUDOERS
+
+sudo chmod 0440 /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter
+sudo visudo -cf /etc/sudoers.d/sentinel-nexus-txn-ussd-adapter
+
+
+
+
+
+Update CONFIG TO ADD SERVICE
+
+sudo python3 - <<'PY'
+import json
+from pathlib import Path
+
+path = Path("/etc/nexus-light/txn-mobile-ussd.json")
+cfg = json.loads(path.read_text())
+
+adapter = {
+  "service_id": "txn-ussd-adapter",
+  "service_name": "USSD Adapter",
+  "environment": "ate",
+  "cluster_id": "mobile-banking-ate",
+  "business_flow_id": "mobile-ussd-balance-enquiry",
+  "instance_id": "ussd-ate-test:txn-ussd-adapter",
+  "expected_running": True,
+  "process_match": "txn-ussd-adapter-0.0.1-SNAPSHOT.jar",
+  "log_path": "/srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log",
+  "healthcheck_url": None,
+  "systemd_unit": None,
+  "jar_path": "/srv/afc/txn-mobile/txn-ussd-adapter/lib/txn-ussd-adapter-0.0.1-SNAPSHOT.jar",
+  "config_path": "/srv/afc/txn-mobile/txn-ussd-adapter/etc/application.yml",
+  "java_bin": "java",
+  "working_dir": "/srv",
+  "readiness_host": "127.0.0.1",
+  "readiness_port": None,
+  "start_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/start.sh"],
+  "stop_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh"],
+  "restart_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh"],
+  "restart_settle_seconds": 30,
+  "tags": ["mobile-banking", "ussd", "adapter", "channel-adapter"],
+  "analysis_profile": None,
+  "analysis_config": {}
+}
+
+cfg["services"] = [s for s in cfg["services"] if s.get("service_id") != "txn-ussd-adapter"]
+cfg["services"].append(adapter)
+path.write_text(json.dumps(cfg, indent=2) + "\n")
+PY
+
+
+
+
+
+
+
+
+Log line assumption fixes.
+One-time code auto verification once the input reaches the six digits
+
+
+
+
+
+
+
+
+

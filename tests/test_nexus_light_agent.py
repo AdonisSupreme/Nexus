@@ -352,6 +352,38 @@ def test_live_log_tail_uses_cursor_and_returns_latest_first(tmp_path):
     assert delta["cursor"] > cursor
 
 
+def test_live_log_tail_groups_ate_multiline_events(tmp_path):
+    log_path = tmp_path / "txn-mobile-ussd-human.log"
+    log_path.write_text(
+        "\n".join(
+            [
+                "[2026-05-15 13:42:09.724] INFO  [o-8091-exec-582]",
+                "                m.s.r.ProfileRemoteServiceImpl ATE-Trace-ID=[abc] - REMOTE SERVICE SUCCESS RESPONSE, HTTP STATUS=200",
+                "[2026-05-15 13:42:09.729] DEBUG [o-8091-exec-582]",
+                "                .t.e.m.c.SessionControllerImpl ATE-Trace-ID=[abc] - SessionResponse",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    service = SimpleNamespace(service_id="txn-mobile-ussd", service_name="Mobile Banking USSD", log_path=str(log_path))
+
+    snapshot = _tail_service_log(service, max_lines=10, max_bytes=4096)
+
+    assert snapshot["line_grouping"] == "timestamp_event"
+    assert snapshot["physical_line_count"] == 4
+    assert snapshot["event_count"] == 2
+    assert len(snapshot["lines"]) == 2
+    newest = snapshot["lines"][0]
+    older = snapshot["lines"][1]
+    assert newest["timestamp"] == "2026-05-15 13:42:09.729"
+    assert newest["physical_line_count"] == 2
+    assert "SessionResponse" in newest["message"]
+    assert older["timestamp"] == "2026-05-15 13:42:09.724"
+    assert older["continuation_count"] == 1
+    assert "REMOTE SERVICE SUCCESS RESPONSE" in older["message"]
+
+
 def test_restart_policy_requires_restart_ready_stateless_service_type_allowlist(monkeypatch):
     monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
     settings = AgentSettings.from_dict(config_template())

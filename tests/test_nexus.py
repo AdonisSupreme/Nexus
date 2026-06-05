@@ -1816,7 +1816,7 @@ def test_safe_restart_is_blocked_for_stateful_database_incident():
     )
 
     assert execution.status == "BLOCKED"
-    assert any("Restart policy does not allow" in reason or "stateless" in reason for reason in execution.blocked_reasons)
+    assert any("Service Control" in reason or "control gate" in reason for reason in execution.blocked_reasons)
 
 
 def test_nexus_router_lists_catalog_and_incidents():
