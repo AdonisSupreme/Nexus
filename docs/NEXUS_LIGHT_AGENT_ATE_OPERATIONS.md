@@ -94,6 +94,11 @@ Local agent service block:
   "start_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-mobile-ussd/start.sh"],
   "stop_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-mobile-ussd/stop.sh"],
   "restart_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-mobile-ussd/restart.sh"],
+  "control_timeout_seconds": {
+    "start": 90,
+    "stop": 90,
+    "restart": 150
+  },
   "restart_settle_seconds": 30,
   "tags": ["mobile-banking", "ussd", "channel"],
   "analysis_profile": "mobile_ussd",
@@ -115,6 +120,18 @@ Validated control result:
 STOP: verified, no matching process visible.
 START: verified, matching process running and TCP readiness open on 127.0.0.1:8091.
 ```
+
+If a verified control script takes longer than the light-agent default ceiling, configure an explicit per-operation timeout instead of stretching `restart_settle_seconds`.
+
+```json
+"control_timeout_seconds": {
+  "start": 90,
+  "stop": 90,
+  "restart": 150
+}
+```
+
+The light agent bounds configured control command timeouts between 5 and 600 seconds. Keep values service-specific and as low as the known-good ATE helper requires.
 
 ## Service 2: USSD Adapter
 
@@ -151,6 +168,11 @@ Local agent service block to add under `services[]`:
   "start_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/start.sh"],
   "stop_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/stop.sh"],
   "restart_command": ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/restart.sh"],
+  "control_timeout_seconds": {
+    "start": 90,
+    "stop": 90,
+    "restart": 150
+  },
   "restart_settle_seconds": 30,
   "tags": ["mobile-banking", "ussd", "adapter", "channel-adapter"],
   "analysis_profile": null,

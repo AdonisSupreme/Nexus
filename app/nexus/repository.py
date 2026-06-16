@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import secrets
+from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 import psycopg
@@ -137,6 +138,7 @@ class NexusRepository:
                     (self.HEARTBEAT_RETENTION,),
                 )
             conn.commit()
+            logger.debug("Persisted Sentinel Nexus telemetry delta to PostgreSQL.")
 
     def persist_telemetry_update(
         self,
@@ -155,6 +157,7 @@ class NexusRepository:
 
         with self._connect() as conn:
             with conn.cursor() as cur:
+                persisted_flow_ids = self._persisted_business_flow_ids(cur, flow_ids)
                 cur.execute(
                     """
                     INSERT INTO nexus_meta (meta_key, payload, updated_at)
@@ -169,7 +172,7 @@ class NexusRepository:
                 for signal_model in signals:
                     signal = signal_model.model_dump(mode="json")
                     signal_flow_id = signal.get("business_flow_id")
-                    if signal_flow_id not in flow_ids:
+                    if signal_flow_id not in persisted_flow_ids:
                         signal_flow_id = None
                     signal_payload = {**signal, "business_flow_id": signal_flow_id}
                     cur.execute(
@@ -256,7 +259,7 @@ class NexusRepository:
                 cur.execute("DELETE FROM incident")
                 for incident in payload["incidents"]:
                     incident_flow_id = incident.get("primary_business_flow_id")
-                    if incident_flow_id not in flow_ids:
+                    if incident_flow_id not in persisted_flow_ids:
                         incident_flow_id = None
                     incident_payload = {**incident, "primary_business_flow_id": incident_flow_id}
                     cur.execute(
@@ -320,7 +323,16 @@ class NexusRepository:
                     )
             conn.commit()
 
-        logger.debug("Persisted Sentinel Nexus telemetry delta to PostgreSQL.")
+    @staticmethod
+    def _persisted_business_flow_ids(cur: Any, flow_ids: set[str]) -> set[str]:
+        """Return only flow IDs that can satisfy telemetry FK constraints."""
+        if not flow_ids:
+            return set()
+        rows = cur.execute(
+            "SELECT flow_id FROM business_flow WHERE flow_id = ANY(%s::text[])",
+            (list(flow_ids),),
+        ).fetchall()
+        return {row["flow_id"] for row in rows}
 
     def delete_service(self, service_id: str) -> None:
         if not self._use_postgres:

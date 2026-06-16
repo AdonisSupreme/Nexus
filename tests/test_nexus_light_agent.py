@@ -116,6 +116,7 @@ def test_agent_collects_process_and_database_log_evidence(tmp_path, monkeypatch)
     config["nexus_base_url"] = "http://nexus.local:8010"
     config["state_dir"] = str(tmp_path / "state")
     config["log_file"] = None
+    config["services"] = [config["services"][0]]
     config["services"][0]["log_path"] = str(log_path)
 
     sent_reports: list[dict[str, object]] = []
@@ -596,6 +597,32 @@ def test_start_postcheck_uses_configured_settle_window(monkeypatch):
     assert _control_postcheck_timeout_seconds(service, "stop") == 8
     assert _control_command_timeout_seconds(service, "start") == 40
     assert _control_command_timeout_seconds(service, "restart") == 50
+
+
+def test_control_command_timeout_can_be_configured_per_operation(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    config = config_template()
+    config["services"][0]["restart_settle_seconds"] = 20
+    config["services"][0]["control_timeout_seconds"] = {
+        "start": 90,
+        "stop": 90,
+        "restart": 150,
+    }
+    service = AgentSettings.from_dict(config).enabled_services[0]
+
+    assert service.control_timeout_seconds == {"start": 90, "stop": 90, "restart": 150}
+    assert _control_command_timeout_seconds(service, "stop") == 90
+    assert _control_command_timeout_seconds(service, "start") == 90
+    assert _control_command_timeout_seconds(service, "restart") == 150
+
+
+def test_control_command_timeout_override_is_bounded(monkeypatch):
+    monkeypatch.setenv("NEXUS_AGENT_API_TOKEN", "test-token")
+    config = config_template()
+    config["services"][0]["control_timeout_seconds"] = {"stop": 9999}
+    service = AgentSettings.from_dict(config).enabled_services[0]
+
+    assert _control_command_timeout_seconds(service, "stop") == 600
 
 
 def test_diagnostics_runtime_status_includes_process_metrics(monkeypatch):

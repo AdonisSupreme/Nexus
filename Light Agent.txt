@@ -96,20 +96,3 @@ path.write_text(json.dumps(cfg, indent=2) + "\n")
 PY
 
 
-
-
-
-
-
-
-Log line assumption fixes.
-One-time code auto verification once the input reaches the six digits
-
-
-
-
-
-
-
-
-

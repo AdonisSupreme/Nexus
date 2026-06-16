@@ -580,6 +580,28 @@ def test_repository_normalizes_legacy_incident_payloads():
     assert state.task_handoffs[0].incident_id == state.incidents[0].incident_id
 
 
+def test_telemetry_business_flow_fk_guard_uses_persisted_rows():
+    class FakeCursor:
+        def __init__(self) -> None:
+            self.params = None
+
+        def execute(self, _query, params):
+            self.params = params
+            return self
+
+        def fetchall(self):
+            return [{"flow_id": "mobile-ussd-balance-enquiry"}]
+
+    cursor = FakeCursor()
+    valid_ids = NexusRepository._persisted_business_flow_ids(
+        cursor,
+        {"mobile-ussd-balance-enquiry", "mobile-ussd-transaction-flow"},
+    )
+
+    assert valid_ids == {"mobile-ussd-balance-enquiry"}
+    assert set(cursor.params[0]) == {"mobile-ussd-balance-enquiry", "mobile-ussd-transaction-flow"}
+
+
 def test_probe_report_extracts_timeout_signature_and_persists_signal():
     service = make_service()
     seed_catalog(service)
