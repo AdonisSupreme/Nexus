@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from email.message import EmailMessage
 from html import escape
 import smtplib
@@ -10,6 +11,11 @@ import threading
 
 from app.config.settings import settings
 from app.utils.logging import get_logger
+
+try:
+    import aiosmtplib
+except ImportError:  # pragma: no cover - production should install requirements.txt
+    aiosmtplib = None
 
 
 logger = get_logger(__name__)
@@ -96,26 +102,50 @@ def _send_nexus_control_otp_sync(
     )
 
     try:
-        context = ssl.create_default_context()
-        password = settings.SMTP_PASSWORD.get_secret_value() if settings.SMTP_PASSWORD else None
-        if settings.SMTP_USE_TLS:
-            with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, context=context, timeout=15) as server:
-                _login_if_configured(server, password)
-                server.send_message(msg)
+        password = settings.SMTP_PASSWORD.get_secret_value() if settings.SMTP_PASSWORD else ""
+        if aiosmtplib is not None:
+            asyncio.run(_send_with_beta_transport(msg, password))
         else:
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=15) as server:
-                if settings.SMTP_STARTTLS:
-                    server.starttls(context=context)
-                _login_if_configured(server, password)
-                server.send_message(msg)
+            logger.warning("aiosmtplib is not installed; Nexus is using the legacy SMTP fallback.")
+            _send_with_smtplib(msg, password)
         logger.info("Sent Nexus control OTP email to %s for %s %s", recipient, operation, service_id)
     except Exception:
         logger.exception("Failed to send Nexus control OTP email to %s", recipient)
 
 
-def _login_if_configured(server: smtplib.SMTP, password: str | None) -> None:
-    if settings.SMTP_USER and password:
-        server.login(settings.SMTP_USER, password)
+async def _send_with_beta_transport(msg: EmailMessage, password: str) -> None:
+    """Mirror SentinelOps-beta's app.core.emailer SMTP transport."""
+    send_kwargs = {
+        "hostname": settings.SMTP_HOST,
+        "port": settings.SMTP_PORT,
+        "username": settings.SMTP_USER or "",
+        "password": password,
+        "start_tls": settings.SMTP_STARTTLS,
+        "timeout": 15,
+    }
+    if settings.SMTP_USE_TLS:
+        send_kwargs["use_tls"] = True
+        send_kwargs["start_tls"] = False
+    await aiosmtplib.send(msg, **send_kwargs)
+
+
+def _send_with_smtplib(msg: EmailMessage, password: str) -> None:
+    context = ssl.create_default_context()
+    if settings.SMTP_USE_TLS:
+        with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, context=context, timeout=15) as server:
+            _login_if_configured(server, settings.SMTP_USER or "", password)
+            server.send_message(msg)
+    else:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=15) as server:
+            if settings.SMTP_STARTTLS:
+                server.starttls(context=context)
+            _login_if_configured(server, settings.SMTP_USER or "", password)
+            server.send_message(msg)
+
+
+def _login_if_configured(server: smtplib.SMTP, username: str, password: str) -> None:
+    if username and password:
+        server.login(username, password, initial_response_ok=False)
 
 
 def _control_otp_html(

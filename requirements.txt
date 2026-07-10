@@ -3,6 +3,7 @@ uvicorn[standard]==0.40.0
 pydantic==2.12.5
 pydantic-settings==2.12.0
 python-dotenv==1.2.1
+aiosmtplib
 pyyaml==6.0.3
 psutil==7.2.1
 httpx==0.28.1
