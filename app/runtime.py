@@ -10,6 +10,7 @@ from uuid import uuid4
 from app.config.settings import settings
 from app.models.mistral_client import MistralClient
 from app.nexus.service import NexusService
+from app.nexus.rtgs import RTGSAssessmentScheduler, RTGSRecoveryService
 from app.orchestrator.orchestrator import OperationalOrchestrator
 from app.rag.embedder import EmbeddingService
 from app.rag.indexer import KnowledgeIndexer
@@ -33,6 +34,8 @@ class ApplicationServices:
         self.retriever = HybridRetriever(indexer=self.indexer)
         self.mistral_client = MistralClient()
         self.nexus = NexusService()
+        self.rtgs = RTGSRecoveryService()
+        self.rtgs_scheduler = RTGSAssessmentScheduler(self.rtgs)
         self.orchestrator = OperationalOrchestrator(
             indexer=self.indexer,
             retriever=self.retriever,
@@ -46,6 +49,11 @@ class ApplicationServices:
         if not loaded:
             self.indexer.ingest()
         self.nexus.startup()
+        try:
+            self.rtgs.schedules()
+            await self.rtgs_scheduler.start()
+        except Exception as exc:
+            self.logger.warning("RTGS assessment scheduler is unavailable until its migration/configuration is ready: %s", exc)
         self.refresh_managed_sops()
         self.retriever.rebuild()
         self.metrics.gauge("sentinelops_sops_total", len(self.indexer.normalized_sops))
@@ -54,6 +62,7 @@ class ApplicationServices:
         self.metrics.gauge("sentinelops_nexus_incidents_total", len(self.nexus.state.incidents))
 
     async def shutdown(self) -> None:
+        await self.rtgs_scheduler.stop()
         await self.mistral_client.shutdown()
 
     def _record_job(self, kind: str, status: str, details: dict[str, object], warnings: list[str] | None = None, errors: list[str] | None = None) -> KnowledgeJob:

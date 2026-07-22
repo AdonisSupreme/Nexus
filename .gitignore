@@ -18,7 +18,7 @@ env/
 .pytest_cache/
 .tmp/
 .vendor/
-nexus_light_agent/
+nexus_ate_light_agent/
 knowledge/
 logs/
 data/

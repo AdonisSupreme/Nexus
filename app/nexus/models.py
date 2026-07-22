@@ -36,6 +36,10 @@ RolloverAssessmentStatus = Literal["unknown", "aligned", "requires_rollover", "d
 RolloverRuleStatus = Literal["aligned", "requires_change", "no_match", "skipped", "error"]
 RolloverExecutionStatus = Literal["PENDING", "APPROVED", "COMPLETED", "BLOCKED", "FAILED", "NOOP"]
 RolloverReminderStatus = Literal["scheduled", "cancelled", "notified"]
+RTGSAgeLane = Literal["0_24H", "24_48H", "48_72H", "72_96H", "OVER_96H"]
+RTGSRecommendation = Literal["REGENERATE", "QUEUE_CONTEXT_MISSING"]
+RTGSActionStatus = Literal["REQUESTED", "COMPLETED", "BLOCKED", "FAILED", "NOOP"]
+RTGSActionType = Literal["regenerate"]
 
 
 class ManagedSopValidation(BaseModel):
@@ -632,6 +636,113 @@ class AgentControlResult(BaseModel):
     stderr: str = ""
     postcheck: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RTGSTransactionCase(BaseModel):
+    transaction_id: str
+    status: str = "IN_TRANSIT"
+    entry_date: datetime
+    age_hours: float = 0.0
+    age_lane: RTGSAgeLane
+    branch_code: str | None = None
+    entry_sequence: str | None = None
+    message_type: str = "ZWRTGCO"
+    queue_instance_ids: list[str] = Field(default_factory=list)
+    regeneration_ready: bool = False
+    recommendation: RTGSRecommendation = "QUEUE_CONTEXT_MISSING"
+    settlement_note: str = "Transaction remains IN_TRANSIT; settlement has not cleared the case."
+    warnings: list[str] = Field(default_factory=list)
+    assessed_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RTGSAssessment(BaseModel):
+    assessment_id: str
+    trigger: Literal["scheduled", "manual"]
+    assessed_at: datetime = Field(default_factory=datetime.utcnow)
+    transaction_count: int = 0
+    cases: list[RTGSTransactionCase] = Field(default_factory=list)
+    status: Literal["COMPLETED", "PARTIAL", "FAILED"] = "COMPLETED"
+    interpretation: str = "The Oracle assessment completed. Every listed transaction remains IN_TRANSIT and is eligible for guarded regeneration when queue context is available."
+    message: str | None = None
+
+
+class RTGSAssessmentRequest(BaseModel):
+    requested_by: str | None = None
+
+
+class RTGSActionRequest(BaseModel):
+    transaction_ids: list[str] = Field(..., min_length=1, max_length=100)
+    requested_by: str | None = None
+    reason: str = Field(..., min_length=8, max_length=1000)
+    idempotency_key: str | None = Field(default=None, min_length=8, max_length=160)
+    confirm_over_96h: bool = False
+
+
+class RTGSActionResult(BaseModel):
+    action_id: str
+    action: RTGSActionType
+    status: RTGSActionStatus
+    requested_by: str
+    transaction_id: str
+    message: str
+    verification: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RTGSRegenerationHistoryEntry(BaseModel):
+    action_id: str
+    transaction_id: str
+    status: RTGSActionStatus
+    requested_by: str
+    reason: str
+    mode: Literal["manual", "automatic"] = "manual"
+    message: str
+    verification: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class RTGSAutoRegenerationPolicy(BaseModel):
+    policy_key: str = "latest-five-day-window"
+    enabled: bool = False
+    window_days: int = 5
+    updated_by: str = "system"
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    last_run_at: datetime | None = None
+    last_attempted_count: int = 0
+    last_completed_count: int = 0
+    last_run_status: Literal["NEVER", "COMPLETED", "PARTIAL", "FAILED"] = "NEVER"
+
+
+class RTGSAutoRegenerationPolicyRequest(BaseModel):
+    enabled: bool
+
+
+class RTGSAutoRegenerationAuditEntry(BaseModel):
+    audit_id: str
+    previous_enabled: bool
+    enabled: bool
+    changed_by: str
+    changed_at: datetime = Field(default_factory=datetime.utcnow)
+    window_days: int = 5
+
+
+class RTGSSchedule(BaseModel):
+    schedule_id: str
+    label: str
+    interval_minutes: Literal[30, 60] = 30
+    local_time: str = "00:00"
+    timezone: str = "Africa/Johannesburg"
+    enabled: bool = True
+    last_triggered_at: datetime | None = None
+    created_by: str = "system"
+
+
+class RTGSScheduleRequest(BaseModel):
+    label: str = Field(..., min_length=2, max_length=120)
+    interval_minutes: Literal[30, 60] = 30
+    local_time: str = Field(default="00:00", pattern=r"^([01][0-9]|2[0-3]):[0-5][0-9]$")
+    timezone: str = Field(default="Africa/Johannesburg", min_length=3, max_length=80)
+    enabled: bool = True
 
 
 class ServiceUpsertRequest(BaseModel):

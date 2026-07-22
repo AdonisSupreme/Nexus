@@ -86,6 +86,33 @@ class Settings(BaseSettings):
     )
     NEXUS_REQUIRE_AGENT_AUTH: bool = Field(default=True, env="NEXUS_REQUIRE_AGENT_AUTH")
     NEXUS_AGENT_API_TOKEN: SecretStr | None = Field(default=None, env="NEXUS_AGENT_API_TOKEN")
+    # Shared Oracle variables used by the existing TrustLink extractor. RTGS
+    # accepts these as the canonical connection source as well.
+    ORACLE_DSN: str | None = Field(default=None, env="ORACLE_DSN")
+    ORACLE_USER: str | None = Field(default=None, env="ORACLE_USER")
+    ORACLE_PASSWORD: SecretStr | None = Field(default=None, env="ORACLE_PASSWORD")
+    IDC_ORACLE_HOST: str | None = Field(default=None, env="IDC_ORACLE_HOST")
+    ORACLE_PORT: str = Field(default="1521", env="ORACLE_PORT")
+    ORACLE_SID: str | None = Field(default=None, env="ORACLE_SID")
+    ORACLE_SERVICE: str | None = Field(default=None, env="ORACLE_SERVICE")
+    ORACLE_SERVICE_NAME: str | None = Field(default=None, env="ORACLE_SERVICE_NAME")
+    ORACLE_CONNECT_TIMEOUT_SECONDS: int = Field(default=30, env="ORACLE_CONNECT_TIMEOUT_SECONDS")
+    RTGS_TIMEZONE: str = Field(default="Africa/Johannesburg", env="RTGS_TIMEZONE")
+    RTGS_ORACLE_ENABLED: bool = Field(default=False, env="RTGS_ORACLE_ENABLED")
+    RTGS_ORACLE_DSN: str | None = Field(default=None, env="RTGS_ORACLE_DSN")
+    RTGS_ORACLE_USERNAME: str | None = Field(default=None, env="RTGS_ORACLE_USERNAME")
+    RTGS_ORACLE_PASSWORD: SecretStr | None = Field(default=None, env="RTGS_ORACLE_PASSWORD")
+    RTGS_ORACLE_CONFIG_DIR: str | None = Field(default=None, env="RTGS_ORACLE_CONFIG_DIR")
+    RTGS_ENTITY_NUMBER: int = Field(default=1, env="RTGS_ENTITY_NUMBER")
+    RTGS_MESSAGE_TYPE: str = Field(default="ZWRTGCO", env="RTGS_MESSAGE_TYPE")
+    RTGS_REGENERATION_ENABLED: bool = Field(default=False, env="RTGS_REGENERATION_ENABLED")
+    RTGS_REGENERATION_PACKAGE: str = Field(default="PKG_EFTORCLADVQ.WRITE_TO_FINOUTQPE", env="RTGS_REGENERATION_PACKAGE")
+    RTGS_DEFAULT_SCHEDULES: list[dict[str, Any]] = Field(
+        default_factory=lambda: [
+            {"label": "RTGS periodic assessment", "interval_minutes": 30, "timezone": "Africa/Johannesburg"},
+        ],
+        env="RTGS_DEFAULT_SCHEDULES",
+    )
     SMTP_HOST: str | None = Field(default=None, env="SMTP_HOST")
     SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
     SMTP_USER: str | None = Field(default=None, env="SMTP_USER")
@@ -144,7 +171,15 @@ class Settings(BaseSettings):
             raise ValueError(f"EMBEDDING_BACKEND must be one of {sorted(allowed)}")
         return normalized
 
-    @field_validator("CORS_ORIGINS", "SOP_ALLOWED_CLASSES", "NEXUS_WRITE_ROLES", "NEXUS_ADMIN_ROLES", "NEXUS_ALLOWED_SECTION_IDS", mode="before")
+    @field_validator(
+        "CORS_ORIGINS",
+        "SOP_ALLOWED_CLASSES",
+        "NEXUS_WRITE_ROLES",
+        "NEXUS_ADMIN_ROLES",
+        "NEXUS_ALLOWED_SECTION_IDS",
+        "RTGS_DEFAULT_SCHEDULES",
+        mode="before",
+    )
     @classmethod
     def parse_list_values(cls, value: Any) -> Any:
         if isinstance(value, list):
@@ -195,6 +230,14 @@ class Settings(BaseSettings):
         return None
 
     @property
+    def rtgs_oracle_enabled(self) -> bool:
+        """Enable the read-only RTGS assessment when the shared Oracle config exists."""
+        return self.RTGS_ORACLE_ENABLED or bool(
+            self.ORACLE_DSN
+            or (self.ORACLE_USER and self.ORACLE_PASSWORD and self.IDC_ORACLE_HOST and (self.ORACLE_SID or self.ORACLE_SERVICE or self.ORACLE_SERVICE_NAME))
+        )
+
+    @property
     def raw_knowledge_dirs(self) -> list[Path]:
         return [self.PRIMARY_KNOWLEDGE_DIR, self.SECONDARY_KNOWLEDGE_DIR]
 
@@ -230,6 +273,8 @@ class Settings(BaseSettings):
             "POSTGRES_DSN",
             "SECRET_KEY",
             "NEXUS_AGENT_API_TOKEN",
+            "ORACLE_PASSWORD",
+            "RTGS_ORACLE_PASSWORD",
             "SMTP_PASSWORD",
             "REDIS_URL",
             "QDRANT_API_KEY",

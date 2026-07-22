@@ -1183,6 +1183,83 @@ def test_network_sentinel_degraded_tcp_message_names_host_not_service():
     assert signal.message == "TCP failed while the host remained reachable; the service port is not accepting connections."
 
 
+def test_network_sentinel_unknown_placeholder_does_not_create_live_signal():
+    repository = MutableNetworkEvidenceRepository()
+    service = NexusService(repository=repository)
+    service.startup()
+    seed_catalog(service)
+
+    repository.evidence = {
+        "snapshots": [
+            {
+                "service_id": "idc-gateway",
+                "network_service_id": "11111111-1111-1111-1111-111111111111",
+                "address": "idc-gateway.local",
+                "port": 8443,
+                "overall_status": None,
+                "last_checked_at": None,
+                "last_state_change_at": None,
+                "reason": None,
+                "consecutive_failures": 0,
+                "icmp_latency_ms": None,
+                "tcp_latency_ms": None,
+            }
+        ],
+        "events": [],
+    }
+
+    service.sync_network_sentinel(SyncRequest(force=True))
+
+    assert [signal for signal in service.state.signals if signal.source == "network_sentinel"] == []
+    live = service.get_service_live_state("idc-gateway")
+    assert live["network"]["status"] is None
+
+
+def test_service_live_state_prefers_latest_real_network_status_over_unknown_placeholder():
+    service = make_service()
+    seed_catalog(service)
+    now = datetime.utcnow()
+    service.state.signals.extend(
+        [
+            SignalEvent(
+                signal_id="network-up-real",
+                signal_type="synthetic",
+                service_id="idc-gateway",
+                service_name="IDC Gateway",
+                severity="INFO",
+                timestamp=now - timedelta(seconds=10),
+                source="network_sentinel",
+                environment="production",
+                vantage_point="external_network",
+                observation_layer="network",
+                failure_domain_hint="network_path",
+                message="Network Sentinel reports IDC Gateway as UP.",
+                attributes={"status": "UP", "network_service_id": "11111111-1111-1111-1111-111111111111"},
+            ),
+            SignalEvent(
+                signal_id="network-unknown-placeholder",
+                signal_type="synthetic",
+                service_id="idc-gateway",
+                service_name="IDC Gateway",
+                severity="INFO",
+                timestamp=now,
+                source="network_sentinel",
+                environment="production",
+                vantage_point="external_network",
+                observation_layer="network",
+                failure_domain_hint="network_path",
+                message="Network Sentinel reports IDC Gateway as UNKNOWN.",
+                attributes={"status": "UNKNOWN", "network_service_id": "11111111-1111-1111-1111-111111111111"},
+            ),
+        ]
+    )
+
+    live = service.get_service_live_state("idc-gateway")
+
+    assert live["network"]["status"] == "UP"
+    assert live["network"]["latest_signal"]["signal_id"] == "network-up-real"
+
+
 def test_service_control_cooldown_applies_only_to_restart():
     service = make_service()
     seed_catalog(service)

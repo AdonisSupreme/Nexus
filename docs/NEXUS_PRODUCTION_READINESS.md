@@ -23,6 +23,9 @@ Run these against the target SentinelOps database in this order:
 psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_04_add_sentinel_nexus.sql"
 psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_05_add_nexus_business_flows.sql"
 psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_05_add_nexus_database_awareness.sql"
+psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_07_add_nexus_rtgs_recovery.sql"
+psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_07_simplify_nexus_rtgs_recovery.sql"
+psql "$env:DATABASE_URL" -f "C:\Users\ashumba\Documents\Sentinel\SentinelOps-beta\app\db\migrations\2026_07_add_nexus_rtgs_auto_regeneration.sql"
 ```
 
 These migrations create the durable Nexus schema:
@@ -43,6 +46,12 @@ These migrations create the durable Nexus schema:
 - `diagnostic_bundle`
 - `action_execution`
 - `agent_heartbeat`
+- `nexus_rtgs_assessment`
+- `nexus_rtgs_case`
+- `nexus_rtgs_action`
+- `nexus_rtgs_schedule`
+- `nexus_rtgs_auto_policy`
+- `nexus_rtgs_auto_policy_audit`
 
 ## Optional Catalog Bootstrap
 

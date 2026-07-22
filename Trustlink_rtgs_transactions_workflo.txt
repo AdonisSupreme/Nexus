@@ -1,0 +1,109 @@
+TrustLink RTGS transaction recovery workflow
+
+CURRENT OPERATING CONTRACT
+==========================
+
+Sentinel Nexus owns a focused recovery workflow for RTGS payments that remain
+IN_TRANSIT in Oracle. The database is the source of truth for assessment and
+for deciding whether an authenticated operator may request regeneration.
+
+The workflow does not inspect payment files, read filesystem metadata, compare
+checksums, or call another server. It reads the transaction and outbound queue
+state from Oracle and uses the approved Oracle package for regeneration.
+
+
+1. READ-ONLY ASSESSMENT
+=======================
+
+The assessment joins the RTGS payment entry, message status, and outbound
+queue tables. It returns only rows that match the configured entity and
+message type and whose current status is IN_TRANSIT.
+
+The entry date is ee.eftcp_entry_date. It is the age anchor for the operator
+view and is deliberately different from the assessment timestamp.
+
+The useful database fields are:
+
+* transaction id
+* transaction status
+* entry date
+* branch code
+* message type
+* message sequence
+* outbound queue instance id
+
+The assessment is read-only. A transaction that is no longer IN_TRANSIT is
+not eligible for regeneration and should be treated as settled or otherwise
+cleared by the banking workflow.
+
+
+2. AGE LANES
+===========
+
+Age is calculated from the current assessment time and ee.eftcp_entry_date:
+
+* 0 to 24 hours
+* 24 to 48 hours
+* 48 to 72 hours
+* 72 to 96 hours
+* older than 96 hours
+
+The age lanes are an operator navigation aid, not a second source of truth.
+The selected lane can be opened in the main workspace and is paginated when
+the queue is large.
+
+
+3. REGENERATION
+===============
+
+The only production-changing operation is regeneration through the approved
+Oracle package:
+
+    PKG_EFTORCLADVQ.WRITE_TO_FINOUTQPE
+
+Before the package is called, Nexus must:
+
+1. re-read the transaction by id;
+2. confirm that it still has IN_TRANSIT status;
+3. confirm that an outbound queue instance id is present;
+4. require an authenticated operator reason;
+5. require explicit confirmation for transactions older than 96 hours;
+6. acquire the transaction action lock;
+7. enforce the package allowlist and regeneration feature flag.
+
+The package receives the configured entity number, the current outbound queue
+instance id, and an Oracle error output variable. Any Oracle error rolls back
+the request and is returned as a failed action result.
+
+The operator must run another assessment after a successful package call. A
+successful package call means Oracle accepted the regeneration request; the
+follow-up read confirms the resulting queue state.
+
+
+4. SCHEDULING
+=============
+
+The default assessment cadence is every 30 minutes. Operators may choose 30
+minutes or one hour. Scheduled assessments are read-only and never invoke
+regeneration.
+
+PostgreSQL advisory locks ensure that only one worker claims an interval.
+Each regeneration request uses a transaction-scoped action lock and an
+idempotency key so duplicate operator submissions cannot run concurrently.
+
+
+5. OPERATOR EXPERIENCE
+======================
+
+The TrustLink RTGS surface should remain precise:
+
+* show the current database read and the number of IN_TRANSIT rows;
+* show the assessment interpretation and cadence without duplicate metrics;
+* let the operator navigate age lanes from the persistent recovery rail;
+* show transaction id, age, full entry date, branch, sequence, status, and
+  regeneration readiness on each transaction card;
+* collect one reason before enabling regeneration;
+* report Oracle acceptance clearly and direct the operator to re-assess.
+
+The UI must not imply that a missing file, a remote host, or an external
+inspection is required for this workflow.

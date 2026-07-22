@@ -33,6 +33,10 @@ from app.nexus.models import (
     RolloverEnvironmentUpsertRequest,
     RolloverExecuteRequest,
     RolloverReminderRequest,
+    RTGSActionRequest,
+    RTGSAssessmentRequest,
+    RTGSAutoRegenerationPolicyRequest,
+    RTGSScheduleRequest,
     ServiceControlChallengeRequest,
     ServiceControlExecuteRequest,
     ServiceUpsertRequest,
@@ -93,6 +97,144 @@ async def list_incidents(request: Request, _: dict = Depends(require_nexus_acces
     services = request.app.state.services
     incidents = [incident.model_dump(mode="json") for incident in services.nexus.list_incidents()]
     return {"incidents": incidents}
+
+
+@router.get("/nexus/trustlink/rtgs/latest")
+async def get_latest_rtgs_assessment(request: Request, _: dict = Depends(require_nexus_access)) -> dict[str, object]:
+    assessment = request.app.state.services.rtgs.latest()
+    return {"assessment": assessment.model_dump(mode="json") if assessment else None}
+
+
+@router.post("/nexus/trustlink/rtgs/assess")
+async def assess_rtgs_transactions(
+    request_body: RTGSAssessmentRequest,
+    request: Request,
+    user: dict = Depends(require_nexus_operator),
+) -> dict[str, object]:
+    requested_by = user.get("username") or user.get("email") or "nexus-operator"
+    try:
+        assessment = await run_in_threadpool(request.app.state.services.rtgs.assess, trigger="manual", requested_by=requested_by)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return assessment.model_dump(mode="json")
+
+
+@router.get("/nexus/trustlink/rtgs/schedules")
+async def list_rtgs_schedules(request: Request, _: dict = Depends(require_nexus_access)) -> dict[str, object]:
+    try:
+        schedules = request.app.state.services.rtgs.schedules()
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return {"schedules": [item.model_dump(mode="json") for item in schedules]}
+
+
+@router.post("/nexus/trustlink/rtgs/schedules")
+async def create_rtgs_schedule(
+    request_body: RTGSScheduleRequest,
+    request: Request,
+    user: dict = Depends(require_nexus_operator),
+) -> dict[str, object]:
+    actor = user.get("username") or user.get("email") or "nexus-operator"
+    try:
+        schedule = request.app.state.services.rtgs.create_schedule(request_body, actor)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    return schedule.model_dump(mode="json")
+
+
+@router.put("/nexus/trustlink/rtgs/schedules/{schedule_id}")
+async def update_rtgs_schedule(
+    schedule_id: str,
+    request_body: RTGSScheduleRequest,
+    request: Request,
+    user: dict = Depends(require_nexus_operator),
+) -> dict[str, object]:
+    actor = user.get("username") or user.get("email") or "nexus-operator"
+    try:
+        schedule = request.app.state.services.rtgs.update_schedule(schedule_id, request_body, actor)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    return schedule.model_dump(mode="json")
+
+
+@router.delete("/nexus/trustlink/rtgs/schedules/{schedule_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rtgs_schedule(schedule_id: str, request: Request, _: dict = Depends(require_nexus_operator)) -> None:
+    try:
+        request.app.state.services.rtgs.delete_schedule(schedule_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/nexus/trustlink/rtgs/actions")
+async def execute_rtgs_actions(
+    request_body: RTGSActionRequest,
+    request: Request,
+    user: dict = Depends(require_nexus_operator),
+) -> dict[str, object]:
+    actor = user.get("username") or user.get("email") or "nexus-operator"
+    try:
+        results = await run_in_threadpool(request.app.state.services.rtgs.execute, request_body, requested_by=actor)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    return {"results": [item.model_dump(mode="json") for item in results]}
+
+
+@router.get("/nexus/trustlink/rtgs/history")
+async def list_rtgs_regeneration_history(
+    request: Request,
+    limit: int = Query(100, ge=1, le=500),
+    _: dict = Depends(require_nexus_access),
+) -> dict[str, object]:
+    try:
+        entries = await run_in_threadpool(request.app.state.services.rtgs.action_history, limit)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return {"entries": [item.model_dump(mode="json") for item in entries]}
+
+
+@router.get("/nexus/trustlink/rtgs/auto-regeneration")
+async def get_rtgs_auto_regeneration_policy(
+    request: Request,
+    _: dict = Depends(require_nexus_access),
+) -> dict[str, object]:
+    try:
+        policy = await run_in_threadpool(request.app.state.services.rtgs.auto_policy)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return policy.model_dump(mode="json")
+
+
+@router.put("/nexus/trustlink/rtgs/auto-regeneration")
+async def update_rtgs_auto_regeneration_policy(
+    request_body: RTGSAutoRegenerationPolicyRequest,
+    request: Request,
+    user: dict = Depends(require_nexus_admin),
+) -> dict[str, object]:
+    actor = user.get("username") or user.get("email") or "nexus-admin"
+    try:
+        policy = await run_in_threadpool(
+            request.app.state.services.rtgs.set_auto_policy,
+            enabled=request_body.enabled,
+            changed_by=actor,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return policy.model_dump(mode="json")
+
+
+@router.get("/nexus/trustlink/rtgs/auto-regeneration/audit")
+async def list_rtgs_auto_regeneration_audit(
+    request: Request,
+    limit: int = Query(100, ge=1, le=500),
+    _: dict = Depends(require_nexus_access),
+) -> dict[str, object]:
+    try:
+        entries = await run_in_threadpool(request.app.state.services.rtgs.auto_policy_audit, limit)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return {"entries": [item.model_dump(mode="json") for item in entries]}
 
 
 @router.get("/nexus/fabric-summary")

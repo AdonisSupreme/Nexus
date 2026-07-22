@@ -558,7 +558,7 @@ class NexusRepository:
             s.tags,
             st.last_checked_at,
             st.last_state_change_at,
-            COALESCE(st.overall_status::text, 'UNKNOWN') AS overall_status,
+            st.overall_status::text AS overall_status,
             st.reason,
             st.consecutive_failures,
             st.icmp_latency_ms,

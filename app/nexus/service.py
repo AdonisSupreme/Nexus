@@ -98,6 +98,7 @@ class NexusService:
     MONITORING_WINDOW = timedelta(minutes=10)
     NETWORK_SYNC_INTERVAL = timedelta(seconds=10)
     NETWORK_SENTINEL_INCIDENT_GRACE = timedelta(seconds=50)
+    NETWORK_SENTINEL_KNOWN_STATUSES = {"UP", "HEALTHY", "OK", "DOWN", "DEGRADED", "UNREACHABLE", "FAILED"}
     CONTROL_CHALLENGE_TTL = timedelta(minutes=10)
     MAX_SIGNALS = 1500
     MAX_CHANGES = 500
@@ -1080,7 +1081,7 @@ class NexusService:
             ),
             None,
         )
-        latest_network_signal = next((signal for signal in signals if signal.source == "network_sentinel"), None)
+        latest_network_signal = self._latest_network_signal_for_live(signals)
         heartbeat = next(
             (
                 item
@@ -2440,6 +2441,22 @@ class NexusService:
         if signal.signature:
             self._normalize_signature_datetime(signal.signature)
 
+    def _network_signal_status(self, signal: SignalEvent) -> str:
+        return str(signal.attributes.get("status") or "").strip().upper()
+
+    def _latest_network_signal_for_live(self, signals: list[SignalEvent]) -> SignalEvent | None:
+        """Prefer the latest real Network Sentinel status over placeholder UNKNOWN rows."""
+        latest_unknown: SignalEvent | None = None
+        for signal in signals:
+            if signal.source != "network_sentinel":
+                continue
+            status = self._network_signal_status(signal)
+            if status in self.NETWORK_SENTINEL_KNOWN_STATUSES:
+                return signal
+            if latest_unknown is None:
+                latest_unknown = signal
+        return latest_unknown
+
     def _normalize_diagnostic_datetime(self, bundle: DiagnosticBundle) -> None:
         bundle.requested_at = self._to_naive_utc(bundle.requested_at) or bundle.requested_at
         for evidence in bundle.evidence_snapshot:
@@ -2490,11 +2507,18 @@ class NexusService:
                 continue
             service = services[service_id]
             cluster = service.cluster or (service.cluster_ids[0] if service.cluster_ids else None)
-            status = str(snapshot.get("overall_status") or "UNKNOWN").upper()
-            checked_at = self._to_naive_utc(snapshot.get("last_checked_at")) or datetime.utcnow()
+            raw_status = str(snapshot.get("overall_status") or "").strip().upper()
+            checked_at = self._to_naive_utc(snapshot.get("last_checked_at"))
             last_state_change_at = self._to_naive_utc(snapshot.get("last_state_change_at"))
             outage_started_at = self._to_naive_utc(snapshot.get("outage_started_at"))
             outage_id = str(snapshot.get("outage_id") or "").strip() or None
+            if raw_status not in self.NETWORK_SENTINEL_KNOWN_STATUSES:
+                if outage_id:
+                    raw_status = "DOWN"
+                else:
+                    continue
+            status = raw_status
+            checked_at = checked_at or last_state_change_at or outage_started_at or datetime.utcnow()
             outage_duration_seconds = self._network_outage_duration_seconds(
                 started_at=outage_started_at,
                 observed_at=checked_at,
