@@ -51,6 +51,17 @@ def _translate_auto_policy_storage_error():
             "RTGS automatic regeneration storage is not initialized. "
             f"Apply {AUTO_POLICY_MIGRATION} and restart Nexus."
         ) from exc
+    except psycopg.errors.UndefinedColumn as exc:
+        raise RuntimeError(
+            "RTGS automatic regeneration storage is out of date. "
+            f"Reapply {AUTO_POLICY_MIGRATION} to align the existing tables, then restart Nexus."
+        ) from exc
+    except psycopg.errors.InsufficientPrivilege as exc:
+        raise RuntimeError(
+            "The Nexus database role cannot access RTGS automatic regeneration storage. "
+            "Grant that role SELECT, INSERT, and UPDATE on nexus_rtgs_auto_policy, "
+            "and SELECT and INSERT on nexus_rtgs_auto_policy_audit."
+        ) from exc
 
 
 def _rtgs_zone() -> ZoneInfo:

@@ -34,6 +34,8 @@ ManagedSopStatus = Literal["draft", "needs_review", "approved", "deprecated"]
 RolloverEnvironmentType = Literal["uat", "dr", "sandbox", "test", "production_clone", "other"]
 RolloverAssessmentStatus = Literal["unknown", "aligned", "requires_rollover", "drift", "error"]
 RolloverRuleStatus = Literal["aligned", "requires_change", "no_match", "skipped", "error"]
+RolloverRuleOperation = Literal["replace", "set"]
+RolloverRuleConditionOperator = Literal["equals", "in", "like"]
 RolloverExecutionStatus = Literal["PENDING", "APPROVED", "COMPLETED", "BLOCKED", "FAILED", "NOOP"]
 RolloverReminderStatus = Literal["scheduled", "cancelled", "notified"]
 RTGSAgeLane = Literal["0_24H", "24_48H", "48_72H", "72_96H", "OVER_96H"]
@@ -880,12 +882,28 @@ class RolloverConnectionProfile(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class RolloverRuleCondition(BaseModel):
+    column_name: str
+    operator: RolloverRuleConditionOperator = "equals"
+    values: list[str] = Field(default_factory=list)
+
+
+class RolloverRuleAssignment(BaseModel):
+    column_name: str
+    source_value: str = ""
+    target_value: str
+
+
 class RolloverReplacementRule(BaseModel):
     rule_id: str
     table_name: str
     column_name: str
-    source_value: str
+    operation: RolloverRuleOperation = "replace"
+    source_value: str = ""
     target_value: str
+    assignments: list[RolloverRuleAssignment] = Field(default_factory=list)
+    conditions: list[RolloverRuleCondition] = Field(default_factory=list)
+    allow_unscoped: bool = False
     description: str | None = None
     enabled: bool = True
     sequence: int = 100
@@ -927,8 +945,11 @@ class RolloverRuleAssessment(BaseModel):
     rule_id: str
     table_name: str
     column_name: str
+    operation: RolloverRuleOperation = "replace"
     source_value: str
     target_value: str
+    assignments: list[RolloverRuleAssignment] = Field(default_factory=list)
+    conditions: list[RolloverRuleCondition] = Field(default_factory=list)
     status: RolloverRuleStatus
     source_matches: int = 0
     target_matches: int = 0

@@ -43,10 +43,12 @@ from app.nexus.models import (
     SyncRequest,
     TaskHandoffRequest,
 )
+from app.utils.logging import get_logger
 from app.utils.nexus_agent_auth import validate_nexus_agent_request
 from app.utils.sentinelops_auth import require_nexus_access, require_nexus_admin, require_nexus_operator
 
 
+logger = get_logger(__name__)
 router = APIRouter()
 
 
@@ -202,6 +204,7 @@ async def get_rtgs_auto_regeneration_policy(
     try:
         policy = await run_in_threadpool(request.app.state.services.rtgs.auto_policy)
     except Exception as exc:
+        logger.exception("Failed to load the RTGS automatic regeneration policy")
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     return policy.model_dump(mode="json")
 
@@ -220,6 +223,7 @@ async def update_rtgs_auto_regeneration_policy(
             changed_by=actor,
         )
     except Exception as exc:
+        logger.exception("Failed to update the RTGS automatic regeneration policy")
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     return policy.model_dump(mode="json")
 
@@ -233,6 +237,7 @@ async def list_rtgs_auto_regeneration_audit(
     try:
         entries = await run_in_threadpool(request.app.state.services.rtgs.auto_policy_audit, limit)
     except Exception as exc:
+        logger.exception("Failed to load the RTGS automatic regeneration policy audit")
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     return {"entries": [item.model_dump(mode="json") for item in entries]}
 

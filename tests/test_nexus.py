@@ -2184,6 +2184,85 @@ def test_nexus_agent_config_requires_agent_token_when_enabled(monkeypatch):
     assert allowed.json()["service_id"] == "txn-mobile-ussd"
 
 
+def test_rollover_scoped_replace_generates_bound_id_conditions():
+    gateway = RolloverOracleGateway()
+    rule = RolloverReplacementRule(
+        rule_id="arx-web-cbx-dr",
+        table_name="tb_arm_web_app",
+        column_name="url",
+        source_value="afcconnect-lbm",
+        target_value="cbxtre-applive01-dr",
+        conditions=[{"column_name": "id", "operator": "in", "values": ["22", "42", "62"]}],
+    )
+
+    sql = gateway._update_sql(rule)
+    binds = gateway._update_binds(rule)
+
+    assert sql == (
+        "UPDATE tb_arm_web_app SET url = REPLACE(url, :source_value, :target_value) "
+        "WHERE url LIKE :source_like AND id IN (:condition_0_0, :condition_0_1, :condition_0_2)"
+    )
+    assert binds["source_value"] == "afcconnect-lbm"
+    assert binds["target_value"] == "cbxtre-applive01-dr"
+    assert binds["condition_0_0"] == 22
+    assert binds["condition_0_1"] == 42
+    assert binds["condition_0_2"] == 62
+
+
+def test_rollover_multi_assignment_set_generates_atomic_tuple_update():
+    gateway = RolloverOracleGateway()
+    rule = RolloverReplacementRule(
+        rule_id="dcof-dcprop-ip-dr",
+        table_name="dcprop",
+        column_name="dcprop_ip1",
+        operation="set",
+        source_value="192.168.1.112",
+        target_value="192.168.254.95",
+        assignments=[
+            {
+                "column_name": "dcprop_ip2",
+                "source_value": "192.168.1.113",
+                "target_value": "192.168.254.95",
+            }
+        ],
+    )
+
+    sql = gateway._update_sql(rule)
+    binds = gateway._update_binds(rule)
+
+    assert sql == (
+        "UPDATE dcprop SET dcprop_ip1 = :assignment_0_target, dcprop_ip2 = :assignment_1_target "
+        "WHERE dcprop_ip1 = :assignment_0_source AND dcprop_ip2 = :assignment_1_source"
+    )
+    assert binds["assignment_0_source"] == "192.168.1.112"
+    assert binds["assignment_1_source"] == "192.168.1.113"
+    assert binds["assignment_0_target"] == "192.168.254.95"
+    assert binds["assignment_1_target"] == "192.168.254.95"
+
+
+def test_rollover_blocks_unscoped_set_unless_explicitly_allowed():
+    gateway = RolloverOracleGateway()
+    blocked = RolloverReplacementRule(
+        rule_id="dcof-console",
+        table_name="dcprop",
+        column_name="dcprop_console1",
+        operation="set",
+        source_value="",
+        target_value="8398",
+    )
+    allowed = blocked.model_copy(update={"allow_unscoped": True})
+
+    try:
+        gateway._validate_rule(blocked)
+    except ValueError as exc:
+        assert "unscoped SET" in str(exc)
+    else:
+        raise AssertionError("Unscoped SET should be blocked unless explicitly allowed.")
+
+    gateway._validate_rule(allowed)
+    assert "dcprop_console1 <> :assignment_0_target" in gateway._update_sql(allowed)
+
+
 def test_timeline_smalltalk_is_short_and_human():
     answer = nexus._timeline_smalltalk_answer("By the way, who are you?", "Mobile Banking USSD")
 

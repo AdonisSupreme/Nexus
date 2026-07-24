@@ -12,6 +12,8 @@ from app.nexus.models import (
     RolloverEnvironment,
     RolloverExecution,
     RolloverReplacementRule,
+    RolloverRuleAssignment,
+    RolloverRuleCondition,
     RolloverRuleAssessment,
 )
 
@@ -76,14 +78,7 @@ class RolloverOracleGateway:
                     if not pre_result or pre_result.source_matches <= 0:
                         continue
                     sql = self._update_sql(rule)
-                    cursor.execute(
-                        sql,
-                        {
-                            "source_value": rule.source_value,
-                            "target_value": rule.target_value,
-                            "source_like": f"%{rule.source_value}%",
-                        },
-                    )
+                    cursor.execute(sql, self._update_binds(rule))
                     rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
                     rule_results.append(
                         pre_result.model_copy(
@@ -131,16 +126,19 @@ class RolloverOracleGateway:
                             rule_id=rule.rule_id,
                             table_name=rule.table_name,
                             column_name=rule.column_name,
+                            operation=rule.operation,
                             source_value=rule.source_value,
                             target_value=rule.target_value,
+                            assignments=rule.assignments,
+                            conditions=rule.conditions,
                             status="skipped",
                             message="Rule is disabled.",
                         )
                     )
                     continue
                 self._validate_rule(rule)
-                source_matches = self._count_matches(cursor, rule, rule.source_value)
-                target_matches = self._count_matches(cursor, rule, rule.target_value)
+                source_matches = self._count_matches(cursor, rule, "source")
+                target_matches = self._count_matches(cursor, rule, "target")
                 samples = self._sample_values(cursor, rule)
                 status = (
                     "requires_change"
@@ -161,8 +159,11 @@ class RolloverOracleGateway:
                         rule_id=rule.rule_id,
                         table_name=rule.table_name,
                         column_name=rule.column_name,
+                        operation=rule.operation,
                         source_value=rule.source_value,
                         target_value=rule.target_value,
+                        assignments=rule.assignments,
+                        conditions=rule.conditions,
                         status=status,
                         source_matches=source_matches,
                         target_matches=target_matches,
@@ -257,26 +258,21 @@ class RolloverOracleGateway:
         finally:
             self._close_quietly(cursor)
 
-    def _count_matches(self, cursor: object, rule: RolloverReplacementRule, value: str) -> int:
-        cursor.execute(
-            f"SELECT COUNT(*) FROM {self._table_identifier(rule.table_name)} "
-            f"WHERE {self._column_identifier(rule.column_name)} LIKE :match_value",
-            {"match_value": f"%{value}%"},
-        )
+    def _count_matches(self, cursor: object, rule: RolloverReplacementRule, mode: str) -> int:
+        binds = self._base_binds(rule)
+        where = self._where_clause(rule, binds, mode=mode)
+        cursor.execute(f"SELECT COUNT(*) FROM {self._table_identifier(rule.table_name)}{where}", binds)
         row = cursor.fetchone()
         return int(self._first_value(row) or 0)
 
     def _sample_values(self, cursor: object, rule: RolloverReplacementRule) -> list[str]:
+        binds = self._base_binds(rule)
+        where = self._where_clause(rule, binds, mode="sample")
         cursor.execute(
             f"SELECT {self._column_identifier(rule.column_name)} "
-            f"FROM {self._table_identifier(rule.table_name)} "
-            f"WHERE {self._column_identifier(rule.column_name)} LIKE :source_like "
-            f"   OR {self._column_identifier(rule.column_name)} LIKE :target_like "
+            f"FROM {self._table_identifier(rule.table_name)}{where} "
             "FETCH FIRST 5 ROWS ONLY",
-            {
-                "source_like": f"%{rule.source_value}%",
-                "target_like": f"%{rule.target_value}%",
-            },
+            binds,
         )
         rows = cursor.fetchall()
         return [str(self._first_value(row)) for row in rows if self._first_value(row) is not None]
@@ -284,18 +280,163 @@ class RolloverOracleGateway:
     def _update_sql(self, rule: RolloverReplacementRule) -> str:
         table = self._table_identifier(rule.table_name)
         column = self._column_identifier(rule.column_name)
-        return (
-            f"UPDATE {table} SET {column} = REPLACE({column}, :source_value, :target_value) "
-            f"WHERE {column} LIKE :source_like"
-        )
+        binds = self._base_binds(rule)
+        where = self._where_clause(rule, binds, mode="update")
+        if rule.operation == "replace":
+            assignment = f"{column} = REPLACE({column}, :source_value, :target_value)"
+        else:
+            assignment = ", ".join(
+                f"{self._column_identifier(item.column_name)} = :assignment_{index}_target"
+                for index, item in enumerate(self._assignment_specs(rule))
+            )
+        return f"UPDATE {table} SET {assignment}{where}"
+
+    def _update_binds(self, rule: RolloverReplacementRule) -> dict[str, object]:
+        binds = self._base_binds(rule)
+        self._where_clause(rule, binds, mode="update")
+        return binds
 
     def _validate_rule(self, rule: RolloverReplacementRule) -> None:
         self._table_identifier(rule.table_name)
         self._column_identifier(rule.column_name)
-        if not rule.source_value:
+        for condition in rule.conditions:
+            self._validate_condition(condition)
+        for assignment in rule.assignments:
+            self._validate_assignment(assignment)
+        if rule.operation == "replace" and rule.assignments:
+            raise ValueError(f"Rollover rule {rule.rule_id} cannot use extra assignments with REPLACE.")
+        if rule.operation == "replace" and not rule.source_value:
             raise ValueError(f"Rollover rule {rule.rule_id} has an empty source value.")
         if not rule.target_value:
             raise ValueError(f"Rollover rule {rule.rule_id} has an empty target value.")
+        has_assignment_source = any(item.source_value for item in self._assignment_specs(rule))
+        if rule.operation == "set" and not has_assignment_source and not rule.conditions and not rule.allow_unscoped:
+            raise ValueError(
+                f"Rollover rule {rule.rule_id} is an unscoped SET. "
+                "Add conditions or explicitly enable allow_unscoped."
+            )
+
+    def _base_binds(self, rule: RolloverReplacementRule) -> dict[str, object]:
+        binds: dict[str, object] = {
+            "source_value": rule.source_value,
+            "target_value": rule.target_value,
+            "source_like": f"%{rule.source_value}%",
+            "target_like": f"%{rule.target_value}%",
+        }
+        for index, assignment in enumerate(self._assignment_specs(rule)):
+            binds[f"assignment_{index}_source"] = assignment.source_value
+            binds[f"assignment_{index}_target"] = assignment.target_value
+        return binds
+
+    def _where_clause(self, rule: RolloverReplacementRule, binds: dict[str, object], *, mode: str) -> str:
+        column = self._column_identifier(rule.column_name)
+        fragments: list[str] = []
+        if rule.operation == "replace":
+            if mode in {"source", "update"}:
+                fragments.append(f"{column} LIKE :source_like")
+            elif mode == "target":
+                fragments.append(f"{column} LIKE :target_like")
+            elif mode == "sample":
+                fragments.append(f"({column} LIKE :source_like OR {column} LIKE :target_like)")
+        else:
+            assignments = self._assignment_specs(rule)
+            if mode in {"source", "update"}:
+                if any(item.source_value for item in assignments):
+                    fragments.extend(
+                        f"{self._column_identifier(item.column_name)} = :assignment_{index}_source"
+                        for index, item in enumerate(assignments)
+                        if item.source_value
+                    )
+                else:
+                    fragments.append(
+                        "("
+                        + " OR ".join(
+                            f"{self._column_identifier(item.column_name)} IS NULL "
+                            f"OR {self._column_identifier(item.column_name)} <> :assignment_{index}_target"
+                            for index, item in enumerate(assignments)
+                        )
+                        + ")"
+                    )
+            elif mode == "target":
+                fragments.extend(
+                    f"{self._column_identifier(item.column_name)} = :assignment_{index}_target"
+                    for index, item in enumerate(assignments)
+                )
+            elif mode == "sample" and any(item.source_value for item in assignments):
+                source_tuple = " AND ".join(
+                    f"{self._column_identifier(item.column_name)} = :assignment_{index}_source"
+                    for index, item in enumerate(assignments)
+                    if item.source_value
+                )
+                target_tuple = " AND ".join(
+                    f"{self._column_identifier(item.column_name)} = :assignment_{index}_target"
+                    for index, item in enumerate(assignments)
+                )
+                fragments.append(f"(({source_tuple}) OR ({target_tuple}))")
+        fragments.extend(self._condition_fragments(rule.conditions, binds))
+        if not fragments:
+            if rule.operation == "set" and rule.allow_unscoped:
+                return ""
+            raise ValueError(f"Rollover rule {rule.rule_id} has no safe WHERE scope.")
+        return " WHERE " + " AND ".join(fragments)
+
+    def _assignment_specs(self, rule: RolloverReplacementRule) -> list[RolloverRuleAssignment]:
+        primary = RolloverRuleAssignment(
+            column_name=rule.column_name,
+            source_value=rule.source_value,
+            target_value=rule.target_value,
+        )
+        return [primary, *rule.assignments]
+
+    def _condition_fragments(
+        self,
+        conditions: list[RolloverRuleCondition],
+        binds: dict[str, object],
+    ) -> list[str]:
+        fragments: list[str] = []
+        for condition_index, condition in enumerate(conditions):
+            column = self._column_identifier(condition.column_name)
+            values = [str(item).strip() for item in condition.values if str(item).strip()]
+            if not values:
+                raise ValueError(f"Rollover condition on {condition.column_name} has no values.")
+            operator = condition.operator
+            if operator == "equals":
+                bind_name = f"condition_{condition_index}_0"
+                binds[bind_name] = self._condition_value(values[0])
+                fragments.append(f"{column} = :{bind_name}")
+            elif operator == "like":
+                bind_name = f"condition_{condition_index}_0"
+                binds[bind_name] = f"%{values[0]}%"
+                fragments.append(f"{column} LIKE :{bind_name}")
+            elif operator == "in":
+                placeholders: list[str] = []
+                for value_index, value in enumerate(values):
+                    bind_name = f"condition_{condition_index}_{value_index}"
+                    binds[bind_name] = self._condition_value(value)
+                    placeholders.append(f":{bind_name}")
+                fragments.append(f"{column} IN ({', '.join(placeholders)})")
+            else:
+                raise ValueError(f"Unsupported rollover condition operator: {operator}")
+        return fragments
+
+    def _validate_condition(self, condition: RolloverRuleCondition) -> None:
+        self._column_identifier(condition.column_name)
+        if condition.operator not in {"equals", "in", "like"}:
+            raise ValueError(f"Unsupported rollover condition operator: {condition.operator}")
+        if not [str(item).strip() for item in condition.values if str(item).strip()]:
+            raise ValueError(f"Rollover condition on {condition.column_name} has no values.")
+
+    def _validate_assignment(self, assignment: RolloverRuleAssignment) -> None:
+        self._column_identifier(assignment.column_name)
+        if not assignment.target_value:
+            raise ValueError(f"Rollover assignment on {assignment.column_name} has an empty target value.")
+
+    @staticmethod
+    def _condition_value(value: str) -> object:
+        stripped = value.strip()
+        if re.fullmatch(r"-?\d+", stripped):
+            return int(stripped)
+        return stripped
 
     def _enabled_rules(self, environment: RolloverEnvironment) -> list[RolloverReplacementRule]:
         return [rule for rule in sorted(environment.rules, key=lambda item: (item.sequence, item.rule_id)) if rule.enabled]

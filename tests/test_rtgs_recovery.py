@@ -3,9 +3,16 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from app.nexus import rtgs as rtgs_module
 from app.nexus.models import RTGSActionRequest, RTGSAutoRegenerationPolicy
-from app.nexus.rtgs import RTGSRecoveryService, _normalize_stored_assessment, make_case
+from app.nexus.rtgs import (
+    RTGSRecoveryService,
+    _normalize_stored_assessment,
+    _translate_auto_policy_storage_error,
+    make_case,
+)
 
 
 def _row(*, queue_instance_id: str | None = "queue-001", entry_date: datetime | None = None) -> dict[str, object]:
@@ -35,6 +42,18 @@ def test_make_case_blocks_rows_without_queue_context():
     assert case.regeneration_ready is False
     assert case.recommendation == "QUEUE_CONTEXT_MISSING"
     assert any("queue instance" in warning for warning in case.warnings)
+
+
+def test_auto_policy_storage_reports_stale_schema():
+    with pytest.raises(RuntimeError, match="storage is out of date"):
+        with _translate_auto_policy_storage_error():
+            raise rtgs_module.psycopg.errors.UndefinedColumn("last_run_at")
+
+
+def test_auto_policy_storage_reports_missing_role_grants():
+    with pytest.raises(RuntimeError, match="database role cannot access"):
+        with _translate_auto_policy_storage_error():
+            raise rtgs_module.psycopg.errors.InsufficientPrivilege("permission denied")
 
 
 def test_stored_legacy_assessment_is_readable_without_peer_contract():
