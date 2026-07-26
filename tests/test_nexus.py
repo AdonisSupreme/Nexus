@@ -78,10 +78,29 @@ class InMemoryNexusRepository:
         environment = self.rollover_environments.get(environment_id)
         return environment, self.rollover_passwords.get(environment_id)
 
-    def upsert_rollover_environment(self, environment, *, credential_password=None):
-        if credential_password:
-            environment.connection.password_set = True
-            self.rollover_passwords[environment.environment_id] = credential_password
+    def upsert_rollover_environment(self, environment, *, credential_password=None, schema_credential_passwords=None):
+        if credential_password or schema_credential_passwords:
+            current = self.rollover_passwords.get(environment.environment_id)
+            bundle = (
+                {"default": current.get("default"), "schemas": dict(current.get("schemas") or {})}
+                if isinstance(current, dict)
+                else {"default": current, "schemas": {}}
+            )
+            if credential_password:
+                environment.connection.password_set = True
+                bundle["default"] = credential_password
+            for schema_id, password in (schema_credential_passwords or {}).items():
+                bundle["schemas"][schema_id.upper()] = password
+            configured_schema_ids = {profile.schema_id.upper() for profile in environment.schema_profiles}
+            if configured_schema_ids:
+                bundle["schemas"] = {
+                    schema_id: password
+                    for schema_id, password in bundle["schemas"].items()
+                    if schema_id in configured_schema_ids
+                }
+            for profile in environment.schema_profiles:
+                profile.password_set = bool(bundle["schemas"].get(profile.schema_id.upper()))
+            self.rollover_passwords[environment.environment_id] = bundle if bundle["schemas"] else bundle["default"]
         self.rollover_environments[environment.environment_id] = environment.model_copy(deep=True)
         return self.rollover_environments[environment.environment_id].model_copy(deep=True)
 
@@ -1600,6 +1619,26 @@ def test_rollover_oracle_gateway_supports_tns_config_dir(monkeypatch):
     assert captured["config_dir"] == r"C:\oracle\network\admin"
 
 
+def test_rollover_oracle_gateway_uses_default_password_from_credential_bundle(monkeypatch):
+    environment = make_rollover_environment()
+    captured = {}
+
+    def fake_connect(**kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace()
+
+    monkeypatch.setitem(sys.modules, "oracledb", SimpleNamespace(connect=fake_connect))
+
+    connection = RolloverOracleGateway()._connect(
+        environment,
+        password={"default": "default-secret", "schemas": {"ARX": "arx-secret"}},
+    )
+
+    assert isinstance(connection, SimpleNamespace)
+    assert captured["user"] == "IDC_UAT"
+    assert captured["password"] == "default-secret"
+
+
 def test_database_connection_helper_supports_datagrip_postgres_fields():
     profile = SimpleNamespace(
         host="postgres-primary.local",
@@ -1653,6 +1692,75 @@ def test_rollover_connection_test_uses_stored_oracle_credentials(monkeypatch):
     assert result.driver == "python-oracledb"
     assert captured["user"] == "IDC_UAT"
     assert captured["password"] == "secret"
+    assert captured["dsn"] == "idcuatapp02-db:1521/IDCZWG"
+    assert captured["query"] == "SELECT 1 FROM DUAL"
+
+
+def test_rollover_connection_test_can_target_individual_schema_credentials(monkeypatch):
+    service = make_service()
+    payload = make_rollover_request().model_dump()
+    payload.update(
+        {
+            "credential_password": "",
+            "schema_profiles": [
+                {
+                    "schema_id": "ARX",
+                    "schema_name": "ARX_OWNER",
+                    "username": "ARX_USER",
+                    "label": "ARX",
+                },
+                {
+                    "schema_id": "IDC",
+                    "schema_name": "IDC_OWNER",
+                    "username": "IDC_USER",
+                    "label": "IDC",
+                },
+            ],
+            "schema_credential_passwords": {"ARX": "arx-secret", "IDC": "idc-secret"},
+            "rules": [
+                {**payload["rules"][0], "schema_id": "ARX"},
+                {**payload["rules"][1], "schema_id": "IDC"},
+            ],
+        }
+    )
+    environment = service.upsert_rollover_environment(
+        RolloverEnvironmentUpsertRequest.model_validate(payload),
+        user="admin",
+    )
+    captured = {}
+
+    class FakeCursor:
+        def execute(self, *args, **kwargs):
+            captured["query"] = args[0]
+
+        def fetchone(self):
+            return (1,)
+
+        def close(self):
+            return None
+
+    class FakeConnection:
+        def cursor(self):
+            return FakeCursor()
+
+        def close(self):
+            return None
+
+    def fake_connect(**kwargs):
+        captured.update(kwargs)
+        return FakeConnection()
+
+    monkeypatch.setitem(sys.modules, "oracledb", SimpleNamespace(connect=fake_connect))
+
+    result = service.test_rollover_connection(
+        environment.environment_id,
+        DatabaseConnectionTestRequest(requested_by="operator", schema_id="ARX"),
+        user="operator",
+    )
+
+    assert result.connected is True
+    assert captured["user"] == "ARX_USER"
+    assert captured["password"] == "arx-secret"
     assert captured["dsn"] == "idcuatapp02-db:1521/IDCZWG"
     assert captured["query"] == "SELECT 1 FROM DUAL"
 

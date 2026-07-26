@@ -9,6 +9,7 @@ from uuid import uuid4
 from app.nexus.database_connections import oracle_config_dir_from_datagrip, oracle_dsn_from_datagrip
 from app.nexus.models import (
     RolloverAssessment,
+    RolloverConnectionProfile,
     RolloverEnvironment,
     RolloverExecution,
     RolloverReplacementRule,
@@ -28,10 +29,12 @@ class RolloverOracleGateway:
         self,
         environment: RolloverEnvironment,
         *,
-        password: str | None,
+        password: object | None,
         assessed_by: str | None = None,
     ) -> RolloverAssessment:
         self._validate_environment_schemas(environment)
+        if self._uses_schema_credentials(environment):
+            return self._assess_with_schema_credentials(environment, password, assessed_by=assessed_by)
         connection = self._connect(environment, password=password)
         try:
             self._apply_session_schema(connection, environment)
@@ -43,7 +46,7 @@ class RolloverOracleGateway:
         self,
         environment: RolloverEnvironment,
         *,
-        password: str | None,
+        password: object | None,
         requested_by: str,
         approved_by: str | None,
         reason: str | None,
@@ -59,6 +62,13 @@ class RolloverOracleGateway:
             reason=reason,
         )
         self._validate_environment_schemas(environment)
+        if self._uses_schema_credentials(environment):
+            return self._execute_with_schema_credentials(
+                environment,
+                password,
+                execution=execution,
+                requested_by=requested_by,
+            )
         connection = self._connect(environment, password=password)
         try:
             self._apply_session_schema(connection, environment)
@@ -219,21 +229,232 @@ class RolloverOracleGateway:
             message=message,
         )
 
-    def _connect(self, environment: RolloverEnvironment, *, password: str | None) -> object:
-        if not environment.connection.username:
+    def _assess_with_schema_credentials(
+        self,
+        environment: RolloverEnvironment,
+        password: object | None,
+        *,
+        assessed_by: str | None,
+    ) -> RolloverAssessment:
+        connections = self._connect_schema_profiles(environment, password)
+        try:
+            return self._assess_with_schema_connections(environment, connections, assessed_by=assessed_by)
+        finally:
+            for connection in connections.values():
+                self._close_quietly(connection)
+
+    def _assess_with_schema_connections(
+        self,
+        environment: RolloverEnvironment,
+        connections: dict[str, object],
+        *,
+        assessed_by: str | None,
+    ) -> RolloverAssessment:
+        rule_results: list[RolloverRuleAssessment] = []
+        for rule in sorted(environment.rules, key=lambda item: (item.sequence, item.rule_id)):
+            if not rule.enabled:
+                rule_results.append(
+                    RolloverRuleAssessment(
+                        rule_id=rule.rule_id,
+                        schema_id=rule.schema_id,
+                        schema_name=None,
+                        table_name=rule.table_name,
+                        column_name=rule.column_name,
+                        operation=rule.operation,
+                        source_value=rule.source_value,
+                        target_value=rule.target_value,
+                        assignments=rule.assignments,
+                        conditions=rule.conditions,
+                        status="skipped",
+                        message="Rule is disabled.",
+                    )
+                )
+                continue
+            self._validate_rule(rule)
+            schema_id, schema_name = self._rule_schema(environment, rule)
+            connection = connections[self._schema_connection_key(environment, rule)]
+            cursor = connection.cursor()
+            try:
+                self._apply_cursor_schema(cursor, schema_name)
+                source_matches = self._count_matches(cursor, rule, "source")
+                target_matches = self._count_matches(cursor, rule, "target")
+                samples = self._sample_values(cursor, rule)
+            finally:
+                self._close_quietly(cursor)
+            status = (
+                "requires_change"
+                if source_matches > 0
+                else "aligned"
+                if target_matches > 0
+                else "no_match"
+            )
+            message = (
+                "Live-source values are still present."
+                if status == "requires_change"
+                else "Target values are present."
+                if status == "aligned"
+                else "Neither source nor target values were found."
+            )
+            rule_results.append(
+                RolloverRuleAssessment(
+                    rule_id=rule.rule_id,
+                    schema_id=schema_id,
+                    schema_name=schema_name,
+                    table_name=rule.table_name,
+                    column_name=rule.column_name,
+                    operation=rule.operation,
+                    source_value=rule.source_value,
+                    target_value=rule.target_value,
+                    assignments=rule.assignments,
+                    conditions=rule.conditions,
+                    status=status,
+                    source_matches=source_matches,
+                    target_matches=target_matches,
+                    sample_values=samples,
+                    generated_sql=self._update_sql(rule),
+                    message=message,
+                )
+            )
+        return self._assessment_from_rule_results(environment, rule_results, assessed_by=assessed_by)
+
+    def _execute_with_schema_credentials(
+        self,
+        environment: RolloverEnvironment,
+        password: object | None,
+        *,
+        execution: RolloverExecution,
+        requested_by: str,
+    ) -> RolloverExecution:
+        connections = self._connect_schema_profiles(environment, password)
+        try:
+            pre_assessment = self._assess_with_schema_connections(environment, connections, assessed_by=requested_by)
+            execution.pre_assessment = pre_assessment
+            if pre_assessment.status != "requires_rollover":
+                execution.status = "NOOP"
+                execution.completed_at = datetime.utcnow()
+                execution.result_summary = "No live-source values matched the configured rollover rules."
+                execution.post_assessment = pre_assessment
+                return execution
+
+            rule_results: list[RolloverRuleAssessment] = []
+            pre_results = {item.rule_id: item for item in pre_assessment.rule_results}
+            for rule in self._enabled_rules(environment):
+                pre_result = pre_results.get(rule.rule_id)
+                if not pre_result or pre_result.source_matches <= 0:
+                    continue
+                schema_id, schema_name = self._rule_schema(environment, rule)
+                connection = connections[self._schema_connection_key(environment, rule)]
+                cursor = connection.cursor()
+                try:
+                    self._apply_cursor_schema(cursor, schema_name)
+                    sql = self._update_sql(rule)
+                    cursor.execute(sql, self._update_binds(rule))
+                    rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
+                finally:
+                    self._close_quietly(cursor)
+                rule_results.append(
+                    pre_result.model_copy(
+                        update={
+                            "schema_id": schema_id,
+                            "schema_name": schema_name,
+                            "rows_affected": rows_affected,
+                            "generated_sql": sql,
+                            "message": f"{rows_affected} row(s) updated.",
+                        }
+                    )
+                )
+            for connection in connections.values():
+                connection.commit()
+            execution.committed = True
+            execution.rule_results = rule_results
+            execution.post_assessment = self._assess_with_schema_connections(environment, connections, assessed_by=requested_by)
+            execution.status = "COMPLETED"
+            execution.completed_at = datetime.utcnow()
+            execution.result_summary = (
+                f"Rollover committed for {environment.environment_name}; "
+                f"{sum(item.rows_affected for item in rule_results)} row(s) updated."
+            )
+            return execution
+        except Exception:
+            for connection in connections.values():
+                if hasattr(connection, "rollback"):
+                    connection.rollback()
+            raise
+        finally:
+            for connection in connections.values():
+                self._close_quietly(connection)
+
+    def _assessment_from_rule_results(
+        self,
+        environment: RolloverEnvironment,
+        rule_results: list[RolloverRuleAssessment],
+        *,
+        assessed_by: str | None,
+    ) -> RolloverAssessment:
+        enabled_results = [item for item in rule_results if item.status != "skipped"]
+        requiring_change = [item for item in enabled_results if item.status == "requires_change"]
+        aligned = [item for item in enabled_results if item.status == "aligned"]
+        no_match = [item for item in enabled_results if item.status == "no_match"]
+        status = (
+            "requires_rollover"
+            if requiring_change
+            else "aligned"
+            if enabled_results and len(aligned) == len(enabled_results)
+            else "drift"
+            if no_match
+            else "unknown"
+        )
+        message = (
+            "One or more live configuration markers remain and require rollover."
+            if status == "requires_rollover"
+            else "Configured markers already match the selected environment."
+            if status == "aligned"
+            else "Some configured markers were not found; review rules or connected schema."
+        )
+        return RolloverAssessment(
+            assessment_id=f"roll-assess-{uuid4()}",
+            environment_id=environment.environment_id,
+            environment_name=environment.environment_name,
+            status=status,
+            assessed_at=datetime.utcnow(),
+            assessed_by=assessed_by,
+            connected=True,
+            rules_checked=len(enabled_results),
+            rules_requiring_change=len(requiring_change),
+            rules_aligned=len(aligned),
+            rules_with_no_match=len(no_match),
+            rule_results=rule_results,
+            message=message,
+        )
+
+    def _connect(self, environment: RolloverEnvironment, *, password: object | None) -> object:
+        return self._connect_profile(
+            environment.connection,
+            password=self._default_password(password),
+            label="rollover assessment",
+        )
+
+    def _connect_profile(
+        self,
+        connection_profile: RolloverConnectionProfile,
+        *,
+        password: object | None,
+        label: str,
+    ) -> object:
+        if not connection_profile.username:
             raise ValueError("Oracle username is required for rollover assessment.")
         if password is None:
-            raise ValueError("Oracle password is required for rollover assessment.")
+            raise ValueError(f"Oracle password is required for {label}.")
         try:
             import oracledb  # type: ignore[import-not-found]
         except ImportError as exc:
             raise RuntimeError("The optional 'oracledb' package is required for Oracle rollover execution.") from exc
         connect_kwargs = {
-            "user": environment.connection.username,
-            "password": password,
-            "dsn": self._dsn(environment),
+            "user": connection_profile.username,
+            "password": str(password),
+            "dsn": self._dsn(connection_profile),
         }
-        config_dir = self._config_dir(environment)
+        config_dir = self._config_dir(connection_profile)
         if config_dir:
             connect_kwargs["config_dir"] = config_dir
         try:
@@ -248,11 +469,13 @@ class RolloverOracleGateway:
                 ) from exc
             raise
 
-    def _dsn(self, environment: RolloverEnvironment) -> str:
-        return oracle_dsn_from_datagrip(environment.connection)
+    def _dsn(self, source: RolloverEnvironment | RolloverConnectionProfile) -> str:
+        connection = source.connection if isinstance(source, RolloverEnvironment) else source
+        return oracle_dsn_from_datagrip(connection)
 
-    def _config_dir(self, environment: RolloverEnvironment) -> str | None:
-        return oracle_config_dir_from_datagrip(environment.connection)
+    def _config_dir(self, source: RolloverEnvironment | RolloverConnectionProfile) -> str | None:
+        connection = source.connection if isinstance(source, RolloverEnvironment) else source
+        return oracle_config_dir_from_datagrip(connection)
 
     def _apply_session_schema(self, connection: object, environment: RolloverEnvironment) -> None:
         if environment.schema_profiles:
@@ -355,6 +578,19 @@ class RolloverOracleGateway:
                 raise ValueError(f"Duplicate rollover schema key: {schema_id}")
             seen_ids.add(normalized_id)
             self._schema_identifier(profile.schema_name)
+            if profile.username:
+                self._schema_identifier(profile.username)
+        if profiles and any(profile.username.strip() for profile in profiles):
+            missing_usernames = [
+                profile.schema_id.strip()
+                for profile in profiles
+                if not profile.username.strip()
+            ]
+            if missing_usernames:
+                raise ValueError(
+                    "Multi-credential rollover requires every enabled schema profile to have an Oracle username. "
+                    f"Missing username on: {', '.join(missing_usernames)}"
+                )
         if len(profiles) > 1:
             valid_ids = {profile.schema_id.strip().lower() for profile in profiles}
             missing_rules = [
@@ -377,6 +613,86 @@ class RolloverOracleGateway:
                     "Rollover rules reference schema keys that are not configured on this environment: "
                     f"{', '.join(invalid_rules)}"
                 )
+
+    @staticmethod
+    def _uses_schema_credentials(environment: RolloverEnvironment) -> bool:
+        return any(profile.enabled and profile.username.strip() for profile in environment.schema_profiles)
+
+    def _connect_schema_profiles(
+        self,
+        environment: RolloverEnvironment,
+        password: object | None,
+    ) -> dict[str, object]:
+        connections: dict[str, object] = {}
+        try:
+            for schema_id in self._schema_connection_keys_for_rules(environment):
+                profile = self._schema_profile(environment, schema_id)
+                profile_connection = environment.connection.model_copy(deep=True)
+                profile_connection.username = profile.username.strip() or profile_connection.username
+                profile_connection.schema_name = profile.schema_name.strip()
+                connections[schema_id] = self._connect_profile(
+                    profile_connection,
+                    password=self._schema_password(environment, profile, password),
+                    label=f"rollover schema {schema_id}",
+                )
+            return connections
+        except Exception:
+            for connection in connections.values():
+                self._close_quietly(connection)
+            raise
+
+    def _schema_connection_keys_for_rules(self, environment: RolloverEnvironment) -> list[str]:
+        keys: list[str] = []
+        for rule in self._enabled_rules(environment):
+            key = self._schema_connection_key(environment, rule)
+            if key not in keys:
+                keys.append(key)
+        return keys
+
+    def _schema_connection_key(self, environment: RolloverEnvironment, rule: RolloverReplacementRule) -> str:
+        schema_id, _ = self._rule_schema(environment, rule)
+        if not schema_id:
+            raise ValueError(f"Rollover rule {rule.rule_id} does not resolve to a schema profile.")
+        return schema_id.strip().upper()
+
+    def _schema_profile(self, environment: RolloverEnvironment, schema_id: str):
+        normalized_schema_id = schema_id.strip().upper()
+        for profile in environment.schema_profiles:
+            if profile.enabled and profile.schema_id.strip().upper() == normalized_schema_id:
+                return profile
+        raise ValueError(f"Unknown rollover schema profile: {schema_id}")
+
+    def _schema_password(self, environment: RolloverEnvironment, profile: object, password: object | None) -> str | None:
+        bundle = self._password_bundle(password)
+        schema_id = getattr(profile, "schema_id").strip().upper()
+        schema_password = bundle.get("schemas", {}).get(schema_id)
+        if schema_password:
+            return str(schema_password)
+        default_password = str(bundle.get("default") or "") or None
+        profile_username = getattr(profile, "username", "").strip()
+        if not profile_username or profile_username.lower() == environment.connection.username.lower():
+            return default_password
+        raise ValueError(f"Oracle password is required for rollover schema {schema_id}.")
+
+    @staticmethod
+    def _default_password(password: object | None) -> str | None:
+        bundle = RolloverOracleGateway._password_bundle(password)
+        return str(bundle.get("default") or "") or None
+
+    @staticmethod
+    def _password_bundle(password: object | None) -> dict[str, object]:
+        if not password:
+            return {"default": None, "schemas": {}}
+        if isinstance(password, dict):
+            return {
+                "default": str(password.get("default") or "") or None,
+                "schemas": {
+                    str(key).strip().upper(): str(value)
+                    for key, value in (password.get("schemas") or {}).items()
+                    if str(key).strip() and str(value)
+                },
+            }
+        return {"default": str(password), "schemas": {}}
 
     def _rule_schema(
         self,

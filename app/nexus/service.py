@@ -6,9 +6,10 @@ from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 import hashlib
 from hmac import compare_digest
+import json
 import re
 import secrets
-from typing import Iterable
+from typing import Any, Iterable
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
 
@@ -634,6 +635,18 @@ class NexusService:
         duplicate_rule_ids = sorted({rule_id for rule_id in rule_ids if rule_ids.count(rule_id) > 1})
         if duplicate_rule_ids:
             raise ValueError(f"Duplicate rollover rule IDs: {', '.join(duplicate_rule_ids)}")
+        schema_profiles = [
+            profile.model_copy(
+                update={
+                    "schema_id": profile.schema_id.strip().upper(),
+                    "schema_name": profile.schema_name.strip().upper(),
+                    "username": profile.username.strip(),
+                    "label": (profile.label or "").strip() or None,
+                    "description": (profile.description or "").strip() or None,
+                }
+            )
+            for profile in request.schema_profiles
+        ]
         environment = RolloverEnvironment(
             environment_id=request.environment_id.strip(),
             environment_name=request.environment_name.strip(),
@@ -645,7 +658,7 @@ class NexusService:
                 request.connection,
                 service_environment=(request.service_environment or "").strip() or None,
             ),
-            schema_profiles=request.schema_profiles,
+            schema_profiles=schema_profiles,
             rules=sorted(request.rules, key=lambda item: (item.sequence, item.rule_id)),
             notes=request.notes,
             created_at=existing.created_at if existing else datetime.utcnow(),
@@ -657,6 +670,11 @@ class NexusService:
         saved = self.repository.upsert_rollover_environment(
             environment,
             credential_password=(request.credential_password or "").strip() or None,
+            schema_credential_passwords={
+                str(key).strip().upper(): str(value).strip()
+                for key, value in request.schema_credential_passwords.items()
+                if str(key).strip() and str(value).strip()
+            },
         )
         audit_logger.log(
             event_type="nexus_rollover_environment_upserted",
@@ -689,6 +707,11 @@ class NexusService:
         environment, password = self._rollover_environment_with_password(
             environment_id,
             password_override=(request.credential_password or "").strip() or None,
+            schema_password_overrides={
+                str(key).strip().upper(): str(value).strip()
+                for key, value in request.schema_credential_passwords.items()
+                if str(key).strip() and str(value).strip()
+            },
         )
         assessed_by = request.requested_by or user
         try:
@@ -729,12 +752,26 @@ class NexusService:
         *,
         user: str,
     ) -> DatabaseConnectionTestResult:
-        environment, password = self._rollover_environment_with_password(
-            environment_id,
-            password_override=(request.credential_password or "").strip() or None,
-        )
         tested_by = request.requested_by or user
-        connection = request.rollover_connection or environment.connection
+        schema_id = (request.schema_id or "").strip().upper()
+        if schema_id:
+            environment, password_bundle = self._rollover_environment_with_password(
+                environment_id,
+                schema_password_overrides={schema_id: (request.credential_password or "").strip()}
+                if (request.credential_password or "").strip()
+                else None,
+            )
+            connection = self._rollover_connection_for_schema(environment, schema_id, request.rollover_connection)
+            password = self._rollover_schema_password(environment, schema_id, password_bundle)
+            target_name = f"{environment.environment_name} / {schema_id}"
+        else:
+            environment, password_bundle = self._rollover_environment_with_password(
+                environment_id,
+                password_override=(request.credential_password or "").strip() or None,
+            )
+            connection = request.rollover_connection or environment.connection
+            password = self._rollover_default_password(password_bundle)
+            target_name = environment.environment_name
         connection = self._rollover_connection_with_database_fabric_defaults(
             connection,
             service_environment=environment.service_environment,
@@ -743,7 +780,7 @@ class NexusService:
             connection,
             scope="rollover",
             target_id=environment.environment_id,
-            target_name=environment.environment_name,
+            target_name=target_name,
             password=password,
             tested_by=tested_by,
         )
@@ -753,6 +790,7 @@ class NexusService:
             details={
                 "environment_id": environment.environment_id,
                 "environment_name": environment.environment_name,
+                "schema_id": schema_id or None,
                 "platform": result.platform,
                 "connected": result.connected,
                 "status": result.status,
@@ -3719,11 +3757,103 @@ class NexusService:
         environment_id: str,
         *,
         password_override: str | None = None,
-    ) -> tuple[RolloverEnvironment, str | None]:
+        schema_password_overrides: dict[str, str] | None = None,
+    ) -> tuple[RolloverEnvironment, object | None]:
         environment, stored_password = self.repository.get_rollover_environment_with_secret(environment_id)
         if environment is None:
             raise KeyError(f"Unknown rollover environment {environment_id}")
-        return environment, password_override or stored_password
+        bundle = self._rollover_password_bundle(stored_password)
+        if password_override:
+            bundle["default"] = password_override
+        for schema_id, password in (schema_password_overrides or {}).items():
+            if schema_id and password:
+                bundle.setdefault("schemas", {})[schema_id.strip().upper()] = password
+        self._apply_rollover_password_flags(environment, bundle)
+        if not environment.schema_profiles:
+            return environment, bundle.get("default")
+        return environment, bundle
+
+    @staticmethod
+    def _rollover_password_bundle(secret: object | None) -> dict[str, Any]:
+        if not secret:
+            return {"default": None, "schemas": {}}
+        if isinstance(secret, dict):
+            return {
+                "default": str(secret.get("default") or "") or None,
+                "schemas": {
+                    str(key).strip().upper(): str(value)
+                    for key, value in (secret.get("schemas") or {}).items()
+                    if str(key).strip() and str(value)
+                },
+            }
+        raw = str(secret)
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError):
+            return {"default": raw, "schemas": {}}
+        if isinstance(parsed, dict) and parsed.get("kind") == "nexus_rollover_credentials":
+            schemas = parsed.get("schemas")
+            return {
+                "default": str(parsed.get("default") or "") or None,
+                "schemas": {
+                    str(key).strip().upper(): str(value)
+                    for key, value in (schemas if isinstance(schemas, dict) else {}).items()
+                    if str(key).strip() and str(value)
+                },
+            }
+        return {"default": raw, "schemas": {}}
+
+    def _apply_rollover_password_flags(self, environment: RolloverEnvironment, bundle: dict[str, Any]) -> None:
+        environment.connection.password_set = bool(bundle.get("default"))
+        schema_passwords = bundle.get("schemas") if isinstance(bundle.get("schemas"), dict) else {}
+        for profile in environment.schema_profiles:
+            profile.password_set = bool(schema_passwords.get(profile.schema_id.strip().upper()))
+
+    def _rollover_default_password(self, password_bundle: object | None) -> str | None:
+        bundle = self._rollover_password_bundle(password_bundle)
+        return str(bundle.get("default") or "") or None
+
+    def _rollover_schema_password(
+        self,
+        environment: RolloverEnvironment,
+        schema_id: str,
+        password_bundle: object | None,
+    ) -> str | None:
+        bundle = self._rollover_password_bundle(password_bundle)
+        normalized_schema_id = schema_id.strip().upper()
+        schema_passwords = bundle.get("schemas") if isinstance(bundle.get("schemas"), dict) else {}
+        password = schema_passwords.get(normalized_schema_id)
+        if password:
+            return str(password)
+        profile = self._rollover_schema_profile(environment, normalized_schema_id)
+        if profile and not profile.username.strip():
+            return str(bundle.get("default") or "") or None
+        return None
+
+    def _rollover_schema_profile(self, environment: RolloverEnvironment, schema_id: str):
+        normalized_schema_id = schema_id.strip().upper()
+        return next(
+            (
+                profile
+                for profile in environment.schema_profiles
+                if profile.schema_id.strip().upper() == normalized_schema_id
+            ),
+            None,
+        )
+
+    def _rollover_connection_for_schema(
+        self,
+        environment: RolloverEnvironment,
+        schema_id: str,
+        override_connection: RolloverConnectionProfile | None = None,
+    ) -> RolloverConnectionProfile:
+        profile = self._rollover_schema_profile(environment, schema_id)
+        if profile is None:
+            raise ValueError(f"Unknown rollover schema '{schema_id}'.")
+        base_connection = (override_connection or environment.connection).model_copy(deep=True)
+        base_connection.username = profile.username.strip() or base_connection.username
+        base_connection.schema_name = profile.schema_name.strip() or base_connection.schema_name
+        return base_connection
 
     def _rollover_readiness(self, environment: RolloverEnvironment) -> dict[str, object]:
         blockers: list[str] = []
@@ -3731,10 +3861,19 @@ class NexusService:
             blockers.append("Rollover environment is disabled.")
         if not environment.rules or not any(rule.enabled for rule in environment.rules):
             blockers.append("At least one enabled rollover rule is required.")
-        if not environment.connection.username:
-            blockers.append("Oracle username is required.")
-        if not environment.connection.password_set:
-            blockers.append("Oracle password is not stored for this environment.")
+        enabled_schema_profiles = [profile for profile in environment.schema_profiles if profile.enabled]
+        if enabled_schema_profiles:
+            for profile in enabled_schema_profiles:
+                schema_id = profile.schema_id.strip().upper() or profile.schema_name
+                if not profile.username:
+                    blockers.append(f"Oracle username is required for rollover schema {schema_id}.")
+                if not profile.password_set:
+                    blockers.append(f"Oracle password is not stored for rollover schema {schema_id}.")
+        else:
+            if not environment.connection.username:
+                blockers.append("Oracle username is required.")
+            if not environment.connection.password_set:
+                blockers.append("Oracle password is not stored for this environment.")
         try:
             oracle_dsn_from_datagrip(environment.connection)
         except ValueError as exc:

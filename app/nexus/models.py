@@ -897,6 +897,8 @@ class RolloverRuleAssignment(BaseModel):
 class RolloverSchemaProfile(BaseModel):
     schema_id: str
     schema_name: str
+    username: str = ""
+    password_set: bool = False
     label: str | None = None
     description: str | None = None
     enabled: bool = True
@@ -947,6 +949,7 @@ class RolloverEnvironmentUpsertRequest(BaseModel):
     connection: RolloverConnectionProfile = Field(default_factory=RolloverConnectionProfile)
     schema_profiles: list[RolloverSchemaProfile] = Field(default_factory=list)
     credential_password: str | None = Field(default=None, max_length=1000)
+    schema_credential_passwords: dict[str, str] = Field(default_factory=dict)
     rules: list[RolloverReplacementRule] = Field(default_factory=list)
     notes: str | None = None
     updated_by: str | None = None
@@ -993,11 +996,13 @@ class RolloverAssessment(BaseModel):
 class RolloverAssessmentRequest(BaseModel):
     requested_by: str = ""
     credential_password: str | None = Field(default=None, max_length=1000)
+    schema_credential_passwords: dict[str, str] = Field(default_factory=dict)
 
 
 class DatabaseConnectionTestRequest(BaseModel):
     requested_by: str = ""
     credential_password: str | None = Field(default=None, max_length=1000)
+    schema_id: str | None = None
     database_profile: DatabaseProfile | None = None
     rollover_connection: RolloverConnectionProfile | None = None
 

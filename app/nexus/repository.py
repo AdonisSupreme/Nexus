@@ -750,7 +750,7 @@ class NexusRepository:
             return None
         return self._rollover_environment_from_row(row) if row else None
 
-    def get_rollover_environment_with_secret(self, environment_id: str) -> tuple[RolloverEnvironment | None, str | None]:
+    def get_rollover_environment_with_secret(self, environment_id: str) -> tuple[RolloverEnvironment | None, object | None]:
         if not self._use_postgres:
             return None, None
         encryption_key = self._agent_token_encryption_key()
@@ -777,34 +777,68 @@ class NexusRepository:
             return None, None
         if not row:
             return None, None
-        return self._rollover_environment_from_row(row), row.get("credential_password")
+        return self._rollover_environment_from_row(row), self._rollover_credentials_from_secret(row.get("credential_password"))
 
     def upsert_rollover_environment(
         self,
         environment: RolloverEnvironment,
         *,
         credential_password: str | None = None,
+        schema_credential_passwords: dict[str, str] | None = None,
     ) -> RolloverEnvironment:
         if not self._use_postgres:
             raise RuntimeError("DATABASE_URL is required for Nexus environment rollover.")
         credential_password = credential_password if credential_password else None
+        schema_credential_passwords = {
+            str(key).strip().upper(): str(value).strip()
+            for key, value in (schema_credential_passwords or {}).items()
+            if str(key).strip() and str(value).strip()
+        }
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
+                    encryption_key = self._agent_token_encryption_key()
                     existing = cur.execute(
                         """
-                        SELECT credential_ciphertext IS NOT NULL AS credential_configured
+                        SELECT
+                            credential_ciphertext IS NOT NULL AS credential_configured,
+                            CASE
+                                WHEN credential_ciphertext IS NULL THEN NULL
+                                ELSE pgp_sym_decrypt(credential_ciphertext, %s)
+                            END AS credential_password
                         FROM nexus_rollover_environment
                         WHERE environment_id = %s
                           AND deleted_at IS NULL
                         """,
-                        (environment.environment_id,),
+                        (encryption_key, environment.environment_id),
                     ).fetchone()
-                    password_set = bool(credential_password) or bool(existing and existing.get("credential_configured"))
-                    environment.connection.password_set = password_set
-                    payload = environment.model_dump(mode="json")
+                    credentials = self._rollover_credentials_from_secret(
+                        existing.get("credential_password") if existing else None
+                    )
                     if credential_password:
-                        encryption_key = self._agent_token_encryption_key()
+                        credentials["default"] = credential_password
+                    credentials.setdefault("schemas", {})
+                    credentials["schemas"].update(schema_credential_passwords)
+                    configured_schema_ids = {
+                        profile.schema_id.strip().upper()
+                        for profile in environment.schema_profiles
+                        if profile.schema_id.strip()
+                    }
+                    if configured_schema_ids:
+                        credentials["schemas"] = {
+                            schema_id: password
+                            for schema_id, password in credentials.get("schemas", {}).items()
+                            if schema_id in configured_schema_ids
+                        }
+                    else:
+                        credentials["schemas"] = {}
+                    environment.connection.password_set = bool(credentials.get("default"))
+                    for profile in environment.schema_profiles:
+                        schema_id = profile.schema_id.strip().upper()
+                        profile.password_set = bool(credentials.get("schemas", {}).get(schema_id))
+                    payload = environment.model_dump(mode="json")
+                    secret_payload = self._rollover_secret_from_credentials(credentials)
+                    if secret_payload:
                         cur.execute(
                             """
                             INSERT INTO nexus_rollover_environment (
@@ -828,7 +862,7 @@ class NexusRepository:
                                 environment.environment_type,
                                 environment.service_environment,
                                 environment.enabled,
-                                credential_password,
+                                secret_payload,
                                 encryption_key,
                                 json.dumps(payload),
                                 environment.updated_at,
@@ -1050,8 +1084,50 @@ class NexusRepository:
     @staticmethod
     def _rollover_environment_from_row(row: dict[str, object]) -> RolloverEnvironment:
         environment = RolloverEnvironment.model_validate(row["payload"])
-        environment.connection.password_set = bool(row.get("credential_configured"))
+        if not environment.schema_profiles:
+            environment.connection.password_set = environment.connection.password_set or bool(row.get("credential_configured"))
         return environment
+
+    @staticmethod
+    def _rollover_credentials_from_secret(secret: object | None) -> dict[str, object]:
+        if not secret:
+            return {"default": None, "schemas": {}}
+        raw = str(secret)
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError):
+            return {"default": raw, "schemas": {}}
+        if not isinstance(parsed, dict) or parsed.get("kind") != "nexus_rollover_credentials":
+            return {"default": raw, "schemas": {}}
+        schemas = parsed.get("schemas")
+        return {
+            "default": str(parsed.get("default") or "") or None,
+            "schemas": {
+                str(key).strip().upper(): str(value)
+                for key, value in (schemas if isinstance(schemas, dict) else {}).items()
+                if str(key).strip() and str(value)
+            },
+        }
+
+    @staticmethod
+    def _rollover_secret_from_credentials(credentials: dict[str, object]) -> str | None:
+        default_password = str(credentials.get("default") or "")
+        schemas = {
+            str(key).strip().upper(): str(value)
+            for key, value in (credentials.get("schemas") or {}).items()  # type: ignore[union-attr]
+            if str(key).strip() and str(value)
+        }
+        if schemas:
+            return json.dumps(
+                {
+                    "kind": "nexus_rollover_credentials",
+                    "version": 1,
+                    "default": default_password or None,
+                    "schemas": schemas,
+                },
+                separators=(",", ":"),
+            )
+        return default_password or None
 
     def get_agent_token_status(self) -> dict[str, object]:
         """Return safe metadata for the active DB-backed Nexus agent credential."""
