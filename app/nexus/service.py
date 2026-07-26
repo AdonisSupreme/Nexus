@@ -721,7 +721,7 @@ class NexusService:
                 assessed_by=assessed_by,
             )
         except Exception as exc:
-            logger.exception("Nexus rollover assessment failed environment_id=%s", environment_id)
+            logger.exception("Nexus rollover assessment failed environment_id=%s error=%s", environment_id, exc)
             assessment = RolloverAssessment(
                 assessment_id=f"roll-assess-{uuid4()}",
                 environment_id=environment.environment_id,
@@ -925,7 +925,7 @@ class NexusService:
                     "linked_service_ids": [service.service_id for service in self._rollover_linked_services(environment)],
                 }
             except Exception as exc:
-                logger.exception("Nexus rollover execution failed environment_id=%s", environment_id)
+                logger.exception("Nexus rollover execution failed environment_id=%s error=%s", environment_id, exc)
                 execution = RolloverExecution(
                     execution_id=f"roll-exec-{uuid4()}",
                     environment_id=environment.environment_id,

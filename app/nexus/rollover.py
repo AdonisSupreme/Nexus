@@ -89,13 +89,30 @@ class RolloverOracleGateway:
                     pre_result = pre_results.get(rule.rule_id)
                     if not pre_result or pre_result.source_matches <= 0:
                         continue
-                    self._apply_rule_schema(cursor, environment, rule)
-                    sql = self._update_sql(rule)
-                    cursor.execute(sql, self._update_binds(rule))
-                    rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
+                    sql: str | None = None
+                    schema_id: str | None = rule.schema_id
+                    schema_name: str | None = None
+                    try:
+                        schema_id, schema_name = self._rule_schema(environment, rule)
+                        self._apply_cursor_schema(cursor, schema_name)
+                        sql = self._update_sql(rule)
+                        cursor.execute(sql, self._update_binds(rule))
+                        rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
+                    except Exception as exc:
+                        raise self._rule_error(
+                            environment,
+                            rule,
+                            phase="execution:update",
+                            exc=exc,
+                            schema_id=schema_id,
+                            schema_name=schema_name,
+                            sql=sql,
+                        ) from exc
                     rule_results.append(
                         pre_result.model_copy(
                             update={
+                                "schema_id": schema_id,
+                                "schema_name": schema_name,
                                 "rows_affected": rows_affected,
                                 "generated_sql": sql,
                                 "message": f"{rows_affected} row(s) updated.",
@@ -150,12 +167,34 @@ class RolloverOracleGateway:
                         )
                     )
                     continue
-                self._validate_rule(rule)
-                schema_id, schema_name = self._rule_schema(environment, rule)
-                self._apply_cursor_schema(cursor, schema_name)
-                source_matches = self._count_matches(cursor, rule, "source")
-                target_matches = self._count_matches(cursor, rule, "target")
-                samples = self._sample_values(cursor, rule)
+                schema_id: str | None = rule.schema_id
+                schema_name: str | None = None
+                generated_sql: str | None = None
+                try:
+                    phase = "validation"
+                    self._validate_rule(rule)
+                    phase = "schema-resolution"
+                    schema_id, schema_name = self._rule_schema(environment, rule)
+                    phase = "schema-switch"
+                    self._apply_cursor_schema(cursor, schema_name)
+                    phase = "source-count"
+                    source_matches = self._count_matches(cursor, rule, "source")
+                    phase = "target-count"
+                    target_matches = self._count_matches(cursor, rule, "target")
+                    phase = "sample"
+                    samples = self._sample_values(cursor, rule)
+                    phase = "sql-generation"
+                    generated_sql = self._update_sql(rule)
+                except Exception as exc:
+                    raise self._rule_error(
+                        environment,
+                        rule,
+                        phase=f"assessment:{phase}",
+                        exc=exc,
+                        schema_id=schema_id,
+                        schema_name=schema_name,
+                        sql=generated_sql,
+                    ) from exc
                 status = (
                     "requires_change"
                     if source_matches > 0
@@ -186,7 +225,7 @@ class RolloverOracleGateway:
                         source_matches=source_matches,
                         target_matches=target_matches,
                         sample_values=samples,
-                        generated_sql=self._update_sql(rule),
+                        generated_sql=generated_sql,
                         message=message,
                     )
                 )
@@ -270,15 +309,49 @@ class RolloverOracleGateway:
                     )
                 )
                 continue
-            self._validate_rule(rule)
-            schema_id, schema_name = self._rule_schema(environment, rule)
-            connection = connections[self._schema_connection_key(environment, rule)]
+            schema_id: str | None = rule.schema_id
+            schema_name: str | None = None
+            generated_sql: str | None = None
+            try:
+                phase = "validation"
+                self._validate_rule(rule)
+                phase = "schema-resolution"
+                schema_id, schema_name = self._rule_schema(environment, rule)
+                phase = "connection-select"
+                connection = connections[self._schema_connection_key(environment, rule)]
+            except Exception as exc:
+                raise self._rule_error(
+                    environment,
+                    rule,
+                    phase=f"assessment:{phase}",
+                    exc=exc,
+                    schema_id=schema_id,
+                    schema_name=schema_name,
+                    sql=generated_sql,
+                ) from exc
             cursor = connection.cursor()
             try:
-                self._apply_cursor_schema(cursor, schema_name)
-                source_matches = self._count_matches(cursor, rule, "source")
-                target_matches = self._count_matches(cursor, rule, "target")
-                samples = self._sample_values(cursor, rule)
+                try:
+                    phase = "schema-switch"
+                    self._apply_cursor_schema(cursor, schema_name)
+                    phase = "source-count"
+                    source_matches = self._count_matches(cursor, rule, "source")
+                    phase = "target-count"
+                    target_matches = self._count_matches(cursor, rule, "target")
+                    phase = "sample"
+                    samples = self._sample_values(cursor, rule)
+                    phase = "sql-generation"
+                    generated_sql = self._update_sql(rule)
+                except Exception as exc:
+                    raise self._rule_error(
+                        environment,
+                        rule,
+                        phase=f"assessment:{phase}",
+                        exc=exc,
+                        schema_id=schema_id,
+                        schema_name=schema_name,
+                        sql=generated_sql,
+                    ) from exc
             finally:
                 self._close_quietly(cursor)
             status = (
@@ -311,7 +384,7 @@ class RolloverOracleGateway:
                     source_matches=source_matches,
                     target_matches=target_matches,
                     sample_values=samples,
-                    generated_sql=self._update_sql(rule),
+                    generated_sql=generated_sql,
                     message=message,
                 )
             )
@@ -342,14 +415,39 @@ class RolloverOracleGateway:
                 pre_result = pre_results.get(rule.rule_id)
                 if not pre_result or pre_result.source_matches <= 0:
                     continue
-                schema_id, schema_name = self._rule_schema(environment, rule)
-                connection = connections[self._schema_connection_key(environment, rule)]
+                sql: str | None = None
+                schema_id: str | None = rule.schema_id
+                schema_name: str | None = None
+                try:
+                    schema_id, schema_name = self._rule_schema(environment, rule)
+                    connection = connections[self._schema_connection_key(environment, rule)]
+                except Exception as exc:
+                    raise self._rule_error(
+                        environment,
+                        rule,
+                        phase="execution:schema-resolution",
+                        exc=exc,
+                        schema_id=schema_id,
+                        schema_name=schema_name,
+                        sql=sql,
+                    ) from exc
                 cursor = connection.cursor()
                 try:
-                    self._apply_cursor_schema(cursor, schema_name)
-                    sql = self._update_sql(rule)
-                    cursor.execute(sql, self._update_binds(rule))
-                    rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
+                    try:
+                        self._apply_cursor_schema(cursor, schema_name)
+                        sql = self._update_sql(rule)
+                        cursor.execute(sql, self._update_binds(rule))
+                        rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
+                    except Exception as exc:
+                        raise self._rule_error(
+                            environment,
+                            rule,
+                            phase="execution:update",
+                            exc=exc,
+                            schema_id=schema_id,
+                            schema_name=schema_name,
+                            sql=sql,
+                        ) from exc
                 finally:
                     self._close_quietly(cursor)
                 rule_results.append(
@@ -847,6 +945,39 @@ class RolloverOracleGateway:
 
     def _enabled_rules(self, environment: RolloverEnvironment) -> list[RolloverReplacementRule]:
         return [rule for rule in sorted(environment.rules, key=lambda item: (item.sequence, item.rule_id)) if rule.enabled]
+
+    def _rule_error(
+        self,
+        environment: RolloverEnvironment,
+        rule: RolloverReplacementRule,
+        *,
+        phase: str,
+        exc: Exception,
+        schema_id: str | None = None,
+        schema_name: str | None = None,
+        sql: str | None = None,
+    ) -> RuntimeError:
+        assignment_columns = [assignment.column_name for assignment in rule.assignments]
+        condition_columns = [condition.column_name for condition in rule.conditions]
+        context = [
+            f"environment={environment.environment_id}",
+            f"phase={phase}",
+            f"rule_id={rule.rule_id}",
+            f"sequence={rule.sequence}",
+            f"schema_id={schema_id or '-'}",
+            f"schema_name={schema_name or '-'}",
+            f"table={rule.table_name}",
+            f"column={rule.column_name}",
+            f"operation={rule.operation}",
+        ]
+        if assignment_columns:
+            context.append(f"assignment_columns={','.join(assignment_columns)}")
+        if condition_columns:
+            context.append(f"condition_columns={','.join(condition_columns)}")
+        if sql:
+            context.append(f"sql={sql}")
+        context.append(f"cause={exc.__class__.__name__}: {exc}")
+        return RuntimeError("Nexus rollover rule failed: " + "; ".join(context))
 
     def _table_identifier(self, value: str) -> str:
         parts = [part.strip() for part in value.split(".") if part.strip()]

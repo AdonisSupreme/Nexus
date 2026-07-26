@@ -2352,6 +2352,94 @@ def test_rollover_multi_assignment_set_generates_atomic_tuple_update():
     assert "target_like" not in binds
 
 
+def test_rollover_assessment_error_identifies_failed_rule_context():
+    class FailingCursor:
+        def execute(self, sql, binds=None):
+            if sql.startswith("SELECT COUNT"):
+                raise RuntimeError("ORA-00942: table or view does not exist")
+
+        def close(self):
+            return None
+
+    class FakeConnection:
+        def cursor(self):
+            return FailingCursor()
+
+    environment = make_rollover_environment()
+
+    try:
+        RolloverOracleGateway()._assess_with_connection(environment, FakeConnection(), assessed_by="operator")
+    except RuntimeError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("Assessment failures should include rollover rule context.")
+
+    assert "Nexus rollover rule failed" in message
+    assert "phase=assessment:source-count" in message
+    assert "rule_id=eftendptm-interface-host" in message
+    assert "table=EFTENDPTM" in message
+    assert "column=EFTEP_ENDPT_URL" in message
+    assert "cause=RuntimeError: ORA-00942: table or view does not exist" in message
+
+
+def test_rollover_execution_error_identifies_failed_rule_context(monkeypatch):
+    class FakeCursor:
+        rowcount = 0
+
+        def __init__(self) -> None:
+            self.last_binds = {}
+
+        def execute(self, sql, binds=None):
+            if sql.startswith("UPDATE"):
+                raise RuntimeError("ORA-00904: invalid identifier")
+            self.last_binds = binds or {}
+
+        def fetchone(self):
+            if self.last_binds.get("source_like"):
+                return (1,)
+            if self.last_binds.get("target_like"):
+                return (0,)
+            return (1,)
+
+        def fetchall(self):
+            return [("sample-value",)]
+
+        def close(self):
+            return None
+
+    class FakeConnection:
+        def cursor(self):
+            return FakeCursor()
+
+        def rollback(self):
+            return None
+
+        def close(self):
+            return None
+
+    monkeypatch.setitem(sys.modules, "oracledb", SimpleNamespace(connect=lambda **_: FakeConnection()))
+
+    try:
+        RolloverOracleGateway().execute_environment(
+            make_rollover_environment(),
+            password="secret",
+            requested_by="operator",
+            approved_by="operator",
+            reason="test failure context",
+        )
+    except RuntimeError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError("Execution failures should include rollover rule context.")
+
+    assert "phase=execution:update" in message
+    assert "rule_id=eftendptm-interface-host" in message
+    assert "table=EFTENDPTM" in message
+    assert "column=EFTEP_ENDPT_URL" in message
+    assert "sql=UPDATE EFTENDPTM" in message
+    assert "cause=RuntimeError: ORA-00904: invalid identifier" in message
+
+
 def test_rollover_blocks_unscoped_set_unless_explicitly_allowed():
     gateway = RolloverOracleGateway()
     blocked = RolloverReplacementRule(
