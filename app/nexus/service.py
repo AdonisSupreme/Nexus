@@ -645,6 +645,7 @@ class NexusService:
                 request.connection,
                 service_environment=(request.service_environment or "").strip() or None,
             ),
+            schema_profiles=request.schema_profiles,
             rules=sorted(request.rules, key=lambda item: (item.sequence, item.rule_id)),
             notes=request.notes,
             created_at=existing.created_at if existing else datetime.utcnow(),
@@ -3738,6 +3739,12 @@ class NexusService:
             oracle_dsn_from_datagrip(environment.connection)
         except ValueError as exc:
             blockers.append(str(exc))
+        schema_validator = getattr(self.rollover_gateway, "_validate_environment_schemas", None)
+        if callable(schema_validator):
+            try:
+                schema_validator(environment)
+            except ValueError as exc:
+                blockers.append(str(exc))
         linked_services = self._rollover_linked_services(environment)
         return {
             "ready": not blockers,

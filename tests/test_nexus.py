@@ -2270,6 +2270,113 @@ def test_rollover_blocks_unscoped_set_unless_explicitly_allowed():
     assert binds == {"assignment_0_target": "8398"}
 
 
+def test_rollover_multi_schema_contract_requires_rule_schema_selection():
+    gateway = RolloverOracleGateway()
+    payload = make_rollover_environment().model_dump()
+    payload.update(
+        {
+            "schema_profiles": [
+                {"schema_id": "ARX", "schema_name": "ARX_OWNER"},
+                {"schema_id": "IDC", "schema_name": "IDC_OWNER"},
+            ],
+            "rules": [
+                RolloverReplacementRule(
+                    rule_id="arx-web-cbx-dr",
+                    table_name="TB_ARM_WEB_APP",
+                    column_name="URL",
+                    source_value="afcconnect-lbm",
+                    target_value="cbxtre-applive01-dr",
+                )
+            ],
+        }
+    )
+    environment = RolloverEnvironment.model_validate(payload)
+
+    try:
+        gateway._validate_environment_schemas(environment)
+    except ValueError as exc:
+        assert "every enabled rule to select a schema" in str(exc)
+    else:
+        raise AssertionError("Multi-schema rollover must reject ambiguous enabled rules.")
+
+
+def test_rollover_multi_schema_assessment_switches_schema_per_rule():
+    class FakeCursor:
+        def __init__(self) -> None:
+            self.commands = []
+            self.last_sql = ""
+            self.last_binds = {}
+
+        def execute(self, sql, binds=None):
+            self.commands.append((sql, binds or {}))
+            self.last_sql = sql
+            self.last_binds = binds or {}
+            return self
+
+        def fetchone(self):
+            if self.last_binds.get("source_like"):
+                return (1,)
+            return (0,)
+
+        def fetchall(self):
+            return [("sample-value",)]
+
+        def close(self):
+            return None
+
+    class FakeConnection:
+        def __init__(self) -> None:
+            self.cursor_instance = FakeCursor()
+
+        def cursor(self):
+            return self.cursor_instance
+
+    gateway = RolloverOracleGateway()
+    payload = make_rollover_environment().model_dump()
+    payload.update(
+        {
+            "schema_profiles": [
+                {"schema_id": "ARX", "schema_name": "ARX_OWNER"},
+                {"schema_id": "IDC", "schema_name": "IDC_OWNER"},
+            ],
+            "rules": [
+                RolloverReplacementRule(
+                    rule_id="arx-web-cbx-dr",
+                    schema_id="ARX",
+                    table_name="TB_ARM_WEB_APP",
+                    column_name="URL",
+                    source_value="afcconnect-lbm",
+                    target_value="cbxtre-applive01-dr",
+                    sequence=10,
+                ),
+                RolloverReplacementRule(
+                    rule_id="idc-eod-ip-dr",
+                    schema_id="IDC",
+                    table_name="EODSYSCONFIG",
+                    column_name="EODSYSCNF_EOD_TRIG_END_URL",
+                    source_value="192.168.1.110",
+                    target_value="192.168.254.94",
+                    sequence=20,
+                ),
+            ],
+        }
+    )
+    environment = RolloverEnvironment.model_validate(payload)
+    connection = FakeConnection()
+
+    assessment = gateway._assess_with_connection(environment, connection, assessed_by="operator")
+    commands = [item[0] for item in connection.cursor_instance.commands]
+
+    assert commands[0] == "ALTER SESSION SET CURRENT_SCHEMA = ARX_OWNER"
+    assert "FROM TB_ARM_WEB_APP" in commands[1]
+    assert "ALTER SESSION SET CURRENT_SCHEMA = IDC_OWNER" in commands[4]
+    assert "FROM EODSYSCONFIG" in commands[5]
+    assert assessment.rule_results[0].schema_id == "ARX"
+    assert assessment.rule_results[0].schema_name == "ARX_OWNER"
+    assert assessment.rule_results[1].schema_id == "IDC"
+    assert assessment.rule_results[1].schema_name == "IDC_OWNER"
+
+
 def test_timeline_smalltalk_is_short_and_human():
     answer = nexus._timeline_smalltalk_answer("By the way, who are you?", "Mobile Banking USSD")
 

@@ -894,8 +894,18 @@ class RolloverRuleAssignment(BaseModel):
     target_value: str
 
 
+class RolloverSchemaProfile(BaseModel):
+    schema_id: str
+    schema_name: str
+    label: str | None = None
+    description: str | None = None
+    enabled: bool = True
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class RolloverReplacementRule(BaseModel):
     rule_id: str
+    schema_id: str | None = None
     table_name: str
     column_name: str
     operation: RolloverRuleOperation = "replace"
@@ -918,6 +928,7 @@ class RolloverEnvironment(BaseModel):
     owner_team: str | None = None
     enabled: bool = True
     connection: RolloverConnectionProfile = Field(default_factory=RolloverConnectionProfile)
+    schema_profiles: list[RolloverSchemaProfile] = Field(default_factory=list)
     rules: list[RolloverReplacementRule] = Field(default_factory=list)
     notes: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -934,6 +945,7 @@ class RolloverEnvironmentUpsertRequest(BaseModel):
     owner_team: str | None = None
     enabled: bool = True
     connection: RolloverConnectionProfile = Field(default_factory=RolloverConnectionProfile)
+    schema_profiles: list[RolloverSchemaProfile] = Field(default_factory=list)
     credential_password: str | None = Field(default=None, max_length=1000)
     rules: list[RolloverReplacementRule] = Field(default_factory=list)
     notes: str | None = None
@@ -943,6 +955,8 @@ class RolloverEnvironmentUpsertRequest(BaseModel):
 
 class RolloverRuleAssessment(BaseModel):
     rule_id: str
+    schema_id: str | None = None
+    schema_name: str | None = None
     table_name: str
     column_name: str
     operation: RolloverRuleOperation = "replace"

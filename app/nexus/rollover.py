@@ -31,6 +31,7 @@ class RolloverOracleGateway:
         password: str | None,
         assessed_by: str | None = None,
     ) -> RolloverAssessment:
+        self._validate_environment_schemas(environment)
         connection = self._connect(environment, password=password)
         try:
             self._apply_session_schema(connection, environment)
@@ -57,6 +58,7 @@ class RolloverOracleGateway:
             approved_by=approved_by,
             reason=reason,
         )
+        self._validate_environment_schemas(environment)
         connection = self._connect(environment, password=password)
         try:
             self._apply_session_schema(connection, environment)
@@ -77,6 +79,7 @@ class RolloverOracleGateway:
                     pre_result = pre_results.get(rule.rule_id)
                     if not pre_result or pre_result.source_matches <= 0:
                         continue
+                    self._apply_rule_schema(cursor, environment, rule)
                     sql = self._update_sql(rule)
                     cursor.execute(sql, self._update_binds(rule))
                     rows_affected = int(getattr(cursor, "rowcount", 0) or 0)
@@ -124,6 +127,7 @@ class RolloverOracleGateway:
                     rule_results.append(
                         RolloverRuleAssessment(
                             rule_id=rule.rule_id,
+                            schema_id=rule.schema_id,
                             table_name=rule.table_name,
                             column_name=rule.column_name,
                             operation=rule.operation,
@@ -137,6 +141,8 @@ class RolloverOracleGateway:
                     )
                     continue
                 self._validate_rule(rule)
+                schema_id, schema_name = self._rule_schema(environment, rule)
+                self._apply_cursor_schema(cursor, schema_name)
                 source_matches = self._count_matches(cursor, rule, "source")
                 target_matches = self._count_matches(cursor, rule, "target")
                 samples = self._sample_values(cursor, rule)
@@ -157,6 +163,8 @@ class RolloverOracleGateway:
                 rule_results.append(
                     RolloverRuleAssessment(
                         rule_id=rule.rule_id,
+                        schema_id=schema_id,
+                        schema_name=schema_name,
                         table_name=rule.table_name,
                         column_name=rule.column_name,
                         operation=rule.operation,
@@ -247,16 +255,32 @@ class RolloverOracleGateway:
         return oracle_config_dir_from_datagrip(environment.connection)
 
     def _apply_session_schema(self, connection: object, environment: RolloverEnvironment) -> None:
+        if environment.schema_profiles:
+            return
         schema = (environment.connection.schema_name or "").strip()
         if not schema:
             return
-        if not IDENTIFIER_RE.match(schema):
-            raise ValueError(f"Unsafe Oracle schema identifier: {schema}")
         cursor = connection.cursor()
         try:
-            cursor.execute(f"ALTER SESSION SET CURRENT_SCHEMA = {schema}")
+            self._apply_cursor_schema(cursor, schema)
         finally:
             self._close_quietly(cursor)
+
+    def _apply_rule_schema(
+        self,
+        cursor: object,
+        environment: RolloverEnvironment,
+        rule: RolloverReplacementRule,
+    ) -> None:
+        _, schema_name = self._rule_schema(environment, rule)
+        self._apply_cursor_schema(cursor, schema_name)
+
+    def _apply_cursor_schema(self, cursor: object, schema_name: str | None) -> None:
+        schema = (schema_name or "").strip()
+        if not schema:
+            return
+        self._schema_identifier(schema)
+        cursor.execute(f"ALTER SESSION SET CURRENT_SCHEMA = {schema}")
 
     def _count_matches(self, cursor: object, rule: RolloverReplacementRule, mode: str) -> int:
         binds = self._base_binds(rule)
@@ -316,6 +340,68 @@ class RolloverOracleGateway:
                 f"Rollover rule {rule.rule_id} is an unscoped SET. "
                 "Add conditions or explicitly enable allow_unscoped."
             )
+
+    def _validate_environment_schemas(self, environment: RolloverEnvironment) -> None:
+        profiles = [profile for profile in environment.schema_profiles if profile.enabled]
+        if environment.schema_profiles and not profiles:
+            raise ValueError("At least one rollover schema profile must be enabled.")
+        seen_ids: set[str] = set()
+        for profile in profiles:
+            schema_id = profile.schema_id.strip()
+            if not IDENTIFIER_RE.match(schema_id):
+                raise ValueError(f"Unsafe rollover schema key: {profile.schema_id}")
+            normalized_id = schema_id.lower()
+            if normalized_id in seen_ids:
+                raise ValueError(f"Duplicate rollover schema key: {schema_id}")
+            seen_ids.add(normalized_id)
+            self._schema_identifier(profile.schema_name)
+        if len(profiles) > 1:
+            valid_ids = {profile.schema_id.strip().lower() for profile in profiles}
+            missing_rules = [
+                rule.rule_id
+                for rule in self._enabled_rules(environment)
+                if not (rule.schema_id or "").strip()
+            ]
+            invalid_rules = [
+                rule.rule_id
+                for rule in self._enabled_rules(environment)
+                if (rule.schema_id or "").strip() and (rule.schema_id or "").strip().lower() not in valid_ids
+            ]
+            if missing_rules:
+                raise ValueError(
+                    "Multi-schema rollover requires every enabled rule to select a schema. "
+                    f"Missing schema on: {', '.join(missing_rules)}"
+                )
+            if invalid_rules:
+                raise ValueError(
+                    "Rollover rules reference schema keys that are not configured on this environment: "
+                    f"{', '.join(invalid_rules)}"
+                )
+
+    def _rule_schema(
+        self,
+        environment: RolloverEnvironment,
+        rule: RolloverReplacementRule,
+    ) -> tuple[str | None, str | None]:
+        profiles = [profile for profile in environment.schema_profiles if profile.enabled]
+        schema_id = (rule.schema_id or "").strip()
+        if not profiles:
+            if schema_id:
+                raise ValueError(
+                    f"Rollover rule {rule.rule_id} selects schema '{schema_id}', "
+                    "but the environment has no schema profiles configured."
+                )
+            schema_name = (environment.connection.schema_name or "").strip() or None
+            return None, schema_name
+
+        profile_by_id = {profile.schema_id.strip().lower(): profile for profile in profiles}
+        if len(profiles) == 1 and not schema_id:
+            profile = profiles[0]
+            return profile.schema_id.strip(), profile.schema_name.strip()
+        profile = profile_by_id.get(schema_id.lower())
+        if not profile:
+            raise ValueError(f"Unknown rollover schema '{schema_id}' on rule {rule.rule_id}.")
+        return profile.schema_id.strip(), profile.schema_name.strip()
 
     def _base_binds(self, rule: RolloverReplacementRule) -> dict[str, object]:
         binds: dict[str, object] = {
@@ -455,6 +541,11 @@ class RolloverOracleGateway:
     def _column_identifier(self, value: str) -> str:
         if not IDENTIFIER_RE.match(value.strip()):
             raise ValueError(f"Unsafe Oracle column identifier: {value}")
+        return value.strip()
+
+    def _schema_identifier(self, value: str) -> str:
+        if not IDENTIFIER_RE.match(value.strip()):
+            raise ValueError(f"Unsafe Oracle schema identifier: {value}")
         return value.strip()
 
     @staticmethod
