@@ -261,26 +261,27 @@ class RolloverOracleGateway:
     def _count_matches(self, cursor: object, rule: RolloverReplacementRule, mode: str) -> int:
         binds = self._base_binds(rule)
         where = self._where_clause(rule, binds, mode=mode)
-        cursor.execute(f"SELECT COUNT(*) FROM {self._table_identifier(rule.table_name)}{where}", binds)
+        sql = f"SELECT COUNT(*) FROM {self._table_identifier(rule.table_name)}{where}"
+        cursor.execute(sql, self._binds_for_sql(sql, binds))
         row = cursor.fetchone()
         return int(self._first_value(row) or 0)
 
     def _sample_values(self, cursor: object, rule: RolloverReplacementRule) -> list[str]:
         binds = self._base_binds(rule)
         where = self._where_clause(rule, binds, mode="sample")
-        cursor.execute(
+        sql = (
             f"SELECT {self._column_identifier(rule.column_name)} "
             f"FROM {self._table_identifier(rule.table_name)}{where} "
-            "FETCH FIRST 5 ROWS ONLY",
-            binds,
+            "FETCH FIRST 5 ROWS ONLY"
         )
+        cursor.execute(sql, self._binds_for_sql(sql, binds))
         rows = cursor.fetchall()
         return [str(self._first_value(row)) for row in rows if self._first_value(row) is not None]
 
-    def _update_sql(self, rule: RolloverReplacementRule) -> str:
+    def _update_sql(self, rule: RolloverReplacementRule, binds: dict[str, object] | None = None) -> str:
         table = self._table_identifier(rule.table_name)
         column = self._column_identifier(rule.column_name)
-        binds = self._base_binds(rule)
+        binds = binds if binds is not None else self._base_binds(rule)
         where = self._where_clause(rule, binds, mode="update")
         if rule.operation == "replace":
             assignment = f"{column} = REPLACE({column}, :source_value, :target_value)"
@@ -293,8 +294,8 @@ class RolloverOracleGateway:
 
     def _update_binds(self, rule: RolloverReplacementRule) -> dict[str, object]:
         binds = self._base_binds(rule)
-        self._where_clause(rule, binds, mode="update")
-        return binds
+        sql = self._update_sql(rule, binds)
+        return self._binds_for_sql(sql, binds)
 
     def _validate_rule(self, rule: RolloverReplacementRule) -> None:
         self._table_identifier(rule.table_name)
@@ -437,6 +438,10 @@ class RolloverOracleGateway:
         if re.fullmatch(r"-?\d+", stripped):
             return int(stripped)
         return stripped
+
+    @staticmethod
+    def _binds_for_sql(sql: str, binds: dict[str, object]) -> dict[str, object]:
+        return {name: value for name, value in binds.items() if f":{name}" in sql}
 
     def _enabled_rules(self, environment: RolloverEnvironment) -> list[RolloverReplacementRule]:
         return [rule for rule in sorted(environment.rules, key=lambda item: (item.sequence, item.rule_id)) if rule.enabled]

@@ -2238,6 +2238,10 @@ def test_rollover_multi_assignment_set_generates_atomic_tuple_update():
     assert binds["assignment_1_source"] == "192.168.1.113"
     assert binds["assignment_0_target"] == "192.168.254.95"
     assert binds["assignment_1_target"] == "192.168.254.95"
+    assert "source_value" not in binds
+    assert "target_value" not in binds
+    assert "source_like" not in binds
+    assert "target_like" not in binds
 
 
 def test_rollover_blocks_unscoped_set_unless_explicitly_allowed():
@@ -2260,7 +2264,10 @@ def test_rollover_blocks_unscoped_set_unless_explicitly_allowed():
         raise AssertionError("Unscoped SET should be blocked unless explicitly allowed.")
 
     gateway._validate_rule(allowed)
-    assert "dcprop_console1 <> :assignment_0_target" in gateway._update_sql(allowed)
+    sql = gateway._update_sql(allowed)
+    binds = gateway._update_binds(allowed)
+    assert "dcprop_console1 <> :assignment_0_target" in sql
+    assert binds == {"assignment_0_target": "8398"}
 
 
 def test_timeline_smalltalk_is_short_and_human():
