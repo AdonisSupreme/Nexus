@@ -80,6 +80,22 @@ class Settings(BaseSettings):
     NEXUS_ALLOW_LOCAL_STATE: bool = Field(default=False, env="NEXUS_ALLOW_LOCAL_STATE")
     NEXUS_WRITE_ROLES: list[str] = Field(default_factory=lambda: ["admin", "manager", "supervisor"], env="NEXUS_WRITE_ROLES")
     NEXUS_ADMIN_ROLES: list[str] = Field(default_factory=lambda: ["admin"], env="NEXUS_ADMIN_ROLES")
+    NEXUS_CLEARING_MAKER_ROLES: list[str] = Field(
+        default_factory=lambda: ["admin", "manager", "supervisor"],
+        env="NEXUS_CLEARING_MAKER_ROLES",
+    )
+    NEXUS_CLEARING_APPROVER_ROLES: list[str] = Field(
+        default_factory=lambda: ["admin", "manager"],
+        env="NEXUS_CLEARING_APPROVER_ROLES",
+    )
+    NEXUS_CLEARING_EXECUTOR_ROLES: list[str] = Field(
+        default_factory=lambda: ["admin", "manager"],
+        env="NEXUS_CLEARING_EXECUTOR_ROLES",
+    )
+    NEXUS_CLEARING_ROLLBACK_ROLES: list[str] = Field(
+        default_factory=lambda: ["admin"],
+        env="NEXUS_CLEARING_ROLLBACK_ROLES",
+    )
     NEXUS_ALLOWED_SECTION_IDS: list[str] = Field(
         default_factory=lambda: ["7bd4144d-68d8-4ac3-897d-245941612daf"],
         env="NEXUS_ALLOWED_SECTION_IDS",
@@ -112,6 +128,75 @@ class Settings(BaseSettings):
             {"label": "RTGS periodic assessment", "interval_minutes": 30, "timezone": "Africa/Johannesburg"},
         ],
         env="RTGS_DEFAULT_SCHEDULES",
+    )
+    NEXUS_CLEARING_ORACLE_RO_DSN: str | None = Field(default=None, env="NEXUS_CLEARING_ORACLE_RO_DSN")
+    NEXUS_CLEARING_ORACLE_RO_USER: str | None = Field(default=None, env="NEXUS_CLEARING_ORACLE_RO_USER")
+    NEXUS_CLEARING_ORACLE_RO_PASSWORD: SecretStr | None = Field(
+        default=None,
+        env="NEXUS_CLEARING_ORACLE_RO_PASSWORD",
+    )
+    NEXUS_CLEARING_ORACLE_RW_DSN: str | None = Field(default=None, env="NEXUS_CLEARING_ORACLE_RW_DSN")
+    NEXUS_CLEARING_ORACLE_RW_USER: str | None = Field(default=None, env="NEXUS_CLEARING_ORACLE_RW_USER")
+    NEXUS_CLEARING_ORACLE_RW_PASSWORD: SecretStr | None = Field(
+        default=None,
+        env="NEXUS_CLEARING_ORACLE_RW_PASSWORD",
+    )
+    NEXUS_CLEARING_ORACLE_CONFIG_DIR: str | None = Field(
+        default=None,
+        env="NEXUS_CLEARING_ORACLE_CONFIG_DIR",
+    )
+    NEXUS_CLEARING_ENTITY_NUMBER: int = Field(default=1, env="NEXUS_CLEARING_ENTITY_NUMBER")
+    NEXUS_CLEARING_TIMEZONE: str = Field(default="Africa/Harare", env="NEXUS_CLEARING_TIMEZONE")
+    NEXUS_CLEARING_MAX_BATCH_SIZE: int = Field(default=500, env="NEXUS_CLEARING_MAX_BATCH_SIZE")
+    NEXUS_CLEARING_MAX_SOURCE_BYTES: int = Field(
+        default=8_388_608,
+        env="NEXUS_CLEARING_MAX_SOURCE_BYTES",
+    )
+    NEXUS_CLEARING_WRITES_ENABLED: bool = Field(default=False, env="NEXUS_CLEARING_WRITES_ENABLED")
+    NEXUS_CLEARING_PRODUCTION_WRITES_ENABLED: bool = Field(
+        default=False,
+        env="NEXUS_CLEARING_PRODUCTION_WRITES_ENABLED",
+    )
+    LMS_ORACLE_DSN: str | None = Field(default=None, env="LMS_ORACLE_DSN")
+    LMS_ORACLE_USER: str | None = Field(default=None, env="LMS_ORACLE_USER")
+    LMS_ORACLE_PASSWORD: SecretStr | None = Field(default=None, env="LMS_ORACLE_PASSWORD")
+    LMS_ORACLE_HOST: str | None = Field(default=None, env="LMS_ORACLE_HOST")
+    LMS_ORACLE_PORT: int = Field(default=1521, env="LMS_ORACLE_PORT")
+    LMS_ORACLE_SID: str | None = Field(default=None, env="LMS_ORACLE_SID")
+    LMS_ORACLE_SERVICE_NAME: str | None = Field(default=None, env="LMS_ORACLE_SERVICE_NAME")
+    LMS_ORACLE_CONFIG_DIR: str | None = Field(default=None, env="LMS_ORACLE_CONFIG_DIR")
+    NEXUS_CRB_TIMEZONE: str = Field(default="Africa/Harare", env="NEXUS_CRB_TIMEZONE")
+    NEXUS_CRB_SCHEDULE_TIME: str = Field(default="07:15", env="NEXUS_CRB_SCHEDULE_TIME")
+    NEXUS_CRB_FETCH_SIZE: int = Field(default=5000, env="NEXUS_CRB_FETCH_SIZE")
+    NEXUS_CRB_REPORT_DIR: Path = Field(default=BASE_DIR / "data" / "reports" / "crb", env="NEXUS_CRB_REPORT_DIR")
+    TXN_BOT_DATABASE_URL: SecretStr | None = Field(default=None, env="TXN_BOT_DATABASE_URL")
+    NEXUS_HOVERING_CREDIT_ACCOUNT: str = Field(default="310004003", env="NEXUS_HOVERING_CREDIT_ACCOUNT")
+    NEXUS_HOVERING_TYPE: str = Field(default="LOAN_LEDGER_FEES", env="NEXUS_HOVERING_TYPE")
+    NEXUS_HOVERING_TIMEZONE: str = Field(default="Africa/Harare", env="NEXUS_HOVERING_TIMEZONE")
+    NEXUS_HOVERING_BOT_WINDOW_START: str = Field(default="03:00", env="NEXUS_HOVERING_BOT_WINDOW_START")
+    NEXUS_HOVERING_BOT_WINDOW_END: str = Field(default="15:00", env="NEXUS_HOVERING_BOT_WINDOW_END")
+    NEXUS_HOVERING_WEEKEND_WINDOW_END: str = Field(
+        default="09:00",
+        env="NEXUS_HOVERING_WEEKEND_WINDOW_END",
+    )
+    NEXUS_HOVERING_SAMPLE_INTERVAL_SECONDS: int = Field(
+        default=15,
+        env="NEXUS_HOVERING_SAMPLE_INTERVAL_SECONDS",
+    )
+    NEXUS_HOVERING_RATE_WINDOW_MINUTES: int = Field(default=60, env="NEXUS_HOVERING_RATE_WINDOW_MINUTES")
+    NEXUS_HOVERING_STALL_MINUTES: int = Field(default=15, env="NEXUS_HOVERING_STALL_MINUTES")
+    NEXUS_HOVERING_MAX_PAGE_SIZE: int = Field(default=100, env="NEXUS_HOVERING_MAX_PAGE_SIZE")
+    NEXUS_HOVERING_ENCRYPTION_URL: str = Field(
+        default="http://192.168.0.71:8099/internal/encryption/encrypt",
+        env="NEXUS_HOVERING_ENCRYPTION_URL",
+    )
+    NEXUS_HOVERING_ENCRYPTION_TIMEOUT_SECONDS: float = Field(
+        default=10.0,
+        env="NEXUS_HOVERING_ENCRYPTION_TIMEOUT_SECONDS",
+    )
+    NEXUS_HOVERING_PASSWORD_ROLES: list[str] = Field(
+        default_factory=lambda: ["admin", "manager", "user"],
+        env="NEXUS_HOVERING_PASSWORD_ROLES",
     )
     SMTP_HOST: str | None = Field(default=None, env="SMTP_HOST")
     SMTP_PORT: int = Field(default=587, env="SMTP_PORT")
@@ -176,6 +261,11 @@ class Settings(BaseSettings):
         "SOP_ALLOWED_CLASSES",
         "NEXUS_WRITE_ROLES",
         "NEXUS_ADMIN_ROLES",
+        "NEXUS_CLEARING_MAKER_ROLES",
+        "NEXUS_CLEARING_APPROVER_ROLES",
+        "NEXUS_CLEARING_EXECUTOR_ROLES",
+        "NEXUS_CLEARING_ROLLBACK_ROLES",
+        "NEXUS_HOVERING_PASSWORD_ROLES",
         "NEXUS_ALLOWED_SECTION_IDS",
         "RTGS_DEFAULT_SCHEDULES",
         mode="before",
@@ -205,6 +295,7 @@ class Settings(BaseSettings):
         "JOBS_DIR",
         "VECTOR_STORE_PATH",
         "LOGS_DIR",
+        "NEXUS_CRB_REPORT_DIR",
         mode="after",
     )
     @classmethod
@@ -228,6 +319,11 @@ class Settings(BaseSettings):
         if self.POSTGRES_DSN:
             return self.POSTGRES_DSN.get_secret_value()
         return None
+
+    @property
+    def txn_bot_database_dsn(self) -> str | None:
+        """Return the isolated txn-bot source database identity."""
+        return self.TXN_BOT_DATABASE_URL.get_secret_value() if self.TXN_BOT_DATABASE_URL else None
 
     @property
     def rtgs_oracle_enabled(self) -> bool:
@@ -275,6 +371,9 @@ class Settings(BaseSettings):
             "NEXUS_AGENT_API_TOKEN",
             "ORACLE_PASSWORD",
             "RTGS_ORACLE_PASSWORD",
+            "NEXUS_CLEARING_ORACLE_RO_PASSWORD",
+            "NEXUS_CLEARING_ORACLE_RW_PASSWORD",
+            "LMS_ORACLE_PASSWORD",
             "SMTP_PASSWORD",
             "REDIS_URL",
             "QDRANT_API_KEY",

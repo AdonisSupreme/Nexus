@@ -103,6 +103,11 @@ def has_nexus_admin_role(user: dict[str, Any]) -> bool:
     return str(user.get("role") or "").lower() in allowed
 
 
+def _has_configured_role(user: dict[str, Any], configured_roles: list[str]) -> bool:
+    allowed = {role.lower() for role in configured_roles}
+    return str(user.get("role") or "").lower() in allowed
+
+
 def has_nexus_section_access(user: dict[str, Any]) -> bool:
     allowed = {section.lower() for section in settings.NEXUS_ALLOWED_SECTION_IDS}
     if not allowed:
@@ -142,5 +147,65 @@ async def require_nexus_admin(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only SentinelOps administrators can modify the Nexus catalog and control-plane configuration.",
+        )
+    return user
+
+
+async def require_hovering_password_editor(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = await require_nexus_access(authorization)
+    if not _has_configured_role(user, settings.NEXUS_HOVERING_PASSWORD_ROLES):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your SentinelOps role cannot rotate hovering robot credentials.",
+        )
+    return user
+
+
+async def require_nexus_clearing_maker(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = await require_nexus_access(authorization)
+    if not (has_nexus_admin_role(user) or _has_configured_role(user, settings.NEXUS_CLEARING_MAKER_ROLES)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your SentinelOps role cannot prepare an unauthorized clearing batch.",
+        )
+    return user
+
+
+async def require_nexus_clearing_approver(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = await require_nexus_access(authorization)
+    if not (has_nexus_admin_role(user) or _has_configured_role(user, settings.NEXUS_CLEARING_APPROVER_ROLES)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your SentinelOps role cannot approve an unauthorized clearing batch.",
+        )
+    return user
+
+
+async def require_nexus_clearing_executor(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = await require_nexus_access(authorization)
+    if not (has_nexus_admin_role(user) or _has_configured_role(user, settings.NEXUS_CLEARING_EXECUTOR_ROLES)):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your SentinelOps role cannot execute an unauthorized clearing batch.",
+        )
+    return user
+
+
+async def require_nexus_clearing_rollback(
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user = await require_nexus_access(authorization)
+    if not _has_configured_role(user, settings.NEXUS_CLEARING_ROLLBACK_ROLES):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only an authorized clearing administrator can request a compensating reversal.",
         )
     return user

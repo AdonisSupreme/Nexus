@@ -1,4 +1,4 @@
-"""FastAPI application entry point."""
+"""Nexus FastAPI application entry point"""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from app.api import admin, chat, health, nexus
+from app.api import admin, chat, health, nexus, nexus_clearing, nexus_reports
 from app.config.settings import settings
 from app.runtime import ApplicationServices
 from app.utils.audit import audit_logger
@@ -136,6 +136,8 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 app.include_router(health.router)
 app.include_router(chat.router, prefix="/api/v1", tags=["query"])
 app.include_router(nexus.router, prefix="/api/v1", tags=["nexus"])
+app.include_router(nexus_clearing.router, prefix="/api/v1", tags=["nexus-clearing"])
+app.include_router(nexus_reports.router, prefix="/api/v1", tags=["nexus-reports"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 
 

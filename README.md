@@ -36,6 +36,8 @@ pip install -r requirements.txt
 - Set `SECRET_KEY` and `ALGORITHM` to match `SentinelOps-beta` so Nexus can validate frontend sessions.
 - Set `NEXUS_AGENT_API_TOKEN` for lightweight service collectors that post heartbeats, probe reports, and diagnostics.
 - Keep `NEXUS_REQUIRE_DATABASE=true` and `NEXUS_ALLOW_LOCAL_STATE=false` for normal runtime.
+- For transaction-authorized clearing rollout, follow
+  [NEXUS_UNAUTHORIZED_CLEARING_RUNBOOK.md](NEXUS_UNAUTHORIZED_CLEARING_RUNBOOK.md).
 - Leave `EMBEDDING_BACKEND=auto` for normal runtime. Tests override this automatically.
 
 4. Start the API.
