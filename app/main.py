@@ -10,6 +10,9 @@ import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+import psycopg
+from app.access.middleware import ModuleAccessMiddleware
+from app.utils.sentinelops_auth import get_current_sentinelops_user, _database_dsn
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from app.api import admin, chat, health, nexus, nexus_clearing, nexus_reports
@@ -54,6 +57,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(ModuleAccessMiddleware, authenticate=get_current_sentinelops_user,
+                   connect=lambda: psycopg.connect(_database_dsn()))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

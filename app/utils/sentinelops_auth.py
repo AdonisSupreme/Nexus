@@ -11,6 +11,9 @@ from psycopg.rows import dict_row
 
 from app.config.settings import settings
 from app.utils.logging import get_logger
+from app.access.policy import resolve_access
+from app.access.request_context import authenticated_user
+from starlette.concurrency import run_in_threadpool
 
 
 logger = get_logger(__name__)
@@ -45,6 +48,13 @@ def _decode_token(token: str) -> dict[str, Any]:
 
 
 async def get_current_sentinelops_user(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    cached = authenticated_user(authorization)
+    if cached is not None:
+        return cached
+    return await run_in_threadpool(_load_current_sentinelops_user, authorization)
+
+
+def _load_current_sentinelops_user(authorization: str | None) -> dict[str, Any]:
     """Validate the frontend Bearer token against SentinelOps auth_sessions."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid token.")
@@ -72,14 +82,17 @@ async def get_current_sentinelops_user(authorization: str | None = Header(defaul
     JOIN roles r ON r.id = ur.role_id
     WHERE s.id = %s
       AND s.user_id = %s
-      AND s.revoked_at IS NULL
+      AND u.is_active = TRUE
+                  AND s.revoked_at IS NULL
       AND s.expires_at > (NOW() AT TIME ZONE 'UTC')
     LIMIT 1
     """
     try:
-        with psycopg.connect(_database_dsn(), row_factory=dict_row) as conn:
-            with conn.cursor() as cur:
+        with psycopg.connect(_database_dsn()) as conn:
+            with conn.cursor(row_factory=dict_row) as cur:
                 row = cur.execute(query, (session_id, user_id)).fetchone()
+            if row:
+                row['access'] = resolve_access(row, conn)
     except Exception as exc:
         logger.exception("Nexus SentinelOps session validation failed")
         raise HTTPException(
@@ -108,22 +121,12 @@ def _has_configured_role(user: dict[str, Any], configured_roles: list[str]) -> b
     return str(user.get("role") or "").lower() in allowed
 
 
-def has_nexus_section_access(user: dict[str, Any]) -> bool:
-    allowed = {section.lower() for section in settings.NEXUS_ALLOWED_SECTION_IDS}
-    if not allowed:
-        return True
-    return str(user.get("section_id") or "").lower() in allowed
-
-
 async def require_nexus_access(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     user = await get_current_sentinelops_user(authorization)
-    if not has_nexus_section_access(user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Sentinel Nexus is restricted to the authorized SentinelOps section.",
-        )
+    # Resource entitlement is enforced by ModuleAccessMiddleware, independently
+    # of the role dependencies below, including websocket connections.
     return user
 
 

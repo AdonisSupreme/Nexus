@@ -27,6 +27,7 @@ from app.nexus.models import (
     IncidentVerdictRequest,
     ManagedSopUpsertRequest,
     ManagedSopValidationRequest,
+    NexusIncidentNotificationSettingsUpdate,
     RestartActionRequest,
     RolloverAssessmentRequest,
     RolloverChallengeRequest,
@@ -45,7 +46,12 @@ from app.nexus.models import (
 )
 from app.utils.logging import get_logger
 from app.utils.nexus_agent_auth import validate_nexus_agent_request
-from app.utils.sentinelops_auth import require_nexus_access, require_nexus_admin, require_nexus_operator
+from app.utils.sentinelops_auth import (
+    has_nexus_admin_role,
+    require_nexus_access,
+    require_nexus_admin,
+    require_nexus_operator,
+)
 
 
 logger = get_logger(__name__)
@@ -99,6 +105,39 @@ async def list_incidents(request: Request, _: dict = Depends(require_nexus_acces
     services = request.app.state.services
     incidents = [incident.model_dump(mode="json") for incident in services.nexus.list_incidents()]
     return {"incidents": incidents}
+
+
+@router.get("/nexus/notifications/settings")
+async def get_nexus_incident_notification_settings(
+    request: Request,
+    user: dict = Depends(require_nexus_access),
+) -> dict[str, object]:
+    notification_settings = await run_in_threadpool(
+        request.app.state.services.nexus.get_incident_notification_settings
+    )
+    if not has_nexus_admin_role(user):
+        notification_settings = notification_settings.model_copy(
+            update={"additional_email_recipients": []}
+        )
+    return notification_settings.model_dump(mode="json")
+
+
+@router.put("/nexus/notifications/settings")
+async def update_nexus_incident_notification_settings(
+    request_body: NexusIncidentNotificationSettingsUpdate,
+    request: Request,
+    user: dict = Depends(require_nexus_admin),
+) -> dict[str, object]:
+    actor = user.get("username") or user.get("email") or "nexus-admin"
+    try:
+        notification_settings = await run_in_threadpool(
+            request.app.state.services.nexus.update_incident_notification_settings,
+            request_body,
+            updated_by=actor,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    return notification_settings.model_dump(mode="json")
 
 
 @router.get("/nexus/trustlink/rtgs/latest")

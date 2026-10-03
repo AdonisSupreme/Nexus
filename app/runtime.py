@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from app.config.settings import settings
 from app.models.mistral_client import MistralClient
+from app.nexus.incident_notifications import NexusIncidentNotificationDispatcher
 from app.nexus.service import NexusService
 from app.nexus.rtgs import RTGSAssessmentScheduler, RTGSRecoveryService
 from app.nexus.unauthorized_clearing import UnauthorizedClearingService
@@ -37,6 +38,8 @@ class ApplicationServices:
         self.retriever = HybridRetriever(indexer=self.indexer)
         self.mistral_client = MistralClient()
         self.nexus = NexusService()
+        self.nexus_notifications = NexusIncidentNotificationDispatcher(self.nexus.repository)
+        self.nexus.set_incident_notification_wakeup(self.nexus_notifications.wake)
         self.rtgs = RTGSRecoveryService()
         self.rtgs_scheduler = RTGSAssessmentScheduler(self.rtgs)
         self.clearing = UnauthorizedClearingService()
@@ -57,6 +60,7 @@ class ApplicationServices:
         if not loaded:
             self.indexer.ingest()
         self.nexus.startup()
+        self.nexus_notifications.start()
         try:
             self.rtgs.schedules()
             await self.rtgs_scheduler.start()
@@ -78,6 +82,7 @@ class ApplicationServices:
         self.metrics.gauge("sentinelops_nexus_incidents_total", len(self.nexus.state.incidents))
 
     async def shutdown(self) -> None:
+        self.nexus_notifications.stop()
         await self.hovering_scheduler.stop()
         await self.crb_scheduler.stop()
         await self.rtgs_scheduler.stop()

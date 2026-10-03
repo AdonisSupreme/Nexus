@@ -2,6 +2,8 @@
 
 This runbook is the source of truth for the current ATE Nexus light-agent rollout on `ussd-ate-test`.
 
+Incident and recovery delivery is owned by Nexus Core, not the Light Agent. See [NEXUS_INCIDENT_NOTIFICATIONS.md](../NEXUS_INCIDENT_NOTIFICATIONS.md) for the durable outbox, shift-recipient, SMTP, and administrative configuration contract.
+
 Update this document every time a service is added, a control path changes, or a validation result proves a better operating pattern. The production runbook must be copied from known-good ATE evidence, not from memory.
 
 ## Current ATE Agent
@@ -103,6 +105,12 @@ Local agent service block:
   "tags": ["mobile-banking", "ussd", "channel"],
   "analysis_profile": "mobile_ussd",
   "analysis_config": {
+    "health_window_seconds": 60,
+    "db_leak_warn_threshold": 2,
+    "db_leak_critical_threshold": 5,
+    "session_stall_min_requests": 5,
+    "session_stall_min_deficit": 3,
+    "session_stall_completion_ratio": 0.5,
     "session_expiry_burst_window_seconds": 60,
     "session_expiry_warn_threshold": 10,
     "session_expiry_critical_threshold": 30,
@@ -175,9 +183,60 @@ Local agent service block to add under `services[]`:
   },
   "restart_settle_seconds": 30,
   "tags": ["mobile-banking", "ussd", "adapter", "channel-adapter"],
-  "analysis_profile": null,
-  "analysis_config": {}
+  "analysis_profile": "ussd_adapter",
+  "analysis_config": {
+    "flow_window_seconds": 60,
+    "minimum_requests": 5,
+    "failure_warn_threshold": 3,
+    "failure_critical_threshold": 10,
+    "minimum_dispatch_ratio": 0.8,
+    "minimum_completion_ratio": 0.5,
+    "minimum_outbound_ratio": 0.5,
+    "template_failure_warn_threshold": 2,
+    "smpp_timeout_warn_threshold": 3,
+    "dependency_service_id": "txn-mobile-ussd"
+  }
 }
+```
+
+## USSD Early-Warning Profiles
+
+The ATE baselines establish two different customer-path health models. Keep them service-specific; do not turn these patterns into global Nexus rules.
+
+`txn-mobile-ussd`:
+
+- `database_connection_leak_burst` warns at 2 Hikari leak events and becomes critical at 5 inside the rolling 60-second collection window.
+- `ussd_session_processing_stall` requires at least 5 requests, a response deficit of at least 3, and a completion ratio below 0.50.
+- `NotificationService - Poll` is recorded as scheduled-runtime activity only. It proves the JVM scheduler is alive, not that customer sessions are reaching or completing.
+- Existing session-expiry burst logic remains active. Preserve environment-tuned expiry values when adding the new keys.
+
+`txn-ussd-adapter`:
+
+- `ussd_adapter_downstream_5xx_burst` detects repeated explicit HTTP 5xx responses from `txn-mobile-ussd`.
+- `ussd_adapter_dispatch_stall` detects requests failing inside the adapter before a downstream call and assigns `service_runtime` to the adapter.
+- `ussd_adapter_completion_collapse` detects the silent failure mode where carrier requests arrive and are dispatched, but neither downstream success nor carrier egress completes while servlet null-pointer errors accumulate.
+- Template failures and SMPP transport timeouts use independent burst gates, so one isolated record does not create an incident.
+- Adapter dependency evidence names `txn-mobile-ussd` as the downstream service and uses failure domain `dependency`. Nexus can therefore combine Adapter and Mobile USSD evidence in the same topology-scoped incident.
+
+The agent emits one redacted aggregate for a profile-owned pattern and suppresses its duplicate raw stack lines. It retains unrelated errors. No subscriber number, account number, session key, response payload, or trace value is added to the aggregate.
+
+Baseline replay using 150-line bounded reads produced these acceptance results:
+
+```text
+Mobile USSD nominal: no profile or generic incident signal.
+Mobile USSD failure: Hikari leak burst detected in the second bounded window.
+USSD Adapter normal: no profile or generic incident signal.
+USSD Adapter failure 1: downstream HTTP 5xx burst detected in the second bounded window.
+USSD Adapter failure 2: silent completion collapse detected in the fourth bounded window.
+```
+
+After deploying the updated agent package and service JSON, validate both profiles without changing service-control configuration:
+
+```bash
+python3 -m json.tool /etc/nexus-light/txn-mobile-ussd.json >/dev/null
+sudo systemctl restart nexus-light-txn-mobile-ussd.service
+sudo systemctl status nexus-light-txn-mobile-ussd.service --no-pager -l
+sudo journalctl -u nexus-light-txn-mobile-ussd.service -n 100 --no-pager -l
 ```
 
 `readiness_port` is `null` until the actual adapter `server.port` is confirmed from the host. The light agent will attempt to discover it from `config_path`. If a concrete port exists, update both the local config and the Nexus service metadata.

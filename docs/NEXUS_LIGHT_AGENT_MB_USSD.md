@@ -36,7 +36,9 @@ The agent sends one probe report per configured service:
 
 ## USSD-Specific Session Intelligence
 
-`txn-mobile-ussd` has an additional `mobile_ussd` analysis profile because USSD failure semantics are different from ordinary HTTP services. A service can be running locally and reachable on its local port while the external USSD tunnel/session path is failing from the customer side.
+`txn-mobile-ussd` has an additional `mobile_ussd` analysis profile because USSD failure semantics are different from ordinary HTTP services. A service can be running locally and reachable on its local port while its database-backed request path or the external USSD tunnel/session path is failing from the customer side.
+
+The profile also correlates request starts, session responses, Hikari connection-leak events, and scheduled notification polls over a bounded rolling window. Notification polling is liveness context only; it must never be interpreted as proof of customer traffic health.
 
 The profile watches for `Expiring session with key` patterns, but it does not treat every expiry as an outage. A single expiry, or a low number of expiries, can simply mean a customer did not respond before the USSD session timeout. Nexus should only treat expiry evidence as degradation when it looks like a burst.
 
@@ -59,6 +61,12 @@ Service profile configuration:
   "environment": "ate",
   "analysis_profile": "mobile_ussd",
   "analysis_config": {
+    "health_window_seconds": 60,
+    "db_leak_warn_threshold": 2,
+    "db_leak_critical_threshold": 5,
+    "session_stall_min_requests": 5,
+    "session_stall_min_deficit": 3,
+    "session_stall_completion_ratio": 0.5,
     "session_expiry_burst_window_seconds": 60,
     "session_expiry_warn_threshold": 10,
     "session_expiry_critical_threshold": 30,
@@ -69,6 +77,31 @@ Service profile configuration:
   }
 }
 ```
+
+## USSD Adapter Flow Intelligence
+
+`txn-ussd-adapter` must use the `ussd_adapter` profile. It measures the customer path as four stages: carrier ingress, dispatch to `txn-mobile-ussd`, downstream completion, and carrier egress. This detects both explicit downstream HTTP 5xx bursts and the silent-completion failure where requests continue arriving but no successful response leaves the adapter.
+
+```json
+{
+  "service_id": "txn-ussd-adapter",
+  "analysis_profile": "ussd_adapter",
+  "analysis_config": {
+    "flow_window_seconds": 60,
+    "minimum_requests": 5,
+    "failure_warn_threshold": 3,
+    "failure_critical_threshold": 10,
+    "minimum_dispatch_ratio": 0.8,
+    "minimum_completion_ratio": 0.5,
+    "minimum_outbound_ratio": 0.5,
+    "template_failure_warn_threshold": 2,
+    "smpp_timeout_warn_threshold": 3,
+    "dependency_service_id": "txn-mobile-ussd"
+  }
+}
+```
+
+Profile evidence is aggregated, redacted, and topology-aware. Raw stack lines covered by the profile are not emitted again, while unrelated exceptions continue through the generic classifier.
 
 ## Command Surface
 

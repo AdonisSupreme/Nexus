@@ -1,0 +1,279 @@
+[
+  {
+    "module_key": "checklists.execution",
+    "name": "Checklist operations",
+    "page_key": "Checklists",
+    "description": "Checklist operations",
+    "paths": [
+      "/",
+      "/checklists",
+      "/checklist/:id"
+    ]
+  },
+  {
+    "module_key": "checklists.templates",
+    "name": "Template authoring",
+    "page_key": "Checklists",
+    "description": "Template authoring",
+    "paths": [
+      "/templates"
+    ]
+  },
+  {
+    "module_key": "task_manager.tasks",
+    "name": "Task workspace and analytics",
+    "page_key": "Task Manager",
+    "description": "Task workspace and analytics",
+    "paths": [
+      "/",
+      "/tasks"
+    ]
+  },
+  {
+    "module_key": "database.statistics",
+    "name": "Database growth and capacity",
+    "page_key": "Database",
+    "description": "Database growth and capacity",
+    "paths": [
+      "/",
+      "/database-stats"
+    ]
+  },
+  {
+    "module_key": "performance.dashboard",
+    "name": "Performance and achievements",
+    "page_key": "Performance",
+    "description": "Performance and achievements",
+    "paths": [
+      "/performance"
+    ]
+  },
+  {
+    "module_key": "team.scheduling",
+    "name": "Team scheduling and patterns",
+    "page_key": "Team",
+    "description": "Team scheduling and patterns",
+    "paths": [
+      "/team"
+    ]
+  },
+  {
+    "module_key": "team.schedule",
+    "name": "Personal schedule",
+    "page_key": "Team",
+    "description": "Personal schedule",
+    "paths": [
+      "/schedule"
+    ]
+  },
+  {
+    "module_key": "network_sentinel.monitoring",
+    "name": "Service monitoring and investigation",
+    "page_key": "Network Sentinel",
+    "description": "Service monitoring and investigation",
+    "paths": [
+      "/",
+      "/network-sentinel"
+    ]
+  },
+  {
+    "module_key": "network_sentinel.outage_history",
+    "name": "Outage ledger and event history",
+    "page_key": "Network Sentinel",
+    "description": "Outage ledger and event history",
+    "paths": [
+      "/network-sentinel"
+    ]
+  },
+  {
+    "module_key": "network_sentinel.configuration",
+    "name": "Service configuration and controls",
+    "page_key": "Network Sentinel",
+    "description": "Service configuration and controls",
+    "paths": [
+      "/network-sentinel"
+    ]
+  },
+  {
+    "module_key": "trustlink.daily_extraction",
+    "name": "Daily extraction pipeline",
+    "page_key": "Trustlink",
+    "description": "Daily extraction pipeline",
+    "paths": [
+      "/",
+      "/trustlink"
+    ]
+  },
+  {
+    "module_key": "trustlink.run_history",
+    "name": "Extraction run history",
+    "page_key": "Trustlink",
+    "description": "Extraction run history",
+    "paths": [
+      "/trustlink"
+    ]
+  },
+  {
+    "module_key": "trustlink.manual_run",
+    "name": "Manual extraction and overwrite",
+    "page_key": "Trustlink",
+    "description": "Manual extraction and overwrite",
+    "paths": [
+      "/trustlink"
+    ]
+  },
+  {
+    "module_key": "trustlink.configuration",
+    "name": "Extraction source configuration",
+    "page_key": "Trustlink",
+    "description": "Extraction source configuration",
+    "paths": [
+      "/trustlink"
+    ]
+  },
+  {
+    "module_key": "trustlink.rtgs",
+    "name": "RTGS recovery and automation",
+    "page_key": "Trustlink",
+    "description": "RTGS recovery and automation",
+    "paths": [
+      "/trustlink"
+    ]
+  },
+  {
+    "module_key": "nexus.dashboard",
+    "name": "Fabric overview",
+    "page_key": "Nexus",
+    "description": "Fabric overview",
+    "paths": [
+      "/",
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.incidents",
+    "name": "Incident investigation",
+    "page_key": "Nexus",
+    "description": "Incident investigation",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.services",
+    "name": "Service catalog and controls",
+    "page_key": "Nexus",
+    "description": "Service catalog and controls",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.agents",
+    "name": "Agent monitoring",
+    "page_key": "Nexus",
+    "description": "Agent monitoring",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.databases",
+    "name": "Database fabric",
+    "page_key": "Nexus",
+    "description": "Database fabric",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.clusters",
+    "name": "Service clusters",
+    "page_key": "Nexus",
+    "description": "Service clusters",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.flows",
+    "name": "Business flows",
+    "page_key": "Nexus",
+    "description": "Business flows",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.dependencies",
+    "name": "Dependency topology",
+    "page_key": "Nexus",
+    "description": "Dependency topology",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.onboarding",
+    "name": "Agent and service onboarding",
+    "page_key": "Nexus",
+    "description": "Agent and service onboarding",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.rollover",
+    "name": "Environment rollover",
+    "page_key": "Nexus",
+    "description": "Environment rollover",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "nexus.sops",
+    "name": "Procedure library",
+    "page_key": "Nexus",
+    "description": "Procedure library",
+    "paths": [
+      "/nexus"
+    ]
+  },
+  {
+    "module_key": "reports.crb",
+    "name": "CRB reporting",
+    "page_key": "Reporting",
+    "description": "CRB reporting",
+    "paths": [
+      "/reports"
+    ]
+  },
+  {
+    "module_key": "reports.hovering",
+    "name": "Hovering queue",
+    "page_key": "Reporting",
+    "description": "Hovering queue",
+    "paths": [
+      "/reports"
+    ]
+  },
+  {
+    "module_key": "reports.hovering_settings",
+    "name": "Hovering robot settings",
+    "page_key": "Reporting",
+    "description": "Hovering robot settings",
+    "paths": [
+      "/reports"
+    ]
+  },
+  {
+    "module_key": "funds_custody.workspace",
+    "name": "Funds custody and clearing",
+    "page_key": "Funds Custody",
+    "description": "Funds custody and clearing",
+    "paths": [
+      "/funds-custody"
+    ]
+  }
+]

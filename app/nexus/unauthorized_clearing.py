@@ -1508,12 +1508,12 @@ class ClearingRepository:
                     """
                     UPDATE nexus_clearing_batch
                     SET status = %s,
-                        approved_by = %s,
+                        approved_by = CASE WHEN %s THEN %s ELSE NULL END,
                         approved_at = CASE WHEN %s THEN now() ELSE NULL END,
                         updated_at = now()
                     WHERE batch_id = %s
                     """,
-                    ("EXECUTION_READY" if approve else "READY_FOR_APPROVAL", actor, approve, batch_id),
+                    ("EXECUTION_READY" if approve else "READY_FOR_APPROVAL", approve, actor, approve, batch_id),
                 )
                 self._audit_cursor(
                     cursor,

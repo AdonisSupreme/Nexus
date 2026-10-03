@@ -1091,5 +1091,13 @@ def test_rejected_payload_never_starts_oracle_mutation():
     )
 
     assert result["status"] == "READY_FOR_APPROVAL"
+    repository.decide_approval.assert_called_once_with(
+        "batch-1",
+        approve=False,
+        actor="checker.one",
+        actor_role="operator",
+        note="Return for corrected Finance scope",
+        allow_self_approval=False,
+    )
     repository.approve_and_start_execution.assert_not_called()
     oracle.execute_atomic.assert_not_called()

@@ -22,7 +22,8 @@ from nexus_light_agent.command_server import (
 )
 from nexus_light_agent.config import AgentSettings, config_template
 from nexus_light_agent.logs import BoundedLogTailer
-from nexus_light_agent.signatures import classify_line, summarize_signatures
+from nexus_light_agent.service_profiles import analyze_service_profile, filter_profile_generic_signatures
+from nexus_light_agent.signatures import classify_line, classify_log_lines, summarize_signatures
 from app.nexus.models import AgentHeartbeat, AgentProbeReport
 
 
@@ -48,6 +49,8 @@ def test_agent_config_template_is_valid(monkeypatch):
     assert settings.enabled_services[1].log_path == "/srv/log/ate/txn-mobile/txn-ussd-adapter/txn-ussd-adapter-human.log"
     assert settings.enabled_services[1].start_command == ["sudo", "-n", "/opt/sentinel-nexus-control/txn-ussd-adapter/start.sh"]
     assert settings.enabled_services[1].readiness_port is None
+    assert settings.enabled_services[1].analysis_profile == "ussd_adapter"
+    assert settings.enabled_services[1].analysis_config["dependency_service_id"] == "txn-mobile-ussd"
 
 
 def test_log_signature_classifier_detects_hikari_database_leak():
@@ -63,6 +66,47 @@ def test_log_signature_classifier_detects_hikari_database_leak():
     assert signature.failure_domain == "database"
     assert signature.db_error_code == "HIKARI_CONNECTION_LEAK"
     assert signature.severity == "CRITICAL"
+
+
+def test_log_signature_classifier_ignores_bare_ate_event_header():
+    assert classify_line("[2026-09-12 10:25:37.660] ERROR [nio-8091-exec-1]") is None
+
+
+def test_log_signature_classifier_groups_ate_event_and_redacts_sensitive_values():
+    signatures = classify_log_lines(
+        [
+            "[2026-09-12 10:25:37.660] ERROR [nio-8091-exec-1]",
+            (
+                "RemoteServiceException ATE-Trace-ID=[secret-trace] - HTTP timeout "
+                "for account 100007999164 Authorization=Bearer secret-token"
+            ),
+            "java.lang.RuntimeException: downstream failed",
+        ],
+        profile_name="mobile_ussd",
+    )
+
+    assert len(signatures) == 1
+    assert signatures[0].signature_family == "dependency_timeout"
+    assert "secret-trace" not in signatures[0].message
+    assert "secret-token" not in signatures[0].message
+    assert "100007999164" not in signatures[0].message
+    assert signatures[0].attributes["multiline_event"] is True
+    assert signatures[0].attributes["sensitive_values_redacted"] is True
+
+
+def test_mobile_ussd_expected_business_events_do_not_become_incident_signals():
+    signatures = classify_log_lines(
+        [
+            "[2026-09-12 10:25:37.660] ERROR [nio-8091-exec-1]",
+            "TransactionProcessorImpl - Transaction request failed with error : Insufficient Funds",
+            "[2026-09-12 10:27:26.450] INFO [reactor-http-epoll-2]",
+            "RemoteServiceException - REMOTE SERVICE ERROR RESPONSE, HTTP STATUS=404 and RESPONSE={}",
+            "java.lang.Exception: The application is expired.",
+        ],
+        profile_name="mobile_ussd",
+    )
+
+    assert signatures == []
 
 
 def test_bounded_log_tailer_reads_incrementally(tmp_path):
@@ -109,6 +153,8 @@ def test_agent_collects_process_and_database_log_evidence(tmp_path, monkeypatch)
     log_path = tmp_path / "txn-mobile-ussd-human.log"
     log_path.write_text(
         "2026-05-13 10:00:00 ERROR com.zaxxer.hikari.pool.ProxyLeakTask - "
+        "Connection leak detection triggered for org.postgresql.jdbc.PgConnection\n"
+        "2026-05-13 10:00:01 ERROR com.zaxxer.hikari.pool.ProxyLeakTask - "
         "Connection leak detection triggered for org.postgresql.jdbc.PgConnection\n",
         encoding="utf-8",
     )
@@ -170,9 +216,10 @@ def test_agent_collects_process_and_database_log_evidence(tmp_path, monkeypatch)
     assert reports[0]["service_id"] == "txn-mobile-ussd"
     assert reports[0]["status"] == "degraded"
     assert reports[0]["failure_domain_hint"] == "database"
-    assert reports[0]["metadata"]["log_signatures"][0]["signature_family"] == "database_connection_leak"
-    assert sent_reports[0]["severity"] == "CRITICAL"
-    assert sent_reports[0]["log_records"][0]["signature_family"] == "database_connection_leak"
+    assert reports[0]["metadata"]["log_signatures"][0]["signature_family"] == "database_connection_leak_burst"
+    assert reports[0]["metrics"]["service_profile"]["rolling_database_connection_leak_count"] == 2
+    assert sent_reports[0]["severity"] == "WARN"
+    assert sent_reports[0]["log_records"][0]["signature_family"] == "database_connection_leak_burst"
     assert sent_heartbeats[0]["agent_id"] == "agent-txn-mobile-ussd-ate-01"
     assert sent_heartbeats[0]["service_id"] == "txn-mobile-ussd"
     AgentProbeReport.model_validate(sent_reports[0])
@@ -298,6 +345,205 @@ def test_ussd_session_expiry_burst_becomes_channel_tunnel_evidence_without_pii(t
     assert "session-0" not in log_record["message"]
     assert report["metrics"]["service_profile"]["session_expiry_carrier_count"] == 2
     AgentProbeReport.model_validate(sent_reports[0])
+
+
+def test_mobile_ussd_profile_detects_hikari_leak_burst_without_treating_scheduler_as_health():
+    service = AgentSettings.from_dict(config_template()).enabled_services[0]
+    now = datetime(2026, 9, 12, 8, 0, tzinfo=timezone.utc)
+    lines: list[str] = []
+    for index in range(5):
+        lines.extend(
+            [
+                f"[2026-09-12 07:51:{9 + index:02d}.230] WARN  [HikariPool-1 housekeeper]",
+                "ProxyLeakTask - Connection leak detection triggered for org.postgresql.jdbc.PgConnection",
+                f"[2026-09-12 07:51:{9 + index:02d}.900] INFO  [scheduling-1]",
+                "NotificationServiceImpl - NotificationService - Poll - No notifications queued",
+            ]
+        )
+
+    analysis = analyze_service_profile(service, lines, default_timestamp=now, state={})
+
+    assert analysis is not None
+    assert analysis.status_hint == "degraded"
+    assert analysis.severity_hint == "CRITICAL"
+    assert analysis.failure_domain_hint == "database"
+    assert analysis.signatures[0].signature_family == "database_connection_leak_burst"
+    assert analysis.metrics["rolling_database_connection_leak_count"] == 5
+    assert analysis.metrics["traffic_state"] == "scheduled_runtime_only"
+    assert "subscriber" not in str(analysis.signatures[0].to_dict()).lower()
+
+
+def test_ussd_adapter_profile_keeps_balanced_carrier_flow_healthy():
+    service = AgentSettings.from_dict(config_template()).enabled_services[1]
+    now = datetime(2026, 9, 12, 8, 10, tzinfo=timezone.utc)
+    lines: list[str] = []
+    for index in range(6):
+        timestamp = 5 + index
+        trace = f"safe-trace-{index}"
+        lines.extend(
+            [
+                f"[2026-09-12 10:11:{timestamp:02d}.100] INFO  [nio-8092-exec-{index}]",
+                f"EconetController ATE-Trace-ID=[{trace}] - ECONET REQUEST INBOUND: redacted",
+                f"[2026-09-12 10:11:{timestamp:02d}.110] DEBUG [nio-8092-exec-{index}]",
+                "WebClientFilter - POST to http://localhost:8091/txn-mobile/txn-mobile-ussd/session",
+                f"[2026-09-12 10:11:{timestamp:02d}.150] INFO  [nio-8092-exec-{index}]",
+                "UssdRemoteServiceImpl - REMOTE SERVICE SUCCESS RESPONSE, HTTP STATUS=200 and RESPONSE={redacted}",
+                f"[2026-09-12 10:11:{timestamp:02d}.160] INFO  [nio-8092-exec-{index}]",
+                f"EconetController ATE-Trace-ID=[{trace}] - ECONET RESPONSE OUTBOUND: redacted",
+            ]
+        )
+
+    analysis = analyze_service_profile(service, lines, default_timestamp=now, state={})
+
+    assert analysis is not None
+    assert analysis.signatures == []
+    assert analysis.status_hint is None
+    assert analysis.metrics["carrier_inbound_request_count"] == 6
+    assert analysis.metrics["downstream_completion_ratio"] == 1.0
+    assert analysis.metrics["carrier_response_ratio"] == 1.0
+
+
+def test_ussd_adapter_profile_detects_downstream_http_500_burst():
+    service = AgentSettings.from_dict(config_template()).enabled_services[1]
+    now = datetime(2026, 9, 12, 8, 11, tzinfo=timezone.utc)
+    lines: list[str] = []
+    for index in range(5):
+        lines.extend(
+            [
+                f"[2026-09-12 06:52:{15 + index:02d}.100] INFO  [nio-8092-exec-{index}]",
+                "EconetController - ECONET REQUEST INBOUND: redacted",
+                f"[2026-09-12 06:52:{15 + index:02d}.110] DEBUG [nio-8092-exec-{index}]",
+                "WebClientFilter - POST to http://localhost:8091/txn-mobile/txn-mobile-ussd/session",
+                f"[2026-09-12 06:52:{15 + index:02d}.400] INFO  [reactor-http-epoll-{index}]",
+                "RemoteServiceException - REMOTE SERVICE ERROR RESPONSE, HTTP STATUS=500 and RESPONSE={}",
+                f"[2026-09-12 06:52:{15 + index:02d}.410] ERROR [nio-8092-exec-{index}]",
+                "dispatcherServlet threw exception; nested exception is java.lang.NullPointerException",
+            ]
+        )
+
+    analysis = analyze_service_profile(service, lines, default_timestamp=now, state={})
+
+    assert analysis is not None
+    signature = analysis.signatures[0]
+    assert signature.signature_family == "ussd_adapter_downstream_5xx_burst"
+    assert signature.failure_domain == "dependency"
+    assert signature.attributes["to_service_id"] == "txn-mobile-ussd"
+    assert signature.attributes["downstream_5xx_count"] == 5
+    assert signature.attributes["pii_redacted"] is True
+    assert analysis.metrics["carrier_response_deficit"] == 5
+
+
+def test_ussd_adapter_profile_detects_silent_completion_collapse():
+    service = AgentSettings.from_dict(config_template()).enabled_services[1]
+    now = datetime(2026, 9, 12, 8, 12, tzinfo=timezone.utc)
+    lines: list[str] = []
+    for index in range(10):
+        lines.extend(
+            [
+                f"[2026-09-12 07:54:{index:02d}.100] INFO  [nio-8092-exec-{index}]",
+                "EconetController - ECONET REQUEST INBOUND: redacted",
+                f"[2026-09-12 07:54:{index:02d}.110] DEBUG [nio-8092-exec-{index}]",
+                "WebClientFilter - POST to http://localhost:8091/txn-mobile/txn-mobile-ussd/session",
+                f"[2026-09-12 07:54:{index:02d}.900] ERROR [nio-8092-exec-{index}]",
+                "dispatcherServlet threw exception; nested exception is java.lang.NullPointerException",
+            ]
+        )
+
+    analysis = analyze_service_profile(service, lines, default_timestamp=now, state={})
+
+    assert analysis is not None
+    signature = analysis.signatures[0]
+    assert signature.signature_family == "ussd_adapter_completion_collapse"
+    assert signature.severity == "CRITICAL"
+    assert signature.failure_domain == "dependency"
+    assert analysis.metrics["downstream_completion_ratio"] == 0.0
+    assert analysis.metrics["carrier_response_ratio"] == 0.0
+
+
+def test_ussd_adapter_profile_attributes_pre_dispatch_failure_to_adapter_runtime():
+    service = AgentSettings.from_dict(config_template()).enabled_services[1]
+    now = datetime(2026, 9, 12, 8, 12, tzinfo=timezone.utc)
+    lines: list[str] = []
+    for index in range(6):
+        lines.extend(
+            [
+                f"[2026-09-12 07:54:{index:02d}.100] INFO [nio-8092-exec-{index}]",
+                "EconetController - ECONET REQUEST INBOUND: redacted",
+                f"[2026-09-12 07:54:{index:02d}.900] ERROR [nio-8092-exec-{index}]",
+                "dispatcherServlet threw exception; nested exception is java.lang.NullPointerException",
+            ]
+        )
+
+    analysis = analyze_service_profile(service, lines, default_timestamp=now, state={})
+
+    assert analysis is not None
+    assert analysis.signatures[0].signature_family == "ussd_adapter_dispatch_stall"
+    assert analysis.signatures[0].failure_domain == "service_runtime"
+    assert analysis.metrics["dispatch_ratio"] == 0.0
+
+
+def test_ussd_adapter_profile_uses_rolling_window_without_alerting_on_two_failures():
+    service = AgentSettings.from_dict(config_template()).enabled_services[1]
+    state: dict[str, object] = {}
+    first = datetime(2026, 9, 12, 8, 13, tzinfo=timezone.utc)
+
+    def failed_exchange(second: int) -> list[str]:
+        return [
+            f"[2026-09-12 08:13:{second:02d}.100] INFO  [nio-8092-exec-{second}]",
+            "EconetController - ECONET REQUEST INBOUND: redacted",
+            f"[2026-09-12 08:13:{second:02d}.110] DEBUG [nio-8092-exec-{second}]",
+            "WebClientFilter - POST to http://localhost:8091/txn-mobile/txn-mobile-ussd/session",
+            f"[2026-09-12 08:13:{second:02d}.400] INFO  [reactor-http-epoll-{second}]",
+            "RemoteServiceException - REMOTE SERVICE ERROR RESPONSE, HTTP STATUS=500 and RESPONSE={}",
+        ]
+
+    first_analysis = analyze_service_profile(
+        service,
+        failed_exchange(1) + failed_exchange(2),
+        default_timestamp=first,
+        state=state,
+    )
+    second_analysis = analyze_service_profile(
+        service,
+        failed_exchange(11),
+        default_timestamp=first.replace(second=10),
+        state=state,
+    )
+
+    assert first_analysis is not None
+    assert first_analysis.signatures == []
+    assert second_analysis is not None
+    assert second_analysis.signatures[0].signature_family == "ussd_adapter_downstream_5xx_burst"
+    assert second_analysis.metrics["downstream_5xx_count"] == 3
+
+
+def test_adapter_profile_replaces_owned_generic_noise_but_keeps_unrelated_errors():
+    signatures = classify_log_lines(
+        [
+            "[2026-09-12 08:13:01.100] ERROR [nio-8092-exec-1]",
+            "dispatcherServlet threw exception; nested exception is java.lang.NullPointerException",
+            "[2026-09-12 08:13:02.100] ERROR [nio-8092-exec-2]",
+            "UnrelatedSecurityException - certificate validation failed",
+        ],
+        profile_name="ussd_adapter",
+    )
+
+    filtered = filter_profile_generic_signatures("ussd_adapter", signatures)
+
+    assert len(filtered) == 1
+    assert "UnrelatedSecurityException" in filtered[0].message
+
+
+def test_mobile_profile_gates_raw_hikari_leaks_instead_of_double_reporting():
+    signatures = classify_log_lines(
+        [
+            "[2026-09-12 08:13:01.100] WARN [HikariPool-1 housekeeper]",
+            "ProxyLeakTask - Connection leak detection triggered for org.postgresql.jdbc.PgConnection",
+        ],
+        profile_name="mobile_ussd",
+    )
+
+    assert filter_profile_generic_signatures("mobile_ussd", signatures) == []
 
 
 def test_signature_summary_groups_database_codes():

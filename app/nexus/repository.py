@@ -21,6 +21,8 @@ from app.nexus.models import (
     ChangeEvent,
     ManagedSop,
     NexusIncident,
+    NexusIncidentNotificationSettings,
+    NexusIncidentNotificationSettingsUpdate,
     NexusState,
     RolloverEnvironment,
     RolloverExecution,
@@ -65,6 +67,8 @@ class NexusRepository:
         self._dsn = settings.nexus_database_dsn
         self._use_postgres = bool(self._dsn)
         self._allow_local_state = settings.NEXUS_ALLOW_LOCAL_STATE
+        self._incident_notification_schema_warned = False
+        self._incident_notification_schema_confirmed = False
 
     def load_state(self) -> NexusState:
         if self._use_postgres:
@@ -255,6 +259,12 @@ class NexusRepository:
                         (self.CHANGE_RETENTION,),
                     )
 
+                previous_incidents = self._stored_incident_payloads(cur)
+                self._enqueue_incident_notification_transitions(
+                    cur,
+                    previous_incidents=previous_incidents,
+                    current_incidents=payload["incidents"],
+                )
                 cur.execute("DELETE FROM incident_service")
                 cur.execute("DELETE FROM incident")
                 for incident in payload["incidents"]:
@@ -333,6 +343,533 @@ class NexusRepository:
             (list(flow_ids),),
         ).fetchall()
         return {row["flow_id"] for row in rows}
+
+    @staticmethod
+    def incident_notification_transitions(
+        previous_incidents: list[dict[str, Any]],
+        current_incidents: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Return lifecycle transitions that warrant one operator notification."""
+        active_statuses = {"OPEN", "MONITORING"}
+
+        def lifecycle_key(incident: dict[str, Any]) -> tuple[str, str]:
+            return (
+                str(incident.get("incident_id") or ""),
+                str(incident.get("start_time") or ""),
+            )
+
+        previous_by_lifecycle = {
+            lifecycle_key(incident): incident
+            for incident in previous_incidents
+            if incident.get("incident_id") and incident.get("start_time")
+        }
+        transitions: list[dict[str, Any]] = []
+        for incident in current_incidents:
+            previous = previous_by_lifecycle.get(lifecycle_key(incident))
+            previous_status = str(previous.get("status") or "") if previous else ""
+            current_status = str(incident.get("status") or "")
+            if current_status in active_statuses and previous_status not in active_statuses:
+                transitions.append({"event_type": "OPENED", "incident": incident})
+                continue
+            if (
+                previous_status in active_statuses
+                and current_status not in active_statuses
+                and incident.get("end_time")
+            ):
+                transitions.append({"event_type": "RECOVERED", "incident": incident})
+        return transitions
+
+    @staticmethod
+    def _stored_incident_payloads(cur: Any) -> list[dict[str, Any]]:
+        return [row["payload"] for row in cur.execute("SELECT payload FROM incident").fetchall()]
+
+    def _incident_notification_schema_ready_with_cursor(self, cur: Any) -> bool:
+        if self._incident_notification_schema_confirmed:
+            return True
+        row = cur.execute(
+            """
+            SELECT
+                to_regclass('public.nexus_incident_notification_setting') IS NOT NULL AS setting_ready,
+                to_regclass('public.nexus_incident_notification_delivery') IS NOT NULL AS delivery_ready
+            """
+        ).fetchone()
+        ready = bool(row and row["setting_ready"] and row["delivery_ready"])
+        if ready:
+            self._incident_notification_schema_confirmed = True
+        if not ready and not self._incident_notification_schema_warned:
+            logger.warning(
+                "Nexus incident notifications are unavailable until migration "
+                "2026_19_add_nexus_incident_notifications.sql is applied."
+            )
+            self._incident_notification_schema_warned = True
+        return ready
+
+    def incident_notification_schema_ready(self) -> bool:
+        if not self._use_postgres:
+            return False
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    return self._incident_notification_schema_ready_with_cursor(cur)
+        except Exception as exc:
+            if not self._incident_notification_schema_warned:
+                logger.warning("Unable to inspect the Nexus incident notification schema: %s", exc)
+                self._incident_notification_schema_warned = True
+            return False
+
+    def _enqueue_incident_notification_transitions(
+        self,
+        cur: Any,
+        *,
+        previous_incidents: list[dict[str, Any]],
+        current_incidents: list[dict[str, Any]],
+    ) -> int:
+        if not self._incident_notification_schema_ready_with_cursor(cur):
+            return 0
+
+        setting_row = cur.execute(
+            """
+            SELECT enabled, notify_on_recovery
+            FROM nexus_incident_notification_setting
+            WHERE setting_key = 'default'
+            """
+        ).fetchone()
+        enabled = bool(setting_row["enabled"]) if setting_row else True
+        notify_on_recovery = bool(setting_row["notify_on_recovery"]) if setting_row else True
+        inserted = 0
+        for transition in self.incident_notification_transitions(previous_incidents, current_incidents):
+            incident = transition["incident"]
+            event_type = transition["event_type"]
+            delivery_key = ":".join(
+                (
+                    event_type.lower(),
+                    str(incident["incident_id"]),
+                    str(incident["start_time"]),
+                )
+            )
+            should_send = enabled and (event_type != "RECOVERED" or notify_on_recovery)
+            status_value = "PENDING" if should_send else "SUPPRESSED"
+            suppression_reason = None
+            if not enabled:
+                suppression_reason = "Nexus incident notifications were disabled when this event occurred."
+            elif event_type == "RECOVERED" and not notify_on_recovery:
+                suppression_reason = "Nexus recovery notifications were disabled when this event occurred."
+
+            compact_incident = {
+                key: incident.get(key)
+                for key in (
+                    "incident_id",
+                    "incident_key",
+                    "title",
+                    "status",
+                    "start_time",
+                    "end_time",
+                    "summary",
+                    "risk_level",
+                    "risk_score",
+                    "business_impact_score",
+                    "affected_services",
+                    "suspected_root_service",
+                    "suspected_root_service_name",
+                    "predicted_confidence",
+                    "blast_radius",
+                    "cluster_ids",
+                    "business_flow_ids",
+                    "primary_business_flow_id",
+                    "primary_business_flow_name",
+                    "failure_domain",
+                    "data_sources",
+                )
+            }
+            result = cur.execute(
+                """
+                INSERT INTO nexus_incident_notification_delivery (
+                    delivery_key, incident_id, incident_key, incident_started_at,
+                    event_type, status, payload, last_error
+                )
+                VALUES (%s, %s::uuid, %s, %s, %s, %s, %s::jsonb, %s)
+                ON CONFLICT (delivery_key) DO NOTHING
+                RETURNING delivery_key
+                """,
+                (
+                    delivery_key,
+                    incident["incident_id"],
+                    incident["incident_key"],
+                    incident["start_time"],
+                    event_type,
+                    status_value,
+                    json.dumps({"event_type": event_type, "incident": compact_incident}),
+                    suppression_reason,
+                ),
+            ).fetchone()
+            if result:
+                inserted += 1
+        return inserted
+
+    def get_incident_notification_settings(self) -> NexusIncidentNotificationSettings:
+        smtp_configured = bool(settings.SMTP_HOST and settings.SMTP_FROM)
+        if not self._use_postgres:
+            return NexusIncidentNotificationSettings(
+                enabled=False,
+                schema_ready=False,
+                smtp_configured=smtp_configured,
+            )
+
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                if not self._incident_notification_schema_ready_with_cursor(cur):
+                    return NexusIncidentNotificationSettings(
+                        enabled=False,
+                        schema_ready=False,
+                        smtp_configured=smtp_configured,
+                    )
+                row = cur.execute(
+                    """
+                    SELECT *
+                    FROM nexus_incident_notification_setting
+                    WHERE setting_key = 'default'
+                    """
+                ).fetchone()
+                if row is None:
+                    row = cur.execute(
+                        """
+                        INSERT INTO nexus_incident_notification_setting (setting_key)
+                        VALUES ('default')
+                        RETURNING *
+                        """
+                    ).fetchone()
+                    conn.commit()
+                contacts = self._current_shift_contacts_with_cursor(cur, datetime.now(timezone.utc))
+                queue_row = cur.execute(
+                    """
+                    SELECT COUNT(*) AS pending_deliveries
+                    FROM nexus_incident_notification_delivery
+                    WHERE status IN ('PENDING', 'PROCESSING', 'RETRY')
+                    """
+                ).fetchone()
+                latest_row = cur.execute(
+                    """
+                    SELECT status, COALESCE(delivered_at, updated_at) AS last_delivery_at, last_error
+                    FROM nexus_incident_notification_delivery
+                    ORDER BY updated_at DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+
+        return NexusIncidentNotificationSettings(
+            enabled=bool(row["enabled"]),
+            notify_current_shift=bool(row["notify_current_shift"]),
+            in_app_enabled=bool(row["in_app_enabled"]),
+            email_enabled=bool(row["email_enabled"]),
+            notify_on_recovery=bool(row["notify_on_recovery"]),
+            additional_email_recipients=list(row["additional_email_recipients"] or []),
+            schema_ready=True,
+            smtp_configured=smtp_configured,
+            active_shift_recipient_count=len(contacts),
+            additional_email_recipient_count=len(row["additional_email_recipients"] or []),
+            pending_deliveries=int(queue_row["pending_deliveries"] or 0) if queue_row else 0,
+            last_delivery_status=latest_row["status"] if latest_row else None,
+            last_delivery_at=latest_row["last_delivery_at"] if latest_row else None,
+            last_delivery_error=latest_row["last_error"] if latest_row else None,
+            updated_at=row["updated_at"],
+            updated_by=row["updated_by"],
+        )
+
+    def update_incident_notification_settings(
+        self,
+        request: NexusIncidentNotificationSettingsUpdate,
+        *,
+        updated_by: str,
+    ) -> NexusIncidentNotificationSettings:
+        if not self._use_postgres:
+            raise RuntimeError("Nexus incident notifications require the shared SentinelOps PostgreSQL database.")
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                if not self._incident_notification_schema_ready_with_cursor(cur):
+                    raise RuntimeError(
+                        "Apply migration 2026_19_add_nexus_incident_notifications.sql before configuring notifications."
+                    )
+                cur.execute(
+                    """
+                    INSERT INTO nexus_incident_notification_setting (
+                        setting_key, enabled, notify_current_shift, in_app_enabled,
+                        email_enabled, notify_on_recovery, additional_email_recipients,
+                        updated_at, updated_by
+                    )
+                    VALUES ('default', %s, %s, %s, %s, %s, %s::text[], now(), %s)
+                    ON CONFLICT (setting_key) DO UPDATE SET
+                        enabled = EXCLUDED.enabled,
+                        notify_current_shift = EXCLUDED.notify_current_shift,
+                        in_app_enabled = EXCLUDED.in_app_enabled,
+                        email_enabled = EXCLUDED.email_enabled,
+                        notify_on_recovery = EXCLUDED.notify_on_recovery,
+                        additional_email_recipients = EXCLUDED.additional_email_recipients,
+                        updated_at = now(),
+                        updated_by = EXCLUDED.updated_by
+                    """,
+                    (
+                        request.enabled,
+                        request.notify_current_shift,
+                        request.in_app_enabled,
+                        request.email_enabled,
+                        request.notify_on_recovery,
+                        request.additional_email_recipients,
+                        updated_by,
+                    ),
+                )
+            conn.commit()
+        return self.get_incident_notification_settings()
+
+    @staticmethod
+    def _current_shift_contacts_with_cursor(cur: Any, reference_time: datetime) -> list[dict[str, Any]]:
+        availability = cur.execute(
+            """
+            SELECT
+                to_regclass('checklist_participants') IS NOT NULL AS participants_ready,
+                to_regclass('checklist_instances') IS NOT NULL AS instances_ready,
+                to_regclass('users') IS NOT NULL AS users_ready
+            """
+        ).fetchone()
+        if not availability or not all(
+            bool(availability[column])
+            for column in ("participants_ready", "instances_ready", "users_ready")
+        ):
+            return []
+
+        rows = cur.execute(
+            """
+            SELECT DISTINCT
+                cp.user_id::text AS id,
+                u.email,
+                COALESCE(
+                    NULLIF(BTRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+                    NULLIF(BTRIM(u.username), ''),
+                    NULLIF(BTRIM(u.email), ''),
+                    'SentinelOps operator'
+                ) AS recipient_name
+            FROM checklist_participants cp
+            JOIN checklist_instances ci ON ci.id = cp.instance_id
+            JOIN users u ON u.id = cp.user_id
+            WHERE ci.shift_start <= %s
+              AND ci.shift_end > %s
+              AND COALESCE(ci.status::text, 'OPEN') IN ('OPEN', 'IN_PROGRESS', 'PENDING_REVIEW')
+            """,
+            (reference_time, reference_time),
+        ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "email": str(row["email"] or "").strip().lower(),
+                "recipient_name": row["recipient_name"],
+            }
+            for row in rows
+        ]
+
+    def list_current_shift_participant_contacts(
+        self,
+        reference_time: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        if not self._use_postgres:
+            return []
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                return self._current_shift_contacts_with_cursor(
+                    cur,
+                    reference_time or datetime.now(timezone.utc),
+                )
+
+    def claim_next_incident_notification(self, worker_id: str) -> dict[str, Any] | None:
+        if not self._use_postgres:
+            return None
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                if not self._incident_notification_schema_ready_with_cursor(cur):
+                    return None
+                row = cur.execute(
+                    """
+                    WITH candidate AS (
+                        SELECT delivery_key
+                        FROM nexus_incident_notification_delivery
+                        WHERE (
+                            status IN ('PENDING', 'RETRY')
+                            AND next_attempt_at <= now()
+                        ) OR (
+                            status = 'PROCESSING'
+                            AND claimed_at < now() - INTERVAL '5 minutes'
+                        )
+                        ORDER BY next_attempt_at, created_at
+                        FOR UPDATE SKIP LOCKED
+                        LIMIT 1
+                    )
+                    UPDATE nexus_incident_notification_delivery AS delivery
+                    SET status = 'PROCESSING',
+                        claimed_at = now(),
+                        claimed_by = %s,
+                        attempts = delivery.attempts + 1,
+                        updated_at = now()
+                    FROM candidate
+                    WHERE delivery.delivery_key = candidate.delivery_key
+                    RETURNING delivery.*
+                    """,
+                    (worker_id,),
+                ).fetchone()
+            conn.commit()
+        return dict(row) if row else None
+
+    @staticmethod
+    def _incident_notification_copy(delivery: dict[str, Any]) -> tuple[str, str, str]:
+        payload = delivery.get("payload") or {}
+        incident = payload.get("incident") or {}
+        event_type = str(delivery.get("event_type") or payload.get("event_type") or "OPENED")
+        title = str(incident.get("title") or "Sentinel Nexus incident")
+        if event_type == "RECOVERED":
+            notification_title = f"Nexus recovery: {title}"
+            status_copy = "Operational impact has ended. Nexus is monitoring recovery and awaiting the operator verdict."
+            priority = "low"
+        else:
+            risk_level = str(incident.get("risk_level") or "MEDIUM").upper()
+            notification_title = f"Nexus {risk_level} incident: {title}"
+            status_copy = str(incident.get("summary") or "Nexus detected a correlated service incident.")
+            priority = "high" if risk_level in {"HIGH", "CRITICAL"} else "medium"
+        root = incident.get("suspected_root_service_name") or incident.get("suspected_root_service")
+        message = status_copy
+        if root:
+            message = f"{message} Probable root cause: {root}."
+        return notification_title[:240], message[:1600], priority
+
+    def create_incident_in_app_notifications(
+        self,
+        delivery: dict[str, Any],
+        contacts: list[dict[str, Any]],
+    ) -> int:
+        if not contacts:
+            return 0
+        title, message, priority = self._incident_notification_copy(delivery)
+        incident_id = str(delivery["incident_id"])
+        delivered = 0
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                for contact in contacts:
+                    user_id = str(contact.get("id") or "").strip()
+                    if not self._is_uuid_string(user_id):
+                        logger.warning("Skipping Nexus in-app notification for invalid user id %s", user_id)
+                        continue
+                    notification_id = str(
+                        uuid5(NAMESPACE_URL, f"nexus-notification:{delivery['delivery_key']}:{user_id}")
+                    )
+                    inserted = cur.execute(
+                        """
+                        INSERT INTO notifications (
+                            id, user_id, title, message, related_entity,
+                            related_id, is_read, created_at
+                        )
+                        VALUES (%s::uuid, %s::uuid, %s, %s, 'nexus_incident', %s::uuid, FALSE, now())
+                        ON CONFLICT (id) DO NOTHING
+                        RETURNING id::text, user_id::text, title, message,
+                                  related_entity, related_id::text, is_read, created_at
+                        """,
+                        (notification_id, user_id, title, message, incident_id),
+                    ).fetchone()
+                    if inserted:
+                        notification = {
+                            "id": inserted["id"],
+                            "user_id": inserted["user_id"],
+                            "role_id": None,
+                            "title": inserted["title"],
+                            "message": inserted["message"],
+                            "related_entity": inserted["related_entity"],
+                            "related_id": inserted["related_id"],
+                            "is_read": inserted["is_read"],
+                            "created_at": inserted["created_at"].isoformat(),
+                            "priority": priority,
+                        }
+                        cur.execute(
+                            "SELECT pg_notify('sentinelops_notification_created', %s)",
+                            (json.dumps({"user_id": user_id, "notification": notification}),),
+                        )
+                    delivered += 1
+            conn.commit()
+        return delivered
+
+    def complete_incident_notification_delivery(
+        self,
+        delivery_key: str,
+        *,
+        status_value: str,
+        recipient_count: int,
+        delivered_count: int,
+        in_app_delivered: bool,
+        email_delivered: bool,
+        last_error: str | None = None,
+    ) -> None:
+        terminal_statuses = {"SENT", "PARTIAL", "SUPPRESSED", "NO_RECIPIENTS", "FAILED"}
+        if status_value not in terminal_statuses:
+            raise ValueError(f"Unsupported terminal notification status {status_value}")
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE nexus_incident_notification_delivery
+                    SET status = %s,
+                        recipient_count = %s,
+                        delivered_count = %s,
+                        in_app_delivered = %s,
+                        email_delivered = %s,
+                        last_error = %s,
+                        delivered_at = CASE WHEN %s IN ('SENT', 'PARTIAL') THEN now() ELSE delivered_at END,
+                        updated_at = now()
+                    WHERE delivery_key = %s
+                    """,
+                    (
+                        status_value,
+                        max(0, recipient_count),
+                        max(0, delivered_count),
+                        in_app_delivered,
+                        email_delivered,
+                        last_error,
+                        status_value,
+                        delivery_key,
+                    ),
+                )
+            conn.commit()
+
+    def retry_incident_notification_delivery(
+        self,
+        delivery_key: str,
+        *,
+        delay_seconds: int,
+        recipient_count: int,
+        delivered_count: int,
+        in_app_delivered: bool,
+        email_delivered: bool,
+        last_error: str,
+    ) -> None:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE nexus_incident_notification_delivery
+                    SET status = 'RETRY',
+                        next_attempt_at = now() + (%s * INTERVAL '1 second'),
+                        recipient_count = %s,
+                        delivered_count = %s,
+                        in_app_delivered = %s,
+                        email_delivered = %s,
+                        last_error = %s,
+                        updated_at = now()
+                    WHERE delivery_key = %s
+                    """,
+                    (
+                        max(1, delay_seconds),
+                        max(0, recipient_count),
+                        max(0, delivered_count),
+                        in_app_delivered,
+                        email_delivered,
+                        last_error[:2000],
+                        delivery_key,
+                    ),
+                )
+            conn.commit()
 
     def delete_service(self, service_id: str) -> None:
         if not self._use_postgres:
@@ -1835,6 +2372,12 @@ class NexusRepository:
                     (self.CHANGE_RETENTION,),
                 )
 
+                previous_incidents = self._stored_incident_payloads(cur)
+                self._enqueue_incident_notification_transitions(
+                    cur,
+                    previous_incidents=previous_incidents,
+                    current_incidents=payload["incidents"],
+                )
                 cur.execute("DELETE FROM incident_service")
                 cur.execute("DELETE FROM incident")
                 for incident in payload["incidents"]:

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from email.message import EmailMessage
+import hashlib
 from html import escape
 import smtplib
 import ssl
 import threading
+from typing import Iterable
 
 from app.config.settings import settings
 from app.utils.logging import get_logger
@@ -19,6 +21,107 @@ except ImportError:  # pragma: no cover - production should install requirements
 
 
 logger = get_logger(__name__)
+
+
+def send_nexus_incident_notification(
+    *,
+    recipients: Iterable[str],
+    delivery_key: str,
+    event_type: str,
+    incident_id: str,
+    incident_title: str,
+    summary: str,
+    risk_level: str,
+    failure_domain: str,
+    affected_services: list[str],
+    root_service: str | None,
+    started_at: str,
+    ended_at: str | None,
+) -> None:
+    """Deliver one durable Nexus incident email from the outbox worker."""
+    recipient_list = list(
+        dict.fromkeys(
+            recipient.strip().lower()
+            for recipient in recipients
+            if recipient and recipient.strip()
+        )
+    )
+    if not recipient_list:
+        return
+    if not settings.SMTP_HOST or not settings.SMTP_FROM:
+        raise RuntimeError("SMTP_HOST and SMTP_FROM must be configured for Nexus incident email notifications.")
+
+    normalized_event = event_type.strip().upper()
+    normalized_risk = risk_level.strip().upper() or "MEDIUM"
+    subject_prefix = "RECOVERED" if normalized_event == "RECOVERED" else normalized_risk
+    msg = EmailMessage()
+    msg["From"] = settings.SMTP_FROM
+    msg["To"] = settings.SMTP_FROM
+    msg["Bcc"] = ", ".join(recipient_list)
+    msg["Subject"] = f"[Sentinel Nexus] {subject_prefix}: {incident_title}"
+    message_hash = hashlib.sha256(delivery_key.encode("utf-8")).hexdigest()[:32]
+    msg["Message-ID"] = f"<{message_hash}.nexus.incident@sentinelops.local>"
+    state_line = (
+        "Operational impact has ended and Nexus is awaiting the operator verdict."
+        if normalized_event == "RECOVERED"
+        else "Nexus has correlated a new operational incident."
+    )
+    msg.set_content(
+        "\n".join(
+            [
+                "Sentinel Nexus Incident Intelligence",
+                "",
+                state_line,
+                f"Incident: {incident_title}",
+                f"Risk: {normalized_risk}",
+                f"Failure domain: {failure_domain or 'unknown'}",
+                f"Probable root cause: {root_service or 'Pending correlation'}",
+                f"Affected services: {', '.join(affected_services) or 'Pending scope'}",
+                f"Started: {started_at}",
+                *((f"Recovered: {ended_at}",) if ended_at else ()),
+                "",
+                summary,
+                "",
+                f"Incident ID: {incident_id}",
+                "Open Sentinel Nexus Incident Intelligence for live evidence, topology, and the guarded response path.",
+            ]
+        )
+    )
+    msg.add_alternative(
+        _incident_notification_html(
+            event_type=normalized_event,
+            incident_id=incident_id,
+            incident_title=incident_title,
+            summary=summary,
+            risk_level=normalized_risk,
+            failure_domain=failure_domain,
+            affected_services=affected_services,
+            root_service=root_service,
+            started_at=started_at,
+            ended_at=ended_at,
+        ),
+        subtype="html",
+    )
+
+    try:
+        password = settings.SMTP_PASSWORD.get_secret_value() if settings.SMTP_PASSWORD else ""
+        if aiosmtplib is not None:
+            asyncio.run(_send_with_beta_transport(msg, password))
+        else:
+            _send_with_smtplib(msg, password)
+        logger.info(
+            "Sent Nexus %s notification for incident %s to %d recipient(s)",
+            normalized_event.lower(),
+            incident_id,
+            len(recipient_list),
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send Nexus %s notification for incident %s",
+            normalized_event.lower(),
+            incident_id,
+        )
+        raise
 
 
 def send_nexus_control_otp(
@@ -188,6 +291,56 @@ def _control_otp_html(
               <tr><td style="padding:12px 16px;color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;border-top:1px solid rgba(148,163,184,0.13);">Reason</td><td style="padding:12px 16px;text-align:right;color:#e2e8f0;border-top:1px solid rgba(148,163,184,0.13);">{safe_reason}</td></tr>
             </table>
             <p style="margin:22px 0 0;color:#64748b;font-size:12px;line-height:1.6;">If this was not you, ignore the code and alert the SentinelOps administrator. Nexus will reject expired or reused codes automatically.</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+"""
+
+
+def _incident_notification_html(
+    *,
+    event_type: str,
+    incident_id: str,
+    incident_title: str,
+    summary: str,
+    risk_level: str,
+    failure_domain: str,
+    affected_services: list[str],
+    root_service: str | None,
+    started_at: str,
+    ended_at: str | None,
+) -> str:
+    recovered = event_type == "RECOVERED"
+    accent = "#34d399" if recovered else "#fb7185"
+    event_label = "RECOVERY CONFIRMED" if recovered else "INCIDENT DETECTED"
+    safe_services = escape(", ".join(affected_services) or "Pending scope")
+    safe_ended = escape(ended_at or "Still active")
+    return f"""\
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:28px;background:#020617;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#e2e8f0;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;margin:0 auto;border-collapse:separate;border-spacing:0;">
+      <tr>
+        <td style="border-radius:26px;overflow:hidden;border:1px solid rgba(56,189,248,0.25);background:linear-gradient(145deg,#061323,#0b172b 58%,#07111f);box-shadow:0 30px 90px rgba(2,6,23,0.6);">
+          <div style="padding:30px 34px;background:radial-gradient(circle at 12% 0%,rgba(56,189,248,0.24),transparent 34%),radial-gradient(circle at 92% 8%,{accent}24,transparent 32%);">
+            <div style="display:inline-block;padding:7px 12px;border-radius:999px;border:1px solid {accent}66;background:{accent}1f;color:{accent};font-size:11px;font-weight:800;letter-spacing:0.17em;">{event_label}</div>
+            <h1 style="margin:18px 0 10px;color:#f8fafc;font-size:30px;line-height:1.16;">{escape(incident_title)}</h1>
+            <p style="margin:0;color:#cbd5e1;font-size:15px;line-height:1.7;">{escape(summary)}</p>
+          </div>
+          <div style="padding:0 34px 34px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid rgba(148,163,184,0.16);background:rgba(15,23,42,0.72);">
+              <tr><td style="padding:13px 16px;color:#94a3b8;font-size:12px;letter-spacing:0.08em;">RISK</td><td style="padding:13px 16px;text-align:right;color:{accent};font-weight:800;">{escape(risk_level)}</td></tr>
+              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">FAILURE DOMAIN</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(failure_domain or 'unknown')}</td></tr>
+              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">ROOT CANDIDATE</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(root_service or 'Pending correlation')}</td></tr>
+              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">AFFECTED SERVICES</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{safe_services}</td></tr>
+              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">STARTED</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(started_at)}</td></tr>
+              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">RECOVERY</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{safe_ended}</td></tr>
+            </table>
+            <p style="margin:22px 0 5px;color:#cbd5e1;font-size:13px;line-height:1.6;">Open Sentinel Nexus Incident Intelligence for the live evidence fabric, dependency scope, and guarded response path.</p>
+            <p style="margin:0;color:#64748b;font-size:11px;">Incident ID: {escape(incident_id)}</p>
           </div>
         </td>
       </tr>

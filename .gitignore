@@ -72,6 +72,8 @@ desktop.ini
 # =========================
 *.log
 logs/
+# Operational captures can contain customer and transaction context.
+*loganalysis*.txt
 
 # =========================
 # 🧭 Misc

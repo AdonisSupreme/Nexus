@@ -9,7 +9,7 @@ from hmac import compare_digest
 import json
 import re
 import secrets
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
 
@@ -54,6 +54,8 @@ from app.nexus.models import (
     ManagedSopValidationRequest,
     NexusEvidence,
     NexusIncident,
+    NexusIncidentNotificationSettings,
+    NexusIncidentNotificationSettingsUpdate,
     NexusState,
     OperatorFeedback,
     RestartActionRequest,
@@ -110,6 +112,7 @@ class NexusService:
         self.database_connection_tester = NexusDatabaseConnectionTester()
         self.state = NexusState()
         self._last_network_sync_at: datetime | None = None
+        self._incident_notification_wakeup: Callable[[], None] | None = None
 
     def startup(self) -> None:
         self.state = self.repository.load_state()
@@ -124,6 +127,34 @@ class NexusService:
             )
             self._rebuild_incidents()
             self.repository.persist_state(self.state)
+
+    def set_incident_notification_wakeup(self, callback: Callable[[], None] | None) -> None:
+        self._incident_notification_wakeup = callback
+
+    def get_incident_notification_settings(self) -> NexusIncidentNotificationSettings:
+        return self.repository.get_incident_notification_settings()
+
+    def update_incident_notification_settings(
+        self,
+        request: NexusIncidentNotificationSettingsUpdate,
+        *,
+        updated_by: str,
+    ) -> NexusIncidentNotificationSettings:
+        saved = self.repository.update_incident_notification_settings(request, updated_by=updated_by)
+        audit_logger.log(
+            event_type="nexus_incident_notification_settings_updated",
+            user=updated_by,
+            details={
+                "enabled": saved.enabled,
+                "notify_current_shift": saved.notify_current_shift,
+                "in_app_enabled": saved.in_app_enabled,
+                "email_enabled": saved.email_enabled,
+                "notify_on_recovery": saved.notify_on_recovery,
+                "additional_email_recipient_count": len(saved.additional_email_recipients),
+            },
+        )
+        self._wake_incident_notifications()
+        return saved
 
     def list_incidents(self) -> list[NexusIncident]:
         self._ensure_live_state()
@@ -2365,6 +2396,7 @@ class NexusService:
         self._update_fabric_summary()
         self._normalize_state_datetimes()
         self.repository.persist_state(self.state)
+        self._wake_incident_notifications()
 
     def _refresh_and_persist_telemetry(self, *, signals: list[SignalEvent], changes: list[ChangeEvent]) -> None:
         self._normalize_state_datetimes()
@@ -2375,6 +2407,15 @@ class NexusService:
             self.repository.persist_telemetry_update(self.state, signals=signals, changes=changes)
         else:
             self.repository.persist_state(self.state)
+        self._wake_incident_notifications()
+
+    def _wake_incident_notifications(self) -> None:
+        if self._incident_notification_wakeup is None:
+            return
+        try:
+            self._incident_notification_wakeup()
+        except Exception:
+            logger.exception("Failed to wake the Nexus incident notification dispatcher")
 
     @staticmethod
     def _describe_executor_failure(exc: Exception) -> tuple[str, list[str], dict[str, object]]:

@@ -24,7 +24,6 @@ from app.nexus.unauthorized_clearing import (
 from app.utils.logging import get_logger
 from app.utils.sentinelops_auth import (
     get_current_sentinelops_user,
-    has_nexus_section_access,
     require_nexus_access,
     require_nexus_admin,
     require_nexus_clearing_approver,
@@ -467,9 +466,7 @@ async def list_clearing_audit(
 async def clearing_realtime(websocket: WebSocket, token: str = Query(...)) -> None:
     try:
         user = await get_current_sentinelops_user(f"Bearer {token}")
-        if not has_nexus_section_access(user):
-            await websocket.close(code=4403, reason="Funds Custody access denied")
-            return
+        # The shared middleware enforces funds_custody.workspace for this stream.
     except HTTPException:
         await websocket.close(code=4401, reason="Authentication failed")
         return

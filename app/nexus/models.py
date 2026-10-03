@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 Severity = Literal["INFO", "WARN", "CRITICAL"]
@@ -861,6 +862,49 @@ class ServiceControlExecuteRequest(BaseModel):
     operation: ServiceControlOperation
     reason: str | None = None
     requested_by: str = ""
+
+
+class NexusIncidentNotificationSettingsUpdate(BaseModel):
+    enabled: bool = True
+    notify_current_shift: bool = True
+    in_app_enabled: bool = True
+    email_enabled: bool = True
+    notify_on_recovery: bool = True
+    additional_email_recipients: list[str] = Field(default_factory=list, max_length=50)
+
+    @field_validator("additional_email_recipients", mode="before")
+    @classmethod
+    def validate_additional_email_recipients(cls, value: object) -> list[str]:
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise ValueError("additional_email_recipients must be a list of email addresses")
+
+        recipients: list[str] = []
+        seen: set[str] = set()
+        for raw_value in value:
+            recipient = str(raw_value).strip().lower()
+            if not recipient:
+                continue
+            if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", recipient):
+                raise ValueError(f"Invalid additional notification email address: {raw_value}")
+            if recipient not in seen:
+                seen.add(recipient)
+                recipients.append(recipient)
+        return recipients
+
+
+class NexusIncidentNotificationSettings(NexusIncidentNotificationSettingsUpdate):
+    schema_ready: bool = True
+    smtp_configured: bool = False
+    active_shift_recipient_count: int = 0
+    additional_email_recipient_count: int = 0
+    pending_deliveries: int = 0
+    last_delivery_status: str | None = None
+    last_delivery_at: datetime | None = None
+    last_delivery_error: str | None = None
+    updated_at: datetime | None = None
+    updated_by: str | None = None
 
 
 class RolloverConnectionProfile(BaseModel):
