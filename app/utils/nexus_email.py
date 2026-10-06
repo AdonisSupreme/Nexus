@@ -1,6 +1,7 @@
 """Email utilities for Sentinel Nexus operator control gates."""
 
 from __future__ import annotations
+from app.utils.email_design import render_email
 
 import asyncio
 from email.message import EmailMessage
@@ -261,43 +262,7 @@ def _control_otp_html(
     expires_minutes: int,
     reason: str | None,
 ) -> str:
-    safe_operator = escape(operator_name)
-    safe_service = escape(service_name)
-    safe_service_id = escape(service_id)
-    safe_operation = escape(operation.upper())
-    safe_code = escape(code)
-    safe_reason = escape(reason or "No operator reason supplied.")
-    return f"""\
-<!DOCTYPE html>
-<html>
-  <body style="margin:0;padding:28px;background:#020617;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#e2e8f0;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;margin:0 auto;border-collapse:separate;border-spacing:0;">
-      <tr>
-        <td style="border-radius:28px;overflow:hidden;border:1px solid rgba(34,211,238,0.28);box-shadow:0 28px 80px rgba(2,6,23,0.58);background:linear-gradient(145deg,#04111f 0%,#091427 52%,#07101d 100%);">
-          <div style="padding:30px 34px;background:radial-gradient(circle at 18% 0%,rgba(34,211,238,0.28),transparent 34%),radial-gradient(circle at 88% 12%,rgba(236,72,153,0.18),transparent 28%);">
-            <div style="display:inline-block;padding:7px 12px;border-radius:999px;background:rgba(34,211,238,0.14);color:#67e8f9;font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;">Sentinel Nexus Control Gate</div>
-            <h1 style="margin:18px 0 8px;font-size:31px;line-height:1.12;color:#f8fafc;">Verify {safe_operation} for {safe_service}</h1>
-            <p style="margin:0;color:#cbd5e1;font-size:15px;line-height:1.7;">Nexus is holding this control action until you confirm the one-time phrase below. This protects production-grade services from accidental or impersonated execution.</p>
-          </div>
-          <div style="padding:28px 34px 34px;">
-            <div style="margin:0 0 22px;padding:22px;border-radius:22px;background:linear-gradient(135deg,rgba(34,211,238,0.13),rgba(59,130,246,0.08));border:1px solid rgba(34,211,238,0.22);text-align:center;">
-              <div style="color:#94a3b8;font-size:12px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;">One-time verification code</div>
-              <div style="margin-top:10px;color:#ffffff;font-size:42px;font-weight:900;letter-spacing:0.24em;">{safe_code}</div>
-              <div style="margin-top:8px;color:#fbbf24;font-size:13px;">Expires in {expires_minutes} minutes</div>
-            </div>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:rgba(15,23,42,0.66);border-radius:18px;overflow:hidden;border:1px solid rgba(148,163,184,0.16);">
-              <tr><td style="padding:12px 16px;color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Operator</td><td style="padding:12px 16px;text-align:right;color:#e2e8f0;">{safe_operator}</td></tr>
-              <tr><td style="padding:12px 16px;color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;border-top:1px solid rgba(148,163,184,0.13);">Service ID</td><td style="padding:12px 16px;text-align:right;color:#e2e8f0;border-top:1px solid rgba(148,163,184,0.13);">{safe_service_id}</td></tr>
-              <tr><td style="padding:12px 16px;color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;border-top:1px solid rgba(148,163,184,0.13);">Reason</td><td style="padding:12px 16px;text-align:right;color:#e2e8f0;border-top:1px solid rgba(148,163,184,0.13);">{safe_reason}</td></tr>
-            </table>
-            <p style="margin:22px 0 0;color:#64748b;font-size:12px;line-height:1.6;">If this was not you, ignore the code and alert the SentinelOps administrator. Nexus will reject expired or reused codes automatically.</p>
-          </div>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
-"""
+    return render_email(badge="Nexus control verification", headline=f"Verify {operation.upper()} for {service_name}", intro="Return to your active control request and enter this one-time code to confirm the operation.", code=code, code_hint=f"Expires in {expires_minutes} minutes", metadata=[("Operator", operator_name), ("Service ID", service_id), ("Operation", operation.upper()), ("Reason", reason or "No operator reason supplied.")], lines=["If this was not you, ignore the code and alert the SentinelOps administrator. Expired or reused codes are rejected."])
 
 
 def _incident_notification_html(
@@ -314,37 +279,4 @@ def _incident_notification_html(
     ended_at: str | None,
 ) -> str:
     recovered = event_type == "RECOVERED"
-    accent = "#34d399" if recovered else "#fb7185"
-    event_label = "RECOVERY CONFIRMED" if recovered else "INCIDENT DETECTED"
-    safe_services = escape(", ".join(affected_services) or "Pending scope")
-    safe_ended = escape(ended_at or "Still active")
-    return f"""\
-<!DOCTYPE html>
-<html>
-  <body style="margin:0;padding:28px;background:#020617;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#e2e8f0;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;margin:0 auto;border-collapse:separate;border-spacing:0;">
-      <tr>
-        <td style="border-radius:26px;overflow:hidden;border:1px solid rgba(56,189,248,0.25);background:linear-gradient(145deg,#061323,#0b172b 58%,#07111f);box-shadow:0 30px 90px rgba(2,6,23,0.6);">
-          <div style="padding:30px 34px;background:radial-gradient(circle at 12% 0%,rgba(56,189,248,0.24),transparent 34%),radial-gradient(circle at 92% 8%,{accent}24,transparent 32%);">
-            <div style="display:inline-block;padding:7px 12px;border-radius:999px;border:1px solid {accent}66;background:{accent}1f;color:{accent};font-size:11px;font-weight:800;letter-spacing:0.17em;">{event_label}</div>
-            <h1 style="margin:18px 0 10px;color:#f8fafc;font-size:30px;line-height:1.16;">{escape(incident_title)}</h1>
-            <p style="margin:0;color:#cbd5e1;font-size:15px;line-height:1.7;">{escape(summary)}</p>
-          </div>
-          <div style="padding:0 34px 34px;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid rgba(148,163,184,0.16);background:rgba(15,23,42,0.72);">
-              <tr><td style="padding:13px 16px;color:#94a3b8;font-size:12px;letter-spacing:0.08em;">RISK</td><td style="padding:13px 16px;text-align:right;color:{accent};font-weight:800;">{escape(risk_level)}</td></tr>
-              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">FAILURE DOMAIN</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(failure_domain or 'unknown')}</td></tr>
-              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">ROOT CANDIDATE</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(root_service or 'Pending correlation')}</td></tr>
-              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">AFFECTED SERVICES</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{safe_services}</td></tr>
-              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">STARTED</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{escape(started_at)}</td></tr>
-              <tr><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);color:#94a3b8;font-size:12px;letter-spacing:0.08em;">RECOVERY</td><td style="padding:13px 16px;border-top:1px solid rgba(148,163,184,0.13);text-align:right;color:#e2e8f0;">{safe_ended}</td></tr>
-            </table>
-            <p style="margin:22px 0 5px;color:#cbd5e1;font-size:13px;line-height:1.6;">Open Sentinel Nexus Incident Intelligence for the live evidence fabric, dependency scope, and guarded response path.</p>
-            <p style="margin:0;color:#64748b;font-size:11px;">Incident ID: {escape(incident_id)}</p>
-          </div>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
-"""
+    return render_email(badge="Recovery confirmed" if recovered else "Incident detected", headline=incident_title, intro=summary, metadata=[("Risk", risk_level), ("Failure domain", failure_domain or "unknown"), ("Root candidate", root_service or "Pending correlation"), ("Affected services", ", ".join(affected_services) or "Pending scope"), ("Started", started_at), ("Recovery", ended_at or "Still active"), ("Incident ID", incident_id)], lines=["Open Sentinel Nexus Incident Intelligence for live evidence, topology and the guarded response path."])
