@@ -657,8 +657,8 @@ def test_execution_item_evidence_is_scoped_to_its_sealed_transaction():
     assert list(projected["fingerprint-b"]["before"]["balance_rows"]) == ["BAL-B"]
 
 
-@pytest.mark.parametrize("mode", ["QUEUE_PARTIAL", "BALANCE_ALL"])
-def test_partial_and_full_row_payloads_preserve_queue_records(mode):
+@pytest.mark.parametrize("mode", ["QUEUE_PARTIAL"])
+def test_partial_payload_preserves_the_unreleased_queue_record(mode):
     payload = build_execution_payload(
         ready_batch(operation_mode=mode, delete_queue=False, clear_amount="25.00"),
         "CHG-002",
@@ -1101,3 +1101,114 @@ def test_rejected_payload_never_starts_oracle_mutation():
     )
     repository.approve_and_start_execution.assert_not_called()
     oracle.execute_atomic.assert_not_called()
+
+def full_clear_batch(queue_rows=None):
+    transaction = make_transaction(operation_mode='BALANCE_ALL', amount='134.40', charge='0', clear_amount='134.40')
+    queues = queue_rows if queue_rows is not None else [queue('Q1'), queue('Q2')]
+    results, _, _ = reconcile_transactions([transaction], oracle_state(balances=[balance(amount='134.40')],queues=queues))
+    evidence = results[transaction['fingerprint']]
+    transaction.update(selected=True,reconciliation_state=evidence['state'],reconciliation_payload=evidence)
+    return {'batch_id':'batch-full','finance_reference':'FIN-FULL','source_sha256':'a'*64,'transactions':[transaction]}
+
+
+def test_full_clear_includes_both_queues_but_preserves_other_currency_and_credit_rows():
+    rows = [queue('Q1'),queue('Q2'),queue('Q-USD',account_currency='USD'),queue('Q-CREDIT',flag='C')]
+    payload = build_execution_payload(full_clear_batch(rows),'CHG','Full authority')
+    assert {row['row_id'] for row in payload['queue_deletions']} == {'Q1','Q2'}
+    assert payload['balance_mutations'][0]['after'] == '0.00'
+    assert payload['full_debit_scope_version'] == 1
+    assert all(row['charge']=='2.20' for row in payload['queue_deletions'])
+    # Actual queue dates/amounts survive the synthetic BAL-* full-balance identity.
+    assert all(row['rrn']=='613506493636' for row in payload['queue_deletions'])
+
+
+def test_full_clear_requires_new_evidence_and_cannot_be_partial():
+    batch=ready_batch(operation_mode='BALANCE_ALL',delete_queue=False,clear_amount='25.00')
+    with pytest.raises(ValueError,match='evidence is missing'):
+        build_execution_payload(batch,'CHG','')
+    batch['transactions'][0]['reconciliation_payload']['full_debit_queues']=[]
+    with pytest.raises(ValueError,match='zero unauthorized'):
+        build_execution_payload(batch,'CHG','')
+
+
+def test_full_clear_blocks_queues_exceeding_authority():
+    batch=full_clear_batch([queue('Q1'),queue('Q2'),queue('Q3')])
+    assert batch['transactions'][0]['reconciliation_state']=='BLOCKED'
+    with pytest.raises(ValueError): build_execution_payload(batch,'CHG','')
+
+
+class AtomicCursor:
+    def __init__(self, fail_delete=False):
+        self.amount=Decimal('134.40'); self.queues={'Q1','Q2'}; self.sql=''; self.params={}; self.rowcount=1; self.fail_delete=fail_delete
+    def execute(self,sql,params=None):
+        self.sql=sql; self.params=params or {}; self.rowcount=1
+        if 'UPDATE ACNTBAL' in sql: self.amount-=self.params['delta']
+        if 'DELETE FROM ASIBGPQNP' in sql:
+            if self.fail_delete: self.rowcount=0
+            else: self.queues.remove(self.params['row_id'])
+    @property
+    def description(self):
+        names = ['row_id','entity_num','internal_account','currency','unauth_db_sum','debit_queue_amount'] if 'FROM ACNTBAL' in self.sql else ['row_id','internal_account','entry_date','rrn','stan','amount','fee','processing_fee','card_billing_fee','currency','account_currency','debit_credit_flag']
+        return [(name,) for name in names]
+    def fetchone(self):
+        if 'FOR UPDATE' in self.sql:
+            if 'FROM ACNTBAL' in self.sql: return ('DB-ZWG',1,'1102800003627','ZWG',self.amount,0)
+            return (self.params['row_id'],'1102800003627',date(2026,7,22),'613506493636','493636',Decimal('65'),Decimal('2.20'),Decimal('.30'),Decimal('.10'),'USD','ZWG','D')
+        if 'COUNT(*)' in self.sql: return (int(self.params['row_id'] in self.queues),)
+        return (self.amount,)
+    def fetchall(self): return [(row,'ZWG','USD','D') for row in sorted(self.queues)]
+    def close(self): pass
+
+
+@pytest.mark.parametrize('fail_delete',[False,True])
+def test_full_clear_atomically_deletes_all_evidenced_queues_or_rolls_back(fail_delete):
+    cursor=AtomicCursor(fail_delete)
+    conn=Mock(); conn.cursor.return_value=cursor
+    def rollback(): cursor.amount=Decimal('134.40'); cursor.queues={'Q1','Q2'}
+    conn.rollback.side_effect=rollback
+    gateway=object.__new__(ClearingOracleGateway)
+    gateway._assert_writes_enabled=Mock(); gateway._connect=Mock(return_value=conn)
+    gateway._capture_insertable_queue_row=Mock(return_value={'columns':[]})
+    payload=build_execution_payload(full_clear_batch(),'CHG','')
+    if fail_delete:
+        with pytest.raises(RuntimeError,match='queue deletion'): gateway.execute_atomic(payload,execution_id='execution')
+        conn.commit.assert_not_called(); conn.rollback.assert_called_once()
+        assert cursor.amount==Decimal('134.40') and cursor.queues=={'Q1','Q2'}
+    else:
+        result=gateway.execute_atomic(payload,execution_id='execution')
+        conn.commit.assert_called_once()
+        assert cursor.amount==0 and not cursor.queues
+        assert len(result['queue_deletions'])==2
+
+
+def test_full_clear_rejects_a_new_queue_after_approval():
+    cursor=AtomicCursor(); cursor.queues.add('Q-NEW')
+    conn=Mock(); conn.cursor.return_value=cursor
+    gateway=object.__new__(ClearingOracleGateway)
+    gateway._assert_writes_enabled=Mock(); gateway._connect=Mock(return_value=conn)
+    with pytest.raises(RuntimeError,match='scope changed'):
+        gateway.execute_atomic(build_execution_payload(full_clear_batch(),'CHG',''),execution_id='execution')
+    conn.commit.assert_not_called(); conn.rollback.assert_called_once()
+    assert cursor.amount==Decimal('134.40')
+
+def test_exact_queue_clear_removes_only_selected_queue_and_preserves_residual():
+    cursor=AtomicCursor()
+    conn=Mock(); conn.cursor.return_value=cursor
+    gateway=object.__new__(ClearingOracleGateway)
+    gateway._assert_writes_enabled=Mock(); gateway._connect=Mock(return_value=conn)
+    gateway._capture_insertable_queue_row=Mock(return_value={'columns':[]})
+    batch=ready_batch()
+    resolution=batch['transactions'][0]['reconciliation_payload']['debit_resolution']
+    resolution.update(current='134.40',after='67.20')
+    result=gateway.execute_atomic(build_execution_payload(batch,'CHG',''),execution_id='exact')
+    conn.commit.assert_called_once()
+    assert cursor.queues=={'Q2'} and cursor.amount==Decimal('67.20')
+    assert [row['row_id'] for row in result['queue_deletions']]==['Q1']
+
+
+def test_old_full_approval_cannot_execute_balance_only():
+    gateway=object.__new__(ClearingOracleGateway)
+    gateway._assert_writes_enabled=Mock(); gateway._connect=Mock()
+    with pytest.raises(ValueError,match='predates'):
+        gateway.execute_atomic({'transactions':[{'operation_mode':'BALANCE_ALL'}]},execution_id='old')
+    gateway._connect.assert_not_called()

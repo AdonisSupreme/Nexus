@@ -284,9 +284,15 @@ class HoveringQueueGateway:
         lookup: str | None,
         created_from: datetime | None,
         created_to: datetime | None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         clauses = ["credit_account = %s", "type = %s"]
         params: list[Any] = [settings.NEXUS_HOVERING_CREDIT_ACCOUNT, settings.NEXUS_HOVERING_TYPE]
+        if description is not None:
+            if status_filter != 'FAILED':
+                raise ValueError('Failure reasons can only filter failed records.')
+            clauses.append("BTRIM(COALESCE(description, '')) = %s")
+            params.append(description.strip())
         if status_filter:
             normalized_status = status_filter.upper()
             if normalized_status not in HOVERING_STATUSES:
@@ -604,27 +610,27 @@ class HoveringMonitorRepository:
             connection.commit()
         return dict(row)
 
-    def recent_actions(self, limit: int = 20) -> list[dict[str, Any]]:
+    def recent_actions(self, limit: int = 20, offset: int = 0) -> list[dict[str, Any]]:
         with self._connection() as connection:
             rows = connection.execute(
                 """
                 SELECT * FROM nexus_hovering_date_action
-                ORDER BY created_at DESC
-                LIMIT %s
+                ORDER BY created_at DESC, action_id DESC
+                LIMIT %s OFFSET %s
                 """,
-                (max(1, min(limit, 100)),),
+                (max(1, min(limit, 100)), max(0, offset)),
             ).fetchall()
         return [dict(row) for row in rows]
 
-    def policy_audit(self, limit: int = 20) -> list[dict[str, Any]]:
+    def policy_audit(self, limit: int = 20, offset: int = 0) -> list[dict[str, Any]]:
         with self._connection() as connection:
             rows = connection.execute(
                 """
                 SELECT * FROM nexus_hovering_policy_audit
-                ORDER BY changed_at DESC
-                LIMIT %s
+                ORDER BY changed_at DESC, audit_id DESC
+                LIMIT %s OFFSET %s
                 """,
-                (max(1, min(limit, 100)),),
+                (max(1, min(limit, 100)), max(0, offset)),
             ).fetchall()
         return [dict(row) for row in rows]
 

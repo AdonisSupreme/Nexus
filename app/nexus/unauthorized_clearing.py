@@ -2843,6 +2843,13 @@ class ClearingOracleGateway:
             }
         )
 
+    @staticmethod
+    def _full_debit_queue_ids(cursor, internal_account, currency):
+        cursor.execute("""SELECT ROWIDTOCHAR(ROWID), TRIM(BGPQ_ACT_CCY), TRIM(BGPQ_CCY_CODE), TRIM(BGPQ_FLG_DRCR)
+            FROM ASIBGPQNP WHERE BGPQ_INT_ACCT_1 = :internal_account""", {"internal_account": internal_account})
+        rows = [{"row_id": row[0], "account_currency": row[1], "currency": row[2], "debit_credit_flag": row[3]} for row in cursor.fetchall()]
+        return {row["row_id"] for row in rows if not _is_explicit_credit_queue(row) and (not _queue_account_currency(row) or _queue_account_currency(row) == _currency(currency))}
+
     def execute_atomic(
         self,
         payload: dict[str, Any],
@@ -2851,6 +2858,9 @@ class ClearingOracleGateway:
         status_callback: Callable[[str], None] | None = None,
     ) -> dict[str, Any]:
         self._assert_writes_enabled()
+        full_transactions = [row for row in payload.get("transactions", []) if row.get("operation_mode") == "BALANCE_ALL"]
+        if full_transactions and payload.get("full_debit_scope_version") != 1:
+            raise ValueError("This full-debit approval predates queue-inclusive clearing. Reconcile and approve a fresh payload.")
         callback = status_callback or (lambda _status: None)
         connection = self._connect(read_only=False)
         evidence: dict[str, Any] = {
@@ -2926,6 +2936,13 @@ class ClearingOracleGateway:
                     locked_queues[queue["row_id"]] = locked
 
                 callback("REVALIDATING")
+                full_scopes = []
+                for transaction in full_transactions:
+                    mutation = next(row for row in mutations if row["external_account"] == transaction["from_account"] and _currency(row["currency"]) == _currency(transaction["currency"]) and row["column"] == "ACNTBAL_AC_UNAUTH_DB_SUM")
+                    approved_ids = {row["row_id"] for row in queue_deletions if row.get("fingerprint") == transaction["fingerprint"]}
+                    if self._full_debit_queue_ids(cursor, mutation["internal_account"], mutation["currency"]) != approved_ids:
+                        raise RuntimeError("The full-debit queue scope changed after approval. Reconcile and approve again.")
+                    full_scopes.append(mutation)
                 for mutation in mutations:
                     row = locked_balances[mutation["row_id"]]
                     column = mutation["column"]
@@ -3007,6 +3024,9 @@ class ClearingOracleGateway:
                     if int(cursor.fetchone()[0]) != 0:
                         raise RuntimeError(f"Queue row {queue['row_id']} remains after guarded deletion.")
 
+                for scope in full_scopes:
+                    if self._full_debit_queue_ids(cursor, scope["internal_account"], scope["currency"]):
+                        raise RuntimeError("Debit queue residue detected during full-clear post-validation. The transaction was rolled back.")
                 evidence["before"] = {
                     "balance_rows": locked_balances,
                     "queue_rows": locked_queues,
@@ -3437,6 +3457,7 @@ def reconcile_transactions(
             )
             if item["clear_amount"] > queue_authority:
                 blockers.append("The requested partial clear exceeds the selected queue transaction value.")
+            warnings.append("Partial clearing retains the queue row because its complete debit authority has not been released.")
 
         from_internal = str(item.get("from_internal_account") or "")
         all_account_queues = queues.get(from_internal, [])
@@ -3445,11 +3466,32 @@ def reconcile_transactions(
             for queue in all_account_queues
             if _queue_account_currency(queue) == item["currency"] and not _is_explicit_credit_queue(queue)
         ]
+        full_scope = item["operation_mode"] == "BALANCE_ALL"
+        full_queue_evidence = []
+        if full_scope:
+            if any(not _queue_account_currency(row) and not _is_explicit_credit_queue(row) for row in all_account_queues):
+                blockers.append("A debit queue row has no proven account currency. Resolve it before full clearing.")
+            if mutation_resolution.get("after") is not None and _money(mutation_resolution["after"]) != 0:
+                blockers.append("Full debit authority must clear the complete physical unauthorized debit.")
+            queue_total = sum((_money(row.get("amount", 0)) + _money(row.get("fee", 0)) for row in currency_queues), Decimal("0"))
+            if queue_total > item["clear_amount"]:
+                blockers.append("The evidenced debit queues exceed the full debit authority. Reconcile the difference before clearing.")
+            for row in currency_queues:
+                if not row.get("row_id") or not _oracle_day(row.get("entry_date")):
+                    blockers.append("A debit queue row lacks a physical identity or valid entry date.")
+                full_queue_evidence.append({
+                    **row, "currency": _queue_account_currency(row),
+                    "account_currency": _queue_account_currency(row),
+                    "entry_date": _oracle_day(row.get("entry_date")),
+                    "charge": _money(row.get("fee", 0)),
+                    "from_internal_account": str(row.get("internal_account")),
+                })
         if item["operation_mode"] == "QUEUE_AMOUNT_RESET" and currency_queues:
             blockers.append(
                 "Live queue rows still exist in this currency. Remove the exact rows instead of resetting the physical queue amount."
             )
-        extra_count = sum(1 for queue in all_account_queues if queue["row_id"] not in matched_queue_ids)
+        full_ids = {row.get("row_id") for row in currency_queues} if full_scope else set()
+        extra_count = sum(1 for queue in all_account_queues if queue["row_id"] not in matched_queue_ids | full_ids)
         if extra_count:
             warnings.append(
                 f"{extra_count} unapproved queue row(s) belong to this debit account and will remain untouched."
@@ -3499,6 +3541,8 @@ def reconcile_transactions(
                 state = "READY"
                 explanation = "Mapping, physical balance rows, and the exact queue row reconcile cleanly."
 
+        if full_scope and state in SAFE_STATES:
+            explanation = f"The full unauthorized debit and {len(full_queue_evidence)} evidenced debit queue row(s) in this account currency will clear together."
         queue_match = None
         if len(queue_matches) == 1:
             queue = queue_matches[0]
@@ -3553,6 +3597,7 @@ def reconcile_transactions(
                 "debit_resolution": mutation_resolution,
                 "queue_match": queue_match,
                 "delete_queue": item["operation_mode"] in {"QUEUE_EXACT", "QUEUE_ROW_ONLY"} and queue_match is not None,
+                "full_debit_queues": full_queue_evidence if full_scope else None,
                 "extra_queue_count": extra_count,
             }
         )
@@ -3630,6 +3675,15 @@ def build_execution_payload(batch: dict[str, Any], change_reference: str, note: 
                 raise ValueError("Reconciliation evidence contains conflicting physical balance mutations.")
             mutations[mutation_key] = candidate
         queue = evidence.get("queue_match")
+        if item.get("operation_mode") == "BALANCE_ALL":
+            if not isinstance(evidence.get("full_debit_queues"), list):
+                raise ValueError("Full debit queue evidence is missing. Verify Oracle evidence again before submitting.")
+            if _money(resolution["after"]) != 0:
+                raise ValueError("Full debit authority must leave zero unauthorized debit.")
+            for row in evidence["full_debit_queues"]:
+                if str(row.get("internal_account")) != str(resolution["internal_account"]) or _queue_account_currency(row) != _currency(resolution["currency"]) or _is_explicit_credit_queue(row):
+                    raise ValueError("Full debit queue evidence is outside the approved account and currency.")
+                queue_deletions.append({**row, "fingerprint": item["fingerprint"], "from_internal_account": str(row["internal_account"])})
         if not queue and item.get("operation_mode") in QUEUE_LINKED_MODES:
             raise ValueError(f"Transaction {item['rrn']} has no exact queue evidence.")
         if queue and evidence.get("delete_queue"):
@@ -3665,10 +3719,13 @@ def build_execution_payload(batch: dict[str, Any], change_reference: str, note: 
                 "classification": item["reconciliation_state"],
             }
         )
+    if len({row["row_id"] for row in queue_deletions}) != len(queue_deletions):
+        raise ValueError("The same queue row is included in more than one clearing authority.")
     payload = _plain(
         {
             "batch_id": batch["batch_id"],
             "reconciliation_id": (batch.get("latest_reconciliation") or {}).get("reconciliation_id"),
+            "full_debit_scope_version": 1,
             "finance_reference": batch["finance_reference"],
             "change_reference": change_reference.strip(),
             "submission_note": note.strip(),

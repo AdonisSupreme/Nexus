@@ -170,6 +170,11 @@ class Settings(BaseSettings):
     NEXUS_CRB_FETCH_SIZE: int = Field(default=5000, env="NEXUS_CRB_FETCH_SIZE")
     NEXUS_CRB_REPORT_DIR: Path = Field(default=BASE_DIR / "data" / "reports" / "crb", env="NEXUS_CRB_REPORT_DIR")
     TXN_BOT_DATABASE_URL: SecretStr | None = Field(default=None, env="TXN_BOT_DATABASE_URL")
+    OD_DB_HOST: str | None = None
+    OD_DB_PORT: int = 3306
+    OD_DB_DATABASE: str = 'flexi_doc'
+    OD_DB_USERNAME: str | None = None
+    OD_DB_PASSWORD: SecretStr | None = None
     NEXUS_HOVERING_CREDIT_ACCOUNT: str = Field(default="310004003", env="NEXUS_HOVERING_CREDIT_ACCOUNT")
     NEXUS_HOVERING_TYPE: str = Field(default="LOAN_LEDGER_FEES", env="NEXUS_HOVERING_TYPE")
     NEXUS_HOVERING_TIMEZONE: str = Field(default="Africa/Harare", env="NEXUS_HOVERING_TIMEZONE")

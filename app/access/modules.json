@@ -275,5 +275,14 @@
     "paths": [
       "/funds-custody"
     ]
+  },
+  {
+    "module_key": "reports.personal_loans",
+    "name": "Personal loans — 48 months",
+    "description": "Personal loan queue monitoring and guarded failed-record recovery",
+    "page_key": "Reporting",
+    "paths": [
+      "/reports"
+    ]
   }
 ]

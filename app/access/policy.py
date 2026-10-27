@@ -96,6 +96,7 @@ def required_modules(path, method='GET'):
             return ('reports.hovering_settings',)
         for prefix, key in (
             ('nexus/reports/crb', 'reports.crb'),
+            ('nexus/reports/personal-loans', 'reports.personal_loans'),
             ('nexus/reports/hovering', 'reports.hovering'),
             ('nexus/trustlink/rtgs', 'trustlink.rtgs'),
             ('nexus/clearing', 'funds_custody.workspace'),

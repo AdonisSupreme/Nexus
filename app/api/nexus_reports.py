@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field, SecretStr
 from starlette.concurrency import run_in_threadpool
 
 from app.nexus.crb_reporting import CRBStorageError
 from app.nexus.hovering_monitor import HoveringStorageError
+from app.nexus.queue_recovery import QueueRecovery, HoveringRecoveryGateway
+from app.nexus.personal_loans import PersonalLoanGateway
 from app.utils.logging import get_logger
 from app.utils.sentinelops_auth import (
     has_nexus_admin_role,
@@ -46,6 +48,162 @@ class HoveringDateResolveInput(BaseModel):
 
 class HoveringPolicyInput(BaseModel):
     enabled: bool
+
+
+@router.get('/nexus/reports/personal-loans/overview')
+async def personal_loan_overview(currency: str = '', _: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(PersonalLoanGateway().overview, currency)
+    except Exception as exc:
+        logger.exception('Personal loan source read failed')
+        raise HTTPException(503, 'Personal loan source unavailable. Check the server connection and permissions.') from exc
+
+
+class PersonalReportScope(BaseModel):
+    currency: str = Field(default='', pattern='^(USD|ZWL)?$')
+    status: str = Field(default='', pattern='^(PENDING|SUCCESS|FAILED)?$')
+    lookup: str = Field(default='', max_length=255)
+    branch: str = Field(default='', max_length=100)
+    description: str | None = Field(default=None, max_length=4000)
+    date_basis: str = Field(default='created', pattern='^(created|processed)$')
+    created_from: datetime | None = None
+    created_to: datetime | None = None
+    maturity_after: date | None = None
+    maturity_to: date | None = None
+    pay_from: date | None = None
+    pay_to: date | None = None
+
+
+@router.get('/nexus/reports/personal-loans/records')
+async def personal_loan_records(scope: PersonalReportScope = Depends(), page: int = Query(1, ge=1),
+    _: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(PersonalLoanGateway().records, scope.model_dump(mode='json'), page)
+    except ValueError as exc:
+        raise _http_error(exc) from exc
+    except Exception as exc:
+        logger.exception('Personal loan records unavailable')
+        raise HTTPException(503, 'Personal loan records unavailable. Check the server connection and permissions.') from exc
+
+
+@router.get('/nexus/reports/personal-loans/report')
+async def personal_report(scope: PersonalReportScope = Depends(), _: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(PersonalLoanGateway().report, scope.model_dump(mode='json'))
+    except ValueError as exc:
+        raise _http_error(exc) from exc
+    except Exception as exc:
+        logger.exception('Personal loan report unavailable')
+        raise HTTPException(503, 'Personal loan report unavailable. Check the source connection.') from exc
+
+
+@router.get('/nexus/reports/personal-loans/export')
+async def personal_export(scope: PersonalReportScope = Depends(), _: dict = Depends(require_nexus_access)):
+    try:
+        content = await run_in_threadpool(PersonalLoanGateway().export_csv, scope.model_dump(mode='json'))
+        stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+        return Response(content, media_type='text/csv', headers={
+            'Content-Disposition': f'attachment; filename="personal-loans-{scope.currency or "both"}-{scope.status or "all"}-{stamp}.csv"',
+            'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})
+    except ValueError as exc:
+        raise _http_error(exc) from exc
+    except Exception as exc:
+        logger.exception('Personal loan export unavailable')
+        raise HTTPException(503, 'Report download unavailable. Check the source connection.') from exc
+
+
+@router.get('/nexus/reports/personal-loans/failure-reasons')
+async def personal_failure_reasons(currency: str = '', _: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(PersonalLoanGateway().reasons, currency)
+    except Exception as exc:
+        raise HTTPException(503, 'Failure reasons unavailable.') from exc
+
+
+@router.get('/nexus/reports/personal-loans/custody')
+async def personal_custody(page: int = Query(1, ge=1), _: dict = Depends(require_nexus_admin)):
+    try:
+        result = await run_in_threadpool(QueueRecovery('personal-loans', PersonalLoanGateway()).history, page)
+        return {'recoveries':result['items'], 'date_actions':[], 'policy_audit':[], 'has_more':result['has_more']}
+    except Exception as exc:
+        raise _http_error(exc) from exc
+
+
+class QueueRecoveryInput(BaseModel):
+    currency: str | None = Field(default=None, pattern="^(USD|ZWL)?$")
+    record_ids: list[str] | None = Field(default=None, min_length=1, max_length=500)
+    lookup: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None, max_length=4000)
+    created_from: datetime | None = None
+    created_to: datetime | None = None
+
+
+class PersonalRecoveryInput(QueueRecoveryInput):
+    branch: str | None = Field(default=None, max_length=100)
+    date_basis: str = Field(default='created', pattern='^(created|processed)$')
+    maturity_after: date | None = None
+    maturity_to: date | None = None
+    pay_from: date | None = None
+    pay_to: date | None = None
+
+
+@router.post('/nexus/reports/personal-loans/recovery/prepare')
+async def personal_prepare(payload: PersonalRecoveryInput, user: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(QueueRecovery('personal-loans', PersonalLoanGateway()).prepare, payload.model_dump(mode='json'), _actor(user))
+    except ValueError as exc:
+        raise _http_error(exc) from exc
+    except Exception as exc:
+        logger.exception('Personal loan recovery preparation failed')
+        raise HTTPException(503, 'Recovery preparation unavailable. Check source connectivity and the custody migration.') from exc
+
+
+@router.post('/nexus/reports/personal-loans/recovery/{action_id}/execute')
+async def personal_execute(action_id: str, user: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(QueueRecovery('personal-loans', PersonalLoanGateway()).execute, action_id, _actor(user))
+    except ValueError as exc:
+        raise _http_error(exc) from exc
+    except Exception as exc:
+        raise HTTPException(503, 'Recovery outcome unavailable. Check custody before retrying.') from exc
+
+
+@router.get('/nexus/reports/hovering/failure-reasons')
+async def hovering_failure_reasons(_: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(HoveringRecoveryGateway().reasons)
+    except Exception as exc:
+        raise _http_error(exc) from exc
+
+
+@router.post('/nexus/reports/hovering/recovery/prepare')
+async def hovering_recovery_prepare(payload: QueueRecoveryInput, user: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(QueueRecovery().prepare, payload.model_dump(mode='json'), _actor(user))
+    except Exception as exc:
+        raise _http_error(exc) from exc
+
+
+@router.post('/nexus/reports/hovering/recovery/{action_id}/execute')
+async def hovering_recovery_execute(action_id: str, user: dict = Depends(require_nexus_access)):
+    try:
+        return await run_in_threadpool(QueueRecovery().execute, action_id, _actor(user))
+    except Exception as exc:
+        raise _http_error(exc) from exc
+
+
+@router.get('/nexus/reports/hovering/custody')
+async def hovering_custody(request: Request, page: int = Query(default=1, ge=1), _: dict = Depends(require_nexus_admin)):
+    def read():
+        repo = request.app.state.services.hovering_monitor.repository
+        dates = repo.recent_actions(limit=26, offset=(page-1)*25)
+        policies = repo.policy_audit(limit=26, offset=(page-1)*25)
+        recovery = QueueRecovery().history(page)
+        return {'date_actions': dates[:25], 'policy_audit': policies[:25], 'recoveries': recovery['items'], 'has_more': len(dates)>25 or len(policies)>25 or recovery['has_more']}
+    try:
+        return await run_in_threadpool(read)
+    except Exception as exc:
+        raise _http_error(exc) from exc
 
 
 class HoveringRobotPasswordInput(BaseModel):
@@ -123,10 +281,13 @@ async def download_crb_artifact(
 @router.get("/nexus/reports/hovering/overview")
 async def hovering_overview(
     request: Request,
-    _: dict = Depends(require_nexus_access),
+    user: dict = Depends(require_nexus_access),
 ) -> dict[str, object]:
     try:
-        return await run_in_threadpool(request.app.state.services.hovering_monitor.overview)
+        result = await run_in_threadpool(request.app.state.services.hovering_monitor.overview)
+        if not has_nexus_admin_role(user):
+            result = {**result, "date_actions": [], "policy_audit": []}
+        return result
     except Exception as exc:
         raise _http_error(exc) from exc
 
@@ -140,6 +301,7 @@ async def hovering_records(
     lookup: str | None = Query(default=None, max_length=255),
     created_from: datetime | None = Query(default=None),
     created_to: datetime | None = Query(default=None),
+    description: str | None = Query(default=None, max_length=4000),
     _: dict = Depends(require_nexus_access),
 ) -> dict[str, object]:
     try:
@@ -151,6 +313,7 @@ async def hovering_records(
             lookup=lookup or None,
             created_from=created_from,
             created_to=created_to,
+            description=description,
         )
     except Exception as exc:
         raise _http_error(exc) from exc
