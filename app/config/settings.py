@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     """Centralized configuration validated on startup."""
 
     APP_NAME: str = "SentinelOps AI"
+    SMSAL_HOST: str = ''
+    SMSAL_PORT: int = 5342
+    SMSAL_USERNAME: str = ''
+    SMSAL_PASSWORD: SecretStr | None = None
+    SMSAL_DATABASE: str = 'postgres'
+    SMSAL_TIMEZONE: str = 'Africa/Harare'
+    SMSAL_SSLMODE: str = 'prefer'
     APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = Field(default="development", env="ENVIRONMENT")
     DEBUG: bool = Field(default=False, env="DEBUG")

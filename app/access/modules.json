@@ -284,5 +284,14 @@
     "paths": [
       "/reports"
     ]
+  },
+  {
+    "module_key": "reports.sms",
+    "name": "SMS queue monitoring",
+    "description": "Read-only visibility into SMS queue health and message evidence",
+    "page_key": "Reporting",
+    "paths": [
+      "/reports"
+    ]
   }
 ]

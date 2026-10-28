@@ -16,6 +16,7 @@ from app.utils.sentinelops_auth import get_current_sentinelops_user, _database_d
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from app.api import admin, chat, health, nexus, nexus_clearing, nexus_reports
+from app.api import sms_monitor
 from app.config.settings import settings
 from app.runtime import ApplicationServices
 from app.utils.audit import audit_logger
@@ -143,6 +144,7 @@ app.include_router(chat.router, prefix="/api/v1", tags=["query"])
 app.include_router(nexus.router, prefix="/api/v1", tags=["nexus"])
 app.include_router(nexus_clearing.router, prefix="/api/v1", tags=["nexus-clearing"])
 app.include_router(nexus_reports.router, prefix="/api/v1", tags=["nexus-reports"])
+app.include_router(sms_monitor.router, prefix="/api/v1", tags=["sms-monitoring"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 
 
